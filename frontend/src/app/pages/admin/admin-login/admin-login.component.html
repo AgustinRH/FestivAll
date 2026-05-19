@@ -1,0 +1,14 @@
+<DIV class="admin-login">
+  <DIV class="card">
+    <h1>Panel de administración</h1>
+    <p class="hint">Acceso restringido · FestivAll Admin</p>
+    @if (error) { <p class="error">{{ error }}</p> }
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <input type="email" formControlName="email" placeholder="Email de administrador" />
+      <input type="password" formControlName="password" placeholder="Contraseña" />
+      <button type="submit" [disabled]="form.invalid || loading">
+        {{ loading ? 'Verificando...' : 'Acceder' }}
+      </button>
+    </form>
+  </DIV>
+</DIV>

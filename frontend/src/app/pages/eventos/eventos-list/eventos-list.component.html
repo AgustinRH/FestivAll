@@ -1,0 +1,33 @@
+<app-navbar />
+<main class="eventos-page">
+  <h1>Eventos en Almería</h1>
+
+  <DIV class="search-bar" [formGroup]="filters">
+    <input type="text" placeholder="Buscar eventos..." formControlName="busqueda" />
+    <button type="button" (click)="showFilters = !showFilters">
+      {{ showFilters ? 'Ocultar filtros' : 'Filtros' }}
+    </button>
+  </DIV>
+
+  @if (showFilters) {
+    <DIV class="filters" [formGroup]="filters">
+      <select formControlName="categoriaId">
+        <option value="">Todas las categorías</option>
+        @for (cat of categorias; track cat.id) {
+          <option [value]="cat.id">{{ cat.nombreCategoria }}</option>
+        }
+      </select>
+      <input type="text" placeholder="Localidad..." formControlName="localidad" />
+      <button type="button" class="btn-clear" (click)="clearFilters()">Limpiar</button>
+    </DIV>
+  }
+
+  <DIV class="grid">
+    @for (evento of eventos; track evento.id) {
+      <app-event-card [evento]="evento" />
+    }
+  </DIV>
+  @if (eventos.length === 0) {
+    <p class="empty">No se encontraron eventos.</p>
+  }
+</main>

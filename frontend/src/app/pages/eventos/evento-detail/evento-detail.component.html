@@ -1,0 +1,44 @@
+<app-navbar />
+@if (evento) {
+  <main class="detail-page">
+    <a routerLink="/eventos" class="back">← Volver a eventos</a>
+    <DIV class="detail-grid">
+      <img [src]="imagenUrl" [alt]="evento.titulo" class="cover" />
+      <DIV class="info">
+        <span class="badge">{{ evento.categoria?.nombreCategoria }}</span>
+        <h1>{{ evento.titulo }}</h1>
+        <p class="desc">{{ evento.descripcion }}</p>
+        <ul class="datos">
+          <li><strong>Fecha:</strong> {{ evento.fechaInicio | date:'fullDate':'':'es' }}
+            @if (evento.fechaFin) { – {{ evento.fechaFin | date:'fullDate':'':'es' }} }
+          </li>
+          @if (evento.horaInicio) {
+            <li><strong>Hora:</strong> {{ evento.horaInicio }} @if (evento.horaFin) { – {{ evento.horaFin }} }</li>
+          }
+          <li><strong>Lugar:</strong> {{ evento.ubicacion?.direccion }}, {{ evento.ubicacion?.localidad }}</li>
+          <li><strong>Precio:</strong> {{ evento.precio | currency:'EUR' }}</li>
+          <li><strong>Entradas disponibles:</strong> {{ evento.stock }}</li>
+        </ul>
+
+        @if (compraExitosa) {
+          <DIV class="success">
+            <h3>¡Compra realizada!</h3>
+            <p>Código de acceso: <strong>{{ compraExitosa.codigoAcceso }}</strong></p>
+            <p>Total pagado: {{ compraExitosa.totalPago | currency:'EUR' }}</p>
+          </DIV>
+        } @else if (evento.stock > 0) {
+          <DIV class="compra" [formGroup]="form">
+            <label>Cantidad de entradas</label>
+            <input type="number" formControlName="cantidad" min="1" [max]="evento.stock" />
+            @if (error) { <p class="error">{{ error }}</p> }
+            <button (click)="comprar()" [disabled]="loading">
+              {{ loading ? 'Procesando...' : 'Comprar entrada' }}
+            </button>
+          </DIV>
+        } @else {
+          <p class="agotado">Entradas agotadas</p>
+        }
+      </DIV>
+    </DIV>
+  </main>
+}

@@ -1,0 +1,38 @@
+import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
+
+export const routes: Routes = [
+  { path: 'login', loadComponent: () => import('./pages/auth/login/login.component').then(m => m.LoginComponent) },
+  { path: 'register', loadComponent: () => import('./pages/auth/register/register.component').then(m => m.RegisterComponent) },
+  {
+    path: '',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
+  },
+  {
+    path: 'eventos',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/eventos/eventos-list/eventos-list.component').then(m => m.EventosListComponent),
+  },
+  {
+    path: 'eventos/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/eventos/evento-detail/evento-detail.component').then(m => m.EventoDetailComponent),
+  },
+  {
+    path: 'perfil',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/perfil/perfil.component').then(m => m.PerfilComponent),
+  },
+  {
+    path: 'festivall-admin',
+    loadComponent: () => import('./pages/admin/admin-login/admin-login.component').then(m => m.AdminLoginComponent),
+  },
+  {
+    path: 'festivall-admin/panel',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./pages/admin/admin-panel/admin-panel.component').then(m => m.AdminPanelComponent),
+  },
+  { path: '**', redirectTo: '' },
+];

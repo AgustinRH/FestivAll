@@ -1,0 +1,31 @@
+.home {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero {
+  text-align: center;
+  padding: 3rem 1rem;
+  h1 {
+    font-size: 2.5rem;
+    span { color: #e94560; }
+  }
+  p {
+    max-width: 700px;
+    margin: 1rem auto;
+    color: #aaa;
+    line-height: 1.7;
+    font-size: 1.1rem;
+  }
+}
+
+.populares {
+  h2 { margin-bottom: 1.5rem; color: #fff; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+  .empty { color: #888; text-align: center; }
+}

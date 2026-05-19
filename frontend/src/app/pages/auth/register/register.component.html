@@ -1,0 +1,22 @@
+<DIV class="auth-page">
+  <DIV class="auth-card">
+    <h1>Crear cuenta</h1>
+    @if (error) { <p class="error">{{ error }}</p> }
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>Nombre</label>
+      <input formControlName="nombre" />
+      <label>Apellidos</label>
+      <input formControlName="apellidos" />
+      <label>Email</label>
+      <input type="email" formControlName="email" />
+      <label>Contraseña</label>
+      <input type="password" formControlName="password" />
+      <label>Confirmar contraseña</label>
+      <input type="password" formControlName="confirmPassword" />
+      <button type="submit" [disabled]="form.invalid || loading">
+        {{ loading ? 'Registrando...' : 'Registrarse' }}
+      </button>
+    </form>
+    <p class="link">¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a></p>
+  </DIV>
+</DIV>

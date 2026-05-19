@@ -1,0 +1,10 @@
+<a class="event-card" [routerLink]="['/eventos', evento.id]">
+  <img [src]="imagenUrl" [alt]="evento.titulo" />
+  <DIV class="info">
+    <span class="categoria">{{ evento.categoria?.nombreCategoria }}</span>
+    <h3>{{ evento.titulo }}</h3>
+    <p class="fecha">{{ evento.fechaInicio | date:'d MMM y':'':'es' }}</p>
+    <p class="lugar">{{ evento.ubicacion?.localidad }}, {{ evento.ubicacion?.provincia }}</p>
+    <p class="precio">{{ evento.precio | currency:'EUR' }}</p>
+  </DIV>
+</a>

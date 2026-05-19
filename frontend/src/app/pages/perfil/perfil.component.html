@@ -1,0 +1,44 @@
+<app-navbar />
+<main class="perfil-page">
+  <h1>Mi perfil</h1>
+
+  @if (profile) {
+    <section class="card">
+      <h2>Mis datos</h2>
+      <p><strong>Nombre:</strong> {{ profile.nombre }} {{ profile.apellidos }}</p>
+      <p><strong>Email:</strong> {{ profile.email }}</p>
+      <p><strong>Registrado:</strong> {{ profile.fechaRegistro | date:'longDate':'':'es' }}</p>
+    </section>
+  }
+
+  <section class="card">
+    <h2>Historial de compras</h2>
+    @if (compras.length === 0) {
+      <p class="empty">Aún no has comprado ninguna entrada.</p>
+    }
+    @for (compra of compras; track compra.id) {
+      <DIV class="compra-item">
+        <DIV>
+          <strong>{{ compra.evento?.titulo }}</strong>
+          <p>{{ compra.fechaCompra | date:'medium':'':'es' }} · {{ compra.cantidad }} entrada(s)</p>
+        </DIV>
+        <DIV class="right">
+          <span>{{ compra.totalPago | currency:'EUR' }}</span>
+          <code>{{ compra.codigoAcceso }}</code>
+        </DIV>
+      </DIV>
+    }
+  </section>
+
+  <section class="card">
+    <h2>Cambiar contraseña</h2>
+    @if (passwordMsg) { <p class="success">{{ passwordMsg }}</p> }
+    @if (passwordError) { <p class="error">{{ passwordError }}</p> }
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+      <input type="password" placeholder="Contraseña actual" formControlName="currentPassword" />
+      <input type="password" placeholder="Nueva contraseña" formControlName="newPassword" />
+      <input type="password" placeholder="Confirmar nueva contraseña" formControlName="confirmPassword" />
+      <button type="submit" [disabled]="passwordForm.invalid">Actualizar contraseña</button>
+    </form>
+  </section>
+</main>

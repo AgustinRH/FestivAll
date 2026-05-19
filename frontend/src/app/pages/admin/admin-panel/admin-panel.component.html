@@ -1,0 +1,74 @@
+<DIV class="admin-panel">
+  <header>
+    <h1>FestivAll · Administración</h1>
+    <button (click)="logout()">Cerrar sesión</button>
+  </header>
+
+  @if (msg) { <p class="msg">{{ msg }}</p> }
+
+  <section class="form-section">
+    <h2>{{ editingId ? 'Editar evento' : 'Nuevo evento' }}</h2>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <input formControlName="titulo" placeholder="Título" />
+      <textarea formControlName="descripcion" placeholder="Descripción" rows="3"></textarea>
+      <select formControlName="idCategoria">
+        <option value="">Categoría</option>
+        @for (c of categorias; track c.id) {
+          <option [value]="c.id">{{ c.nombreCategoria }}</option>
+        }
+      </select>
+      <select formControlName="idUbicacion">
+        <option value="">Ubicación</option>
+        @for (u of ubicaciones; track u.idUbicacion) {
+          <option [value]="u.idUbicacion">{{ u.localidad }} - {{ u.direccion }}</option>
+        }
+      </select>
+      <input type="date" formControlName="fechaInicio" />
+      <input type="date" formControlName="fechaFin" />
+      <input type="time" formControlName="horaInicio" />
+      <input type="time" formControlName="horaFin" />
+      <input type="number" formControlName="precio" placeholder="Precio" step="0.01" />
+      <input type="number" formControlName="stock" placeholder="Stock" />
+      <input formControlName="imagenUrl" placeholder="URL imagen" />
+      <DIV class="actions">
+        <button type="submit" [disabled]="form.invalid">
+          {{ editingId ? 'Guardar cambios' : 'Crear evento' }}
+        </button>
+        @if (editingId) {
+          <button type="button" class="btn-cancel" (click)="cancelEdit()">Cancelar</button>
+        }
+      </DIV>
+    </form>
+  </section>
+
+  <section class="list-section">
+    <h2>Eventos ({{ eventos.length }})</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Categoría</th>
+          <th>Fecha</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of eventos; track e.id) {
+          <tr>
+            <td>{{ e.titulo }}</td>
+            <td>{{ e.categoria?.nombreCategoria }}</td>
+            <td>{{ e.fechaInicio }}</td>
+            <td>{{ e.precio }} €</td>
+            <td>{{ e.stock }}</td>
+            <td>
+              <button class="btn-edit" (click)="edit(e)">Editar</button>
+              <button class="btn-delete" (click)="delete(e.id)">Eliminar</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+</DIV>

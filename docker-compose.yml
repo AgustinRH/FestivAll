@@ -1,0 +1,17 @@
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: festivall-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: REDACTED
+      MARIADB_DATABASE: FestivAll
+    ports:
+      - "3306:3306"
+    volumes:
+      - festivall_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+
+volumes:
+  festivall_data:

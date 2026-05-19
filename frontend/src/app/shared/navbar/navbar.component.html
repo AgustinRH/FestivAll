@@ -1,0 +1,9 @@
+<nav class="navbar">
+  <a routerLink="/" class="brand">Festiv<span>All</span></a>
+  <div class="links">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">INICIO</a>
+    <a routerLink="/eventos" routerLinkActive="active">EVENTOS</a>
+    <a routerLink="/perfil" routerLinkActive="active">PERFIL</a>
+  </div>
+  <button class="btn-logout" (click)="logout()">Salir</button>
+</nav>
