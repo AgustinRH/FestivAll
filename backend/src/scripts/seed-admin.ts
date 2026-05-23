@@ -7,7 +7,9 @@ import { resolve } from 'path';
 import * as bcrypt from 'bcrypt';
 import * as mysql from 'mysql2/promise';
 
-config({ path: resolve(__dirname, '../../.env') });
+if (process.env.NODE_ENV !== 'production') {
+  config({ path: resolve(__dirname, '../../.env') });
+}
 
 async function seed() {
   const conn = await mysql.createConnection({

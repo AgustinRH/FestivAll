@@ -1,17 +1,63 @@
+# FestivAll — Producción (docker compose up -d --build)
 services:
   mariadb:
     image: mariadb:11
     container_name: festivall-db
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: REDACTED
-      MARIADB_DATABASE: FestivAll
-    ports:
-      - "3306:3306"
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-festivall_root}
+      MARIADB_DATABASE: ${DB_DATABASE:-FestivAll}
     volumes:
       - festivall_data:/var/lib/mysql
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - festivall-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: festivall-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-festivall_root}
+      DB_DATABASE: ${DB_DATABASE:-FestivAll}
+      JWT_SECRET: ${JWT_SECRET:-REDACTED}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - festivall-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: festivall-web
+    restart: unless-stopped
+    ports:
+      - '${APP_PORT:-80}:80'
+    depends_on:
+      - backend
+    networks:
+      - festivall-net
 
 volumes:
   festivall_data:
+
+networks:
+  festivall-net:
+    driver: bridge

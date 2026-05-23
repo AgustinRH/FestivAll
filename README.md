@@ -12,9 +12,11 @@ Aplicación web para descubrir y comprar entradas de eventos en la provincia de 
 
 ```
 proyecto-x/
-├── backend/          # API REST NestJS
-├── frontend/         # SPA Angular
-└── database/         # schema.sql y seed.sql
+├── backend/              # API REST NestJS (+ Dockerfile)
+├── frontend/             # SPA Angular (+ Dockerfile + nginx)
+├── database/             # schema.sql y seed.sql
+├── docker-compose.yml    # Producción (BD + API + web)
+└── docker-compose.dev.yml  # Solo MariaDB para dev
 ```
 
 ## Requisitos
@@ -22,19 +24,51 @@ proyecto-x/
 - Node.js 20+
 - MariaDB 10+
 
-## Configuración
+## Producción con Docker (todo en uno)
+
+Levanta **MariaDB + API + web (nginx)** con un solo comando:
+
+```bash
+cp .env.example .env
+# Edita .env: JWT_SECRET, DB_PASSWORD, APP_PORT
+
+docker compose up -d --build
+```
+
+Abre **http://localhost** (o el puerto definido en `APP_PORT`).
+
+| Servicio   | Contenedor      | Descripción                          |
+|------------|-----------------|--------------------------------------|
+| `frontend` | festivall-web   | Angular compilado + nginx (puerto 80) |
+| `backend`  | festivall-api   | NestJS en modo producción            |
+| `mariadb`  | festivall-db    | Base de datos + schema/seed inicial  |
+
+El admin se crea al arrancar el backend:
+- Email: `admin@festivall.es`
+- Contraseña: `Admin123!`
+
+Comandos útiles:
+
+```bash
+docker compose ps          # estado
+docker compose logs -f     # logs
+docker compose down        # parar
+docker compose down -v     # parar y borrar datos BD
+```
+
+---
+
+## Desarrollo local
 
 ### 1. Base de datos
 
-**Opción A – Docker (recomendado en WSL, no requiere `mysql` instalado):**
+**Solo MariaDB en Docker (desarrollo):**
 
 ```bash
-docker compose up -d
+docker compose -f docker-compose.dev.yml up -d
 ```
 
-Esto levanta MariaDB en el puerto 3306 y ejecuta automáticamente `schema.sql` y `seed.sql`.
-
-**Opción B – Cliente local:**
+**O cliente local:**
 
 ```bash
 sudo apt install mariadb-client-core

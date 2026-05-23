@@ -4,13 +4,18 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors({
-    origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
-    credentials: true,
-  });
+  const corsOrigin = process.env.CORS_ORIGIN;
+  if (corsOrigin) {
+    app.enableCors({
+      origin: corsOrigin.split(',').map((o) => o.trim()),
+      credentials: true,
+    });
+  }
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }),
   );
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port, '0.0.0.0');
+  console.log(`API escuchando en http://0.0.0.0:${port}`);
 }
 bootstrap();
