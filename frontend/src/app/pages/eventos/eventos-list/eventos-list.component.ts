@@ -1,8 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
+import { FooterComponent } from '../../../shared/footer/footer.component';
 import { EventCardComponent } from '../../../shared/event-card/event-card.component';
 import { EventosService } from '../../../core/services/eventos.service';
 import { CatalogoService } from '../../../core/services/catalogo.service';
@@ -11,7 +11,7 @@ import { Evento, Categoria } from '../../../core/models';
 @Component({
   selector: 'app-eventos-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NavbarComponent, EventCardComponent],
+  imports: [ReactiveFormsModule, NavbarComponent, FooterComponent, EventCardComponent],
   templateUrl: './eventos-list.component.html',
   styleUrl: './eventos-list.component.scss',
 })
@@ -19,6 +19,8 @@ export class EventosListComponent implements OnInit {
   private fb = inject(FormBuilder);
   private eventosService = inject(EventosService);
   private catalogoService = inject(CatalogoService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   eventos: Evento[] = [];
   categorias: Categoria[] = [];
@@ -32,13 +34,18 @@ export class EventosListComponent implements OnInit {
 
   ngOnInit() {
     this.catalogoService.getCategorias().subscribe((c) => (this.categorias = c));
-    this.loadEventos();
-    this.filters.valueChanges
-      .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe(() => this.loadEventos());
+
+    this.route.queryParams.subscribe((params) => {
+      this.filters.patchValue({
+        busqueda: params['busqueda'] || '',
+        categoriaId: params['categoriaId'] || '',
+        localidad: params['localidad'] || '',
+      });
+      this.loadEventos(params['desde'], params['hasta']);
+    });
   }
 
-  loadEventos() {
+  loadEventos(desde?: string, hasta?: string) {
     const v = this.filters.getRawValue();
     this.eventosService
       .getAll({
@@ -46,11 +53,31 @@ export class EventosListComponent implements OnInit {
         categoriaId: v.categoriaId ? +v.categoriaId : undefined,
         localidad: v.localidad || undefined,
       })
-      .subscribe((e) => (this.eventos = e));
+      .subscribe((list) => {
+        this.eventos = list.filter((e) => {
+          if (desde && e.fechaInicio < desde) return false;
+          if (hasta && e.fechaInicio > hasta) return false;
+          return true;
+        });
+      });
+  }
+
+  aplicarFiltros() {
+    const v = this.filters.getRawValue();
+    this.router.navigate(['/eventos'], {
+      queryParams: {
+        busqueda: v.busqueda || null,
+        categoriaId: v.categoriaId || null,
+        localidad: v.localidad || null,
+      },
+      queryParamsHandling: 'merge',
+    });
+    this.loadEventos();
   }
 
   clearFilters() {
     this.filters.reset({ busqueda: '', categoriaId: '', localidad: '' });
+    this.router.navigate(['/eventos']);
     this.loadEventos();
   }
 }

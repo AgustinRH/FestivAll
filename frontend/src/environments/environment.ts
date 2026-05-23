@@ -1,4 +1,5 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000',
+  /** En desarrollo las peticiones pasan por el proxy de Angular → backend :3000 */
+  apiUrl: '/api',
 };

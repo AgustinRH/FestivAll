@@ -7,17 +7,14 @@ export const routes: Routes = [
   { path: 'register', loadComponent: () => import('./pages/auth/register/register.component').then(m => m.RegisterComponent) },
   {
     path: '',
-    canActivate: [authGuard],
     loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
   },
   {
     path: 'eventos',
-    canActivate: [authGuard],
     loadComponent: () => import('./pages/eventos/eventos-list/eventos-list.component').then(m => m.EventosListComponent),
   },
   {
     path: 'eventos/:id',
-    canActivate: [authGuard],
     loadComponent: () => import('./pages/eventos/evento-detail/evento-detail.component').then(m => m.EventoDetailComponent),
   },
   {
