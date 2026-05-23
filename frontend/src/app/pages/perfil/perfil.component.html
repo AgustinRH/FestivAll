@@ -17,22 +17,28 @@
       }
 
       <section class="card">
-        <h2>Historial de compras</h2>
-        @if (compras.length === 0) {
+        <h2>Mis entradas ({{ entradas.length }})</h2>
+        @if (entradas.length === 0) {
           <p class="empty">Aún no has comprado ninguna entrada.</p>
         }
-        @for (compra of compras; track compra.id) {
-          <div class="compra-item">
-            <div>
-              <strong>{{ compra.evento?.titulo }}</strong>
-              <p>{{ compra.fechaCompra | date:'medium':'':'es' }} · {{ compra.cantidad }} entrada(s)</p>
-            </div>
-            <div class="right">
-              <span>{{ compra.totalPago | currency:'EUR' }}</span>
-              <code>{{ compra.codigoAcceso }}</code>
-            </div>
-          </div>
-        }
+        <div class="entradas-list">
+          @for (entrada of entradas; track entrada.key) {
+            <article class="entrada-ticket">
+              <div class="ticket-main">
+                <strong>{{ entrada.eventoTitulo }}</strong>
+                <p class="meta">
+                  @if (entrada.categoria) { {{ entrada.categoria }} · }
+                  @if (entrada.localidad) { {{ entrada.localidad }} · }
+                  {{ entrada.fechaCompra | date:'medium':'':'es' }}
+                </p>
+              </div>
+              <div class="ticket-side">
+                <span class="precio">{{ entrada.precio | currency:'EUR' }}</span>
+                <code class="codigo">{{ entrada.codigoAcceso }}</code>
+              </div>
+            </article>
+          }
+        </div>
       </section>
 
       <section class="card">

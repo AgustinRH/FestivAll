@@ -151,7 +151,9 @@
     .success-inline {
       flex: 1;
       font-size: 0.85rem;
-      strong { color: #2ecc71; }
+
+      p { margin: 0.2rem 0; }
+      .codigo-line strong { color: #2ecc71; font-size: 0.8rem; }
     }
   }
 }

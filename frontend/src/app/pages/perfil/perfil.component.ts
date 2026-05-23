@@ -5,7 +5,7 @@ import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { AuthService } from '../../core/services/auth.service';
 import { ComprasService } from '../../core/services/compras.service';
-import { Compra } from '../../core/models';
+import { EntradaPerfil, expandirEntradas } from '../../core/utils/entradas.util';
 
 @Component({
   selector: 'app-perfil',
@@ -20,7 +20,7 @@ export class PerfilComponent implements OnInit {
   private comprasService = inject(ComprasService);
 
   profile: { nombre: string; apellidos: string; email: string; fechaRegistro: string } | null = null;
-  compras: Compra[] = [];
+  entradas: EntradaPerfil[] = [];
   passwordMsg = '';
   passwordError = '';
 
@@ -32,7 +32,7 @@ export class PerfilComponent implements OnInit {
 
   ngOnInit() {
     this.auth.getProfile().subscribe((p) => (this.profile = p));
-    this.comprasService.misCompras().subscribe((c) => (this.compras = c));
+    this.comprasService.misCompras().subscribe((c) => (this.entradas = expandirEntradas(c)));
   }
 
   changePassword() {

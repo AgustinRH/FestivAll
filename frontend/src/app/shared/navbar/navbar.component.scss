@@ -2,7 +2,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 2rem;
+  padding: 0.5rem 2rem;
+  min-height: 80px;
   background: #050508;
   border-bottom: 1px solid #1a1a28;
   position: sticky;
@@ -10,12 +11,30 @@
   z-index: 100;
 
   .logo img {
-    height: 52px;
+    height: 72px;
     width: auto;
     display: block;
   }
 
-  .main-nav,
+  .main-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+
+    a {
+      color: var(--text);
+      &:hover, &.active { color: var(--accent); }
+    }
+
+    .sep {
+      color: #555;
+      user-select: none;
+      font-size: 1rem;
+    }
+  }
+
   .auth-links {
     display: flex;
     align-items: center;
@@ -25,7 +44,7 @@
 
     a {
       color: var(--text);
-      &:hover, &.active { color: var(--accent); }
+      &:hover { color: var(--accent); }
     }
 
     .sep {

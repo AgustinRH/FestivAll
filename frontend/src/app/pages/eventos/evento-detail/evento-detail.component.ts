@@ -32,7 +32,7 @@ export class EventoDetailComponent implements OnInit {
   auth = inject(AuthService);
 
   evento?: Evento;
-  compraExitosa?: Compra;
+  comprasExitosas: Compra[] = [];
   showCompraModal = false;
   error = '';
   loading = false;
@@ -102,8 +102,8 @@ export class EventoDetailComponent implements OnInit {
     this.loading = true;
     this.error = '';
     this.comprasService.comprar(this.evento.id, cantidad).subscribe({
-      next: (compra) => {
-        this.compraExitosa = compra;
+      next: (compras) => {
+        this.comprasExitosas = compras;
         this.evento!.stock -= cantidad;
         this.loading = false;
         this.showCompraModal = false;

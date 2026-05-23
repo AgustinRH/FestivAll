@@ -47,9 +47,12 @@
           </div>
           <div class="buy-row">
             <span class="qty-badge">1</span>
-            @if (compraExitosa) {
+            @if (comprasExitosas.length > 0) {
               <div class="success-inline">
-                ¡Comprado! Código: <strong>{{ compraExitosa.codigoAcceso }}</strong>
+                <p>¡{{ comprasExitosas.length }} entrada(s) comprada(s)!</p>
+                @for (c of comprasExitosas; track c.id) {
+                  <p class="codigo-line"><strong>{{ c.codigoAcceso }}</strong></p>
+                }
               </div>
             } @else if (evento.stock > 0) {
               <button type="button" class="btn-comprar" (click)="abrirCompra()">COMPRAR</button>

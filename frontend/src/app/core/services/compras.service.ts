@@ -10,7 +10,7 @@ export class ComprasService {
   constructor(private http: HttpClient) {}
 
   comprar(idEvento: number, cantidad: number) {
-    return this.http.post<Compra>(this.api, { idEvento, cantidad });
+    return this.http.post<Compra[]>(this.api, { idEvento, cantidad });
   }
 
   misCompras() {
