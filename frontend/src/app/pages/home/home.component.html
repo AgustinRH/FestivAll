@@ -11,13 +11,11 @@
             <input type="text" formControlName="busqueda" placeholder="¿Qué evento buscas?" />
           </div>
           <div class="search-field">
-            <span class="icon">📅</span>
-            <input type="date" formControlName="desde" placeholder="Desde" />
+            <input type="date" formControlName="desde" aria-label="Desde" />
           </div>
           <span class="bar">|</span>
           <div class="search-field">
-            <span class="icon">📅</span>
-            <input type="date" formControlName="hasta" placeholder="Hasta" />
+            <input type="date" formControlName="hasta" aria-label="Hasta" />
           </div>
           <button type="submit" class="btn-search">BUSCAR</button>
         </form>
@@ -34,15 +32,6 @@
       @if (populares.length === 0) {
         <p class="empty">Cargando festivales...</p>
       }
-    </section>
-
-    <section id="sobre" class="sobre container">
-      <h2 class="section-title">Sobre Nosotros</h2>
-      <p>
-        FestivAll Almería es tu plataforma para descubrir los mejores eventos de la provincia:
-        rock, festivales, reggaeton, techno, flamenco y mucho más. Compra tus entradas de forma
-        sencilla y no te pierdas ninguna fiesta en la costa almeriense.
-      </p>
     </section>
 
     <section id="contacto" class="contacto container">
