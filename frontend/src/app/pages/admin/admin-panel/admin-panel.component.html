@@ -1,74 +1,279 @@
-<DIV class="admin-panel">
-  <header>
-    <h1>FestivAll · Administración</h1>
-    <button (click)="logout()">Cerrar sesión</button>
-  </header>
+<div class="admin-shell">
+  <aside class="sidebar">
+    <a routerLink="/" class="brand" title="Ir a la web pública">
+      <img src="logo-festivall.png" alt="FestivAll" />
+      <span>Admin</span>
+    </a>
 
-  @if (msg) { <p class="msg">{{ msg }}</p> }
+    <nav class="sidebar-nav">
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="view === 'list'"
+        (click)="closeForm()"
+      >
+        <span class="nav-icon" aria-hidden="true">📋</span>
+        Eventos
+        <span class="badge">{{ eventos.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="view === 'form' && !editingId"
+        (click)="openCreate()"
+      >
+        <span class="nav-icon" aria-hidden="true">➕</span>
+        Nuevo evento
+      </button>
+    </nav>
 
-  <section class="form-section">
-    <h2>{{ editingId ? 'Editar evento' : 'Nuevo evento' }}</h2>
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <input formControlName="titulo" placeholder="Título" />
-      <textarea formControlName="descripcion" placeholder="Descripción" rows="3"></textarea>
-      <select formControlName="idCategoria">
-        <option value="">Categoría</option>
-        @for (c of categorias; track c.id) {
-          <option [value]="c.id">{{ c.nombreCategoria }}</option>
-        }
-      </select>
-      <select formControlName="idUbicacion">
-        <option value="">Ubicación</option>
-        @for (u of ubicaciones; track u.idUbicacion) {
-          <option [value]="u.idUbicacion">{{ u.localidad }} - {{ u.direccion }}</option>
-        }
-      </select>
-      <input type="date" formControlName="fechaInicio" />
-      <input type="date" formControlName="fechaFin" />
-      <input type="time" formControlName="horaInicio" />
-      <input type="time" formControlName="horaFin" />
-      <input type="number" formControlName="precio" placeholder="Precio" step="0.01" />
-      <input type="number" formControlName="stock" placeholder="Stock" />
-      <input formControlName="imagenUrl" placeholder="URL imagen" />
-      <DIV class="actions">
-        <button type="submit" [disabled]="form.invalid">
-          {{ editingId ? 'Guardar cambios' : 'Crear evento' }}
-        </button>
-        @if (editingId) {
-          <button type="button" class="btn-cancel" (click)="cancelEdit()">Cancelar</button>
-        }
-      </DIV>
-    </form>
-  </section>
+    <div class="sidebar-footer">
+      <a routerLink="/" class="link-site">Ver sitio público →</a>
+    </div>
+  </aside>
 
-  <section class="list-section">
-    <h2>Eventos ({{ eventos.length }})</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Título</th>
-          <th>Categoría</th>
-          <th>Fecha</th>
-          <th>Precio</th>
-          <th>Stock</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (e of eventos; track e.id) {
-          <tr>
-            <td>{{ e.titulo }}</td>
-            <td>{{ e.categoria?.nombreCategoria }}</td>
-            <td>{{ e.fechaInicio }}</td>
-            <td>{{ e.precio }} €</td>
-            <td>{{ e.stock }}</td>
-            <td>
-              <button class="btn-edit" (click)="edit(e)">Editar</button>
-              <button class="btn-delete" (click)="delete(e.id)">Eliminar</button>
-            </td>
-          </tr>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>{{ view === 'form' ? (editingId ? 'Editar evento' : 'Crear evento') : 'Gestión de eventos' }}</h1>
+        <p class="subtitle">
+          @if (view === 'list') {
+            Administra festivales, entradas y eventos destacados del inicio
+          } @else {
+            Completa los datos y guarda para publicar en FestivAll
+          }
+        </p>
+      </div>
+      <div class="topbar-actions">
+        @if (user(); as u) {
+          <span class="user-chip" title="Administrador">{{ u.email }}</span>
         }
-      </tbody>
-    </table>
-  </section>
-</DIV>
+        <button type="button" class="btn-logout" (click)="logout()">Cerrar sesión</button>
+      </div>
+    </header>
+
+    @if (msg) {
+      <div class="toast" [class.error]="msgType === 'error'" role="status">
+        <span>{{ msg }}</span>
+        <button type="button" class="toast-close" (click)="dismissMsg()" aria-label="Cerrar">×</button>
+      </div>
+    }
+
+    @if (view === 'list') {
+      <section class="stats">
+        <article class="stat-card">
+          <span class="stat-label">Total eventos</span>
+          <strong class="stat-value">{{ eventos.length }}</strong>
+        </article>
+        <article class="stat-card accent">
+          <span class="stat-label">En inicio (destacados)</span>
+          <strong class="stat-value">{{ destacadosCount }}</strong>
+        </article>
+        <article class="stat-card warn" [class.highlight]="lowStockCount > 0">
+          <span class="stat-label">Stock bajo (≤10)</span>
+          <strong class="stat-value">{{ lowStockCount }}</strong>
+        </article>
+      </section>
+
+      <section class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input
+            type="search"
+            [(ngModel)]="search"
+            placeholder="Buscar por título, categoría o dirección…"
+            class="search-input"
+          />
+        </div>
+        <select [(ngModel)]="filterCategoria" class="filter-select" aria-label="Filtrar por categoría">
+          <option value="">Todas las categorías</option>
+          @for (c of categorias; track c.id) {
+            <option [value]="c.id">{{ c.nombreCategoria }}</option>
+          }
+        </select>
+        <select [(ngModel)]="filterDestacados" class="filter-select" aria-label="Filtrar destacados">
+          <option value="all">Todos</option>
+          <option value="destacados">Solo destacados</option>
+        </select>
+        @if (search || filterCategoria || filterDestacados !== 'all') {
+          <button type="button" class="btn-ghost" (click)="clearFilters()">Limpiar filtros</button>
+        }
+        <button type="button" class="btn-primary" (click)="openCreate()">+ Nuevo evento</button>
+      </section>
+
+      @if (loading) {
+        <div class="state-box">
+          <div class="spinner" aria-hidden="true"></div>
+          <p>Cargando eventos…</p>
+        </div>
+      } @else if (eventos.length === 0) {
+        <div class="state-box empty">
+          <p class="state-title">Aún no hay eventos</p>
+          <p>Crea el primero para que aparezca en la web.</p>
+          <button type="button" class="btn-primary" (click)="openCreate()">Crear primer evento</button>
+        </div>
+      } @else if (filteredEventos.length === 0) {
+        <div class="state-box empty">
+          <p class="state-title">Sin resultados</p>
+          <p>Prueba con otros filtros o términos de búsqueda.</p>
+          <button type="button" class="btn-ghost" (click)="clearFilters()">Quitar filtros</button>
+        </div>
+      } @else {
+        <p class="results-count">
+          Mostrando {{ filteredEventos.length }} de {{ eventos.length }} eventos
+          <span class="hint-inline">· Pulsa ☆ en una tarjeta para destacar en el inicio</span>
+        </p>
+        <div class="event-grid">
+          @for (e of filteredEventos; track e.id) {
+            <article class="event-card" [class.is-featured]="e.destacado">
+              <div class="card-media">
+                @if (getImageUrl(e); as img) {
+                  <img [src]="img" [alt]="e.titulo" loading="lazy" />
+                } @else {
+                  <div class="media-placeholder">Sin imagen</div>
+                }
+                @if (e.destacado) {
+                  <span class="pill featured">Destacado</span>
+                }
+                @if (e.stock <= 10) {
+                  <span class="pill stock-warn">Stock: {{ e.stock }}</span>
+                }
+              </div>
+              <div class="card-body">
+                <div class="card-head">
+                  <h3>{{ e.titulo }}</h3>
+                  <span class="category-tag">{{ e.categoria?.nombreCategoria || '—' }}</span>
+                </div>
+                <p class="card-address" [title]="getDireccion(e)">📍 {{ getDireccion(e) }}</p>
+                <div class="card-meta">
+                  <span>📅 {{ formatRango(e) }}</span>
+                  <span class="price">{{ e.precio | number:'1.2-2' }} €</span>
+                </div>
+              </div>
+              <div class="card-actions">
+                <button
+                  type="button"
+                  class="btn-icon"
+                  [class.active]="e.destacado"
+                  (click)="toggleDestacado(e, $event)"
+                  [title]="e.destacado ? 'Quitar de destacados' : 'Destacar en inicio'"
+                >
+                  {{ e.destacado ? '★' : '☆' }}
+                  <span class="sr-only">{{ e.destacado ? 'Quitar destacado' : 'Destacar' }}</span>
+                </button>
+                <button type="button" class="btn-secondary" (click)="openEdit(e)">Editar</button>
+                <button type="button" class="btn-danger" (click)="delete(e.id, e.titulo, $event)">Eliminar</button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    } @else {
+      <div class="form-layout">
+        <button type="button" class="back-link" (click)="closeForm()">← Volver al listado</button>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="event-form" novalidate>
+          <fieldset class="form-block">
+            <legend>Información general</legend>
+            <div class="form-grid">
+              <label class="span-2" [class.has-error]="isInvalid('titulo')">
+                <span>Título <em>*</em></span>
+                <input formControlName="titulo" placeholder="Nombre del festival o evento" />
+              </label>
+              <label class="span-2">
+                <span>Descripción</span>
+                <textarea formControlName="descripcion" rows="4" placeholder="Qué incluye, artistas, ambiente…"></textarea>
+              </label>
+              <label [class.has-error]="isInvalid('idCategoria')">
+                <span>Categoría <em>*</em></span>
+                <select formControlName="idCategoria">
+                  <option value="">Elige una categoría</option>
+                  @for (c of categorias; track c.id) {
+                    <option [value]="c.id">{{ c.nombreCategoria }}</option>
+                  }
+                </select>
+              </label>
+              <label class="span-2" [class.has-error]="isInvalid('direccionCompleta')">
+                <span>Dirección completa <em>*</em></span>
+                <input
+                  formControlName="direccionCompleta"
+                  placeholder="Calle, número, CP, localidad, provincia"
+                />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-block">
+            <legend>Fechas y horarios</legend>
+            <div class="form-grid">
+              <label [class.has-error]="isInvalid('fechaInicio')">
+                <span>Fecha inicio <em>*</em></span>
+                <input type="date" formControlName="fechaInicio" />
+              </label>
+              <label>
+                <span>Fecha fin</span>
+                <input type="date" formControlName="fechaFin" />
+              </label>
+              <label>
+                <span>Hora inicio</span>
+                <input type="time" formControlName="horaInicio" />
+              </label>
+              <label>
+                <span>Hora fin</span>
+                <input type="time" formControlName="horaFin" />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-block">
+            <legend>Entradas</legend>
+            <div class="form-grid">
+              <label [class.has-error]="isInvalid('precio')">
+                <span>Precio (€) <em>*</em></span>
+                <input type="number" formControlName="precio" step="0.01" min="0" />
+              </label>
+              <label [class.has-error]="isInvalid('stock')">
+                <span>Entradas disponibles <em>*</em></span>
+                <input type="number" formControlName="stock" min="0" />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-block">
+            <legend>Imagen</legend>
+            <div class="image-row">
+              <label class="flex-1">
+                <span>URL de la imagen</span>
+                <input formControlName="imagenUrl" placeholder="https://ejemplo.com/imagen.jpg" />
+              </label>
+              @if (previewImage) {
+                <div class="image-preview">
+                  <img [src]="previewImage" alt="Vista previa" (error)="$any($event.target).style.display='none'" />
+                </div>
+              }
+            </div>
+          </fieldset>
+
+          <div class="destacado-box" [class.is-active]="form.get('destacado')?.value">
+            <div class="destacado-info">
+              <strong>⭐ Mostrar en la página de inicio</strong>
+              <p>Los eventos destacados aparecen en la sección <em>Festivales Destacados</em> del home.</p>
+            </div>
+            <label class="switch" title="Marcar o desmarcar destacado">
+              <input type="checkbox" formControlName="destacado" />
+              <span class="slider"></span>
+              <span class="switch-label">{{ form.get('destacado')?.value ? 'Activado' : 'Desactivado' }}</span>
+            </label>
+          </div>
+
+          <div class="form-footer">
+            <button type="button" class="btn-ghost" (click)="closeForm()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="saving">
+              {{ saving ? 'Guardando…' : (editingId ? 'Guardar cambios' : 'Publicar evento') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  </div>
+</div>

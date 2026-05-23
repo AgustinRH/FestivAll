@@ -29,8 +29,28 @@
           <app-event-card [evento]="evento" />
         }
       </div>
-      @if (populares.length === 0) {
+      @if (loading) {
         <p class="empty">Cargando festivales...</p>
+      } @else if (error) {
+        <p class="empty error">{{ error }}</p>
+      } @else if (populares.length === 0) {
+        <p class="empty">No hay festivales destacados por ahora.</p>
+      }
+    </section>
+
+    <section class="ultimas-entradas container">
+      <h2 class="section-title">Últimas Entradas</h2>
+      <p class="section-subtitle">15% de descuento en eventos con 5 entradas o menos</p>
+      @if (loading) {
+        <p class="empty">Cargando ofertas…</p>
+      } @else if (!error && ultimasEntradas.length === 0) {
+        <p class="empty">No hay eventos con pocas entradas ahora mismo.</p>
+      } @else if (!error) {
+        <div class="cards-row">
+          @for (evento of ultimasEntradas; track evento.id) {
+            <app-event-card [evento]="evento" [mostrarDescuento]="true" />
+          }
+        </div>
       }
     </section>
 

@@ -1,11 +1,19 @@
 # FestivAll — Producción (docker compose up -d --build)
+# Variables: .env (raíz) y/o backend/.env → el backend carga ambos (env_file).
+# Stripe: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, FRONTEND_URL en .env raíz o backend/.env
+# Si está en ambos, prevalece backend/.env. Ver .env.example en la raíz.
 services:
   mariadb:
     image: mariadb:11
     container_name: festivall-db
     restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+      - path: ./backend/.env
+        required: false
     environment:
-      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-festivall_root}
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
       MARIADB_DATABASE: ${DB_DATABASE:-FestivAll}
     volumes:
       - festivall_data:/var/lib/mysql
@@ -26,16 +34,23 @@ services:
       dockerfile: Dockerfile
     container_name: festivall-api
     restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+      - path: ./backend/.env
+        required: false
     environment:
       NODE_ENV: production
       PORT: 3000
       DB_HOST: mariadb
       DB_PORT: 3306
       DB_USERNAME: root
-      DB_PASSWORD: ${DB_PASSWORD:-festivall_root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
       DB_DATABASE: ${DB_DATABASE:-FestivAll}
       JWT_SECRET: ${JWT_SECRET:-REDACTED}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      # FRONTEND_URL por defecto en Docker; Stripe se lee solo vía env_file (.env + backend/.env)
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
     depends_on:
       mariadb:
         condition: service_healthy

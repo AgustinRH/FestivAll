@@ -35,6 +35,7 @@ CREATE TABLE evento (
     hora_fin TIME,
     precio DECIMAL(10, 2) NOT NULL,
     stock INT NOT NULL,
+    destacado BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT fk_evento_categoria FOREIGN KEY (id_categoria)
         REFERENCES categoria (id) ON DELETE CASCADE,
     CONSTRAINT fk_evento_ubicacion FOREIGN KEY (id_ubicacion)
@@ -58,6 +59,7 @@ CREATE TABLE compra (
     total_pago DECIMAL(10, 2) NOT NULL,
     fecha_compra TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     codigo_acceso VARCHAR(100) NOT NULL UNIQUE,
+    stripe_checkout_session_id VARCHAR(255) NULL,
     CONSTRAINT fk_compra_usuario FOREIGN KEY (id_usuario)
         REFERENCES usuario (id) ON DELETE CASCADE,
     CONSTRAINT fk_compra_evento FOREIGN KEY (id_evento)

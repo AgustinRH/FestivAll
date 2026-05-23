@@ -1,7 +1,19 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Compra } from '../models';
+
+export interface CheckoutResponse {
+  free: boolean;
+  url?: string;
+  sessionId?: string;
+  compras?: Compra[];
+}
+
+export interface VerifyCheckoutResponse {
+  status: string;
+  compras: Compra[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class ComprasService {
@@ -9,6 +21,17 @@ export class ComprasService {
 
   constructor(private http: HttpClient) {}
 
+  /** Inicia pago Stripe o confirma entrada gratuita. */
+  iniciarCheckout(idEvento: number, cantidad: number) {
+    return this.http.post<CheckoutResponse>(`${this.api}/checkout`, { idEvento, cantidad });
+  }
+
+  verificarCheckout(sessionId: string) {
+    const params = new HttpParams().set('session_id', sessionId);
+    return this.http.get<VerifyCheckoutResponse>(`${this.api}/checkout/verificar`, { params });
+  }
+
+  /** Solo para eventos con precio 0 (legacy). */
   comprar(idEvento: number, cantidad: number) {
     return this.http.post<Compra[]>(this.api, { idEvento, cantidad });
   }

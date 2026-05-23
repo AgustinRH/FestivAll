@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Patch,
   Put,
   Query,
   UseGuards,
@@ -34,8 +35,13 @@ export class EventosController {
   }
 
   @Get('popular')
-  findPopular(@Query('limit') limit?: string) {
-    return this.eventosService.findPopular(limit ? +limit : 4);
+  findDestacados(@Query('limit') limit?: string) {
+    return this.eventosService.findDestacados(limit ? +limit : undefined);
+  }
+
+  @Get('ultimas-entradas')
+  findUltimasEntradas() {
+    return this.eventosService.findUltimasEntradas();
   }
 
   @Get(':id')
@@ -53,6 +59,12 @@ export class EventosController {
   @Put(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEventoDto) {
     return this.eventosService.update(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Patch(':id/destacado')
+  toggleDestacado(@Param('id', ParseIntPipe) id: number) {
+    return this.eventosService.toggleDestacado(id);
   }
 
   @UseGuards(JwtAuthGuard, AdminGuard)

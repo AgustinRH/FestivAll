@@ -27,7 +27,16 @@
                 }
               </li>
               <li>🎵 {{ evento.categoria?.nombreCategoria }}</li>
-              <li>💰 Desde {{ evento.precio | currency:'EUR' }}</li>
+              <li class="precio-line">
+                💰
+                @if (tieneDescuentoUltimas) {
+                  <span class="precio-original">{{ evento.precio | currency:'EUR' }}</span>
+                  <span class="precio-dto">{{ precioUnitario | currency:'EUR' }}</span>
+                  <span class="badge-dto">-15% últimas entradas</span>
+                } @else {
+                  Desde {{ evento.precio | currency:'EUR' }}
+                }
+              </li>
               <li class="desc">{{ evento.descripcion }}</li>
               <li>🎫 {{ evento.stock }} entradas disponibles</li>
             </ul>
@@ -46,7 +55,6 @@
             <p class="map-addr">{{ evento.ubicacion?.direccion }}</p>
           </div>
           <div class="buy-row">
-            <span class="qty-badge">1</span>
             @if (comprasExitosas.length > 0) {
               <div class="success-inline">
                 <p>¡{{ comprasExitosas.length }} entrada(s) comprada(s)!</p>
@@ -96,13 +104,21 @@
         </div>
         <div class="total-row">
           <span>TOTAL</span>
-          <strong>{{ total | currency:'EUR' }}</strong>
+          <div class="total-precio">
+            @if (tieneDescuentoUltimas) {
+              <span class="precio-original">{{ (evento.precio * (compraForm.get('cantidad')?.value || 1)) | currency:'EUR' }}</span>
+            }
+            <strong>{{ total | currency:'EUR' }}</strong>
+          </div>
         </div>
 
         @if (error) { <p class="error">{{ error }}</p> }
 
+        @if (!esGratis) {
+          <p class="pago-info">Serás redirigido a Stripe para pagar de forma segura con tarjeta.</p>
+        }
         <button type="submit" class="btn-primary full" [disabled]="loading || compraForm.invalid">
-          {{ loading ? 'Procesando...' : 'Confirmar compra' }}
+          {{ textoBotonPago }}
         </button>
         <button type="button" class="btn-cancel" (click)="cerrarCompra()">Cancelar</button>
       </form>

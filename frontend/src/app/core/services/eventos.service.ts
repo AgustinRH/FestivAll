@@ -17,20 +17,32 @@ export class EventosService {
     return this.http.get<Evento[]>(this.api, { params });
   }
 
-  getPopular(limit = 4) {
-    return this.http.get<Evento[]>(`${this.api}/popular`, { params: { limit } });
+  getPopular(limit?: number) {
+    let params = new HttpParams();
+    if (limit != null && limit > 0) {
+      params = params.set('limit', limit);
+    }
+    return this.http.get<Evento[]>(`${this.api}/popular`, { params });
+  }
+
+  getUltimasEntradas() {
+    return this.http.get<Evento[]>(`${this.api}/ultimas-entradas`);
   }
 
   getById(id: number) {
     return this.http.get<Evento>(`${this.api}/${id}`);
   }
 
-  create(data: Partial<Evento> & { imagenUrl?: string }) {
+  create(data: Record<string, unknown>) {
     return this.http.post<Evento>(this.api, data);
   }
 
-  update(id: number, data: Partial<Evento> & { imagenUrl?: string }) {
+  update(id: number, data: Record<string, unknown>) {
     return this.http.put<Evento>(`${this.api}/${id}`, data);
+  }
+
+  toggleDestacado(id: number) {
+    return this.http.patch<Evento>(`${this.api}/${id}/destacado`, {});
   }
 
   delete(id: number) {

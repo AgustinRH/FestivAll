@@ -1,0 +1,45 @@
+<div class="page-wrap">
+  <app-navbar />
+  <main class="page-content exito-page container">
+    @if (loading) {
+      <div class="card state">
+        <div class="spinner"></div>
+        <p>Confirmando tu pago…</p>
+      </div>
+    } @else if (error) {
+      <div class="card state error">
+        <h1>Algo ha fallado</h1>
+        <p>{{ error }}</p>
+        <a routerLink="/perfil" class="btn-primary">Ir a mi perfil</a>
+      </div>
+    } @else if (pendiente && compras.length === 0) {
+      <div class="card state">
+        <h1>Pago recibido</h1>
+        <p>Estamos generando tus entradas. En unos segundos aparecerán en <a routerLink="/perfil">tu perfil</a>.</p>
+        <a routerLink="/perfil" class="btn-primary">Ver perfil</a>
+      </div>
+    } @else {
+      <div class="card success">
+        <div class="icon">✓</div>
+        <h1>¡Compra completada!</h1>
+        <p class="lead">{{ compras.length }} entrada(s) para <strong>{{ compras[0].evento?.titulo }}</strong></p>
+
+        <ul class="tickets">
+          @for (c of compras; track c.id) {
+            <li>
+              <span class="code">{{ c.codigoAcceso }}</span>
+              <span class="meta">{{ c.totalPago | currency:'EUR' }} · {{ c.fechaCompra | date:'short':'':'es' }}</span>
+            </li>
+          }
+        </ul>
+
+        <p class="hint">Guarda estos códigos. También los encontrarás en tu perfil.</p>
+        <div class="actions">
+          <a routerLink="/perfil" class="btn-primary">Ver mis entradas</a>
+          <a routerLink="/eventos" class="btn-outline">Seguir explorando</a>
+        </div>
+      </div>
+    }
+  </main>
+  <app-footer />
+</div>

@@ -8,6 +8,7 @@ import { EventosService } from '../../../core/services/eventos.service';
 import { ComprasService } from '../../../core/services/compras.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { getHttpErrorMessage } from '../../../core/utils/http-error';
+import { getPrecioUnitario, aplicaDescuentoUltimasEntradas } from '../../../core/utils/precio.util';
 import { Evento, Compra } from '../../../core/models';
 
 @Component({
@@ -51,6 +52,9 @@ export class EventoDetailComponent implements OnInit {
 
   ngOnInit() {
     const id = +this.route.snapshot.paramMap.get('id')!;
+    if (this.route.snapshot.queryParamMap.get('pago') === 'cancelado') {
+      this.error = 'Has cancelado el pago. Puedes volver a intentarlo cuando quieras.';
+    }
     this.eventosService.getById(id).subscribe((e) => {
       this.evento = e;
       if (this.auth.isLoggedIn()) {
@@ -61,6 +65,23 @@ export class EventoDetailComponent implements OnInit {
         });
       }
     });
+  }
+
+  get esGratis(): boolean {
+    return this.precioUnitario <= 0;
+  }
+
+  get precioUnitario(): number {
+    return this.evento ? getPrecioUnitario(this.evento) : 0;
+  }
+
+  get tieneDescuentoUltimas(): boolean {
+    return this.evento ? aplicaDescuentoUltimasEntradas(this.evento.stock) : false;
+  }
+
+  get textoBotonPago(): string {
+    if (this.loading) return 'Procesando…';
+    return this.esGratis ? 'Confirmar entrada gratuita' : 'Pagar con tarjeta';
   }
 
   get imagenUrl(): string {
@@ -89,7 +110,7 @@ export class EventoDetailComponent implements OnInit {
   }
 
   get total(): number {
-    return (this.evento?.precio || 0) * (this.compraForm.get('cantidad')?.value || 1);
+    return this.precioUnitario * (this.compraForm.get('cantidad')?.value || 1);
   }
 
   confirmarCompra() {
@@ -101,15 +122,24 @@ export class EventoDetailComponent implements OnInit {
     }
     this.loading = true;
     this.error = '';
-    this.comprasService.comprar(this.evento.id, cantidad).subscribe({
-      next: (compras) => {
-        this.comprasExitosas = compras;
-        this.evento!.stock -= cantidad;
+    this.comprasService.iniciarCheckout(this.evento.id, cantidad).subscribe({
+      next: (res) => {
+        if (res.free && res.compras) {
+          this.comprasExitosas = res.compras;
+          this.evento!.stock -= cantidad;
+          this.loading = false;
+          this.showCompraModal = false;
+          return;
+        }
+        if (res.url) {
+          window.location.href = res.url;
+          return;
+        }
         this.loading = false;
-        this.showCompraModal = false;
+        this.error = 'No se pudo iniciar el pago';
       },
       error: (err) => {
-        this.error = getHttpErrorMessage(err, 'Error al comprar');
+        this.error = getHttpErrorMessage(err, 'Error al procesar la compra');
         this.loading = false;
       },
     });

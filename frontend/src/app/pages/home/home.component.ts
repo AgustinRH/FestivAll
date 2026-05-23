@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { EventCardComponent } from '../../shared/event-card/event-card.component';
@@ -20,6 +21,9 @@ export class HomeComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   populares: Evento[] = [];
+  ultimasEntradas: Evento[] = [];
+  loading = true;
+  error = '';
 
   searchForm = this.fb.group({
     busqueda: [''],
@@ -28,7 +32,21 @@ export class HomeComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.eventosService.getPopular(3).subscribe((e) => (this.populares = e));
+    forkJoin({
+      populares: this.eventosService.getPopular(),
+      ultimas: this.eventosService.getUltimasEntradas(),
+    }).subscribe({
+      next: ({ populares, ultimas }) => {
+        this.populares = populares;
+        this.ultimasEntradas = ultimas;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.error =
+          'No se pudieron cargar los festivales. Comprueba que el backend esté en marcha (docker compose ps).';
+      },
+    });
   }
 
   buscar() {

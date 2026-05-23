@@ -3,8 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Evento } from '../entities/evento.entity';
 import { Imagen } from '../entities/imagen.entity';
+import { Ubicacion } from '../entities/ubicacion.entity';
 import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
+import { STOCK_ULTIMAS_ENTRADAS_MAX } from './precio.util';
 
 export interface EventoFilters {
   busqueda?: string;
@@ -17,6 +19,7 @@ export class EventosService {
   constructor(
     @InjectRepository(Evento) private eventoRepo: Repository<Evento>,
     @InjectRepository(Imagen) private imagenRepo: Repository<Imagen>,
+    @InjectRepository(Ubicacion) private ubicacionRepo: Repository<Ubicacion>,
   ) {}
 
   private baseQuery() {
@@ -27,12 +30,30 @@ export class EventosService {
       .leftJoinAndSelect('evento.imagenes', 'imagenes');
   }
 
+  private async guardarUbicacion(direccionCompleta: string, idUbicacion?: number): Promise<number> {
+    const direccion = direccionCompleta.trim();
+    if (idUbicacion) {
+      await this.ubicacionRepo.update(idUbicacion, {
+        direccion,
+        localidad: 'Almería',
+        provincia: 'Almería',
+      });
+      return idUbicacion;
+    }
+    const nueva = await this.ubicacionRepo.save({
+      direccion,
+      localidad: 'Almería',
+      provincia: 'Almería',
+    });
+    return nueva.idUbicacion;
+  }
+
   async findAll(filters?: EventoFilters) {
     const qb = this.baseQuery();
 
     if (filters?.busqueda) {
       qb.andWhere(
-        '(evento.titulo LIKE :q OR evento.descripcion LIKE :q OR ubicacion.localidad LIKE :q)',
+        '(evento.titulo LIKE :q OR evento.descripcion LIKE :q OR ubicacion.direccion LIKE :q OR ubicacion.localidad LIKE :q)',
         { q: `%${filters.busqueda}%` },
       );
     }
@@ -49,10 +70,22 @@ export class EventosService {
     return qb.getMany();
   }
 
-  async findPopular(limit = 4) {
+  async findDestacados(limit?: number) {
+    const qb = this.baseQuery()
+      .where('evento.destacado = :destacado', { destacado: true })
+      .orderBy('evento.fechaInicio', 'ASC');
+    if (limit != null && limit > 0) {
+      qb.take(limit);
+    }
+    return qb.getMany();
+  }
+
+  async findUltimasEntradas() {
     return this.baseQuery()
-      .orderBy('evento.stock', 'DESC')
-      .take(limit)
+      .where('evento.stock > 0')
+      .andWhere('evento.stock <= :maxStock', { maxStock: STOCK_ULTIMAS_ENTRADAS_MAX })
+      .orderBy('evento.stock', 'ASC')
+      .addOrderBy('evento.fechaInicio', 'ASC')
       .getMany();
   }
 
@@ -63,8 +96,14 @@ export class EventosService {
   }
 
   async create(dto: CreateEventoDto) {
-    const { imagenUrl, ...data } = dto;
-    const evento = this.eventoRepo.create(data);
+    const { imagenUrl, direccionCompleta, ...rest } = dto;
+    const idUbicacion = await this.guardarUbicacion(direccionCompleta);
+
+    const evento = this.eventoRepo.create({
+      ...rest,
+      idUbicacion,
+      destacado: dto.destacado ?? false,
+    });
     const saved = await this.eventoRepo.save(evento);
 
     if (imagenUrl) {
@@ -80,8 +119,13 @@ export class EventosService {
 
   async update(id: number, dto: UpdateEventoDto) {
     const evento = await this.findOne(id);
-    const { imagenUrl, ...data } = dto;
-    Object.assign(evento, data);
+    const { imagenUrl, direccionCompleta, ...rest } = dto;
+
+    if (direccionCompleta !== undefined) {
+      await this.guardarUbicacion(direccionCompleta, evento.idUbicacion);
+    }
+
+    Object.assign(evento, rest);
     await this.eventoRepo.save(evento);
 
     if (imagenUrl) {
@@ -98,6 +142,14 @@ export class EventosService {
       }
     }
 
+    return this.findOne(id);
+  }
+
+  async toggleDestacado(id: number) {
+    const evento = await this.eventoRepo.findOne({ where: { id } });
+    if (!evento) throw new NotFoundException('Evento no encontrado');
+    evento.destacado = !evento.destacado;
+    await this.eventoRepo.save(evento);
     return this.findOne(id);
   }
 

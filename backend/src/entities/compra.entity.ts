@@ -31,6 +31,14 @@ export class Compra {
   @Column({ name: 'codigo_acceso', length: 100, unique: true })
   codigoAcceso: string;
 
+  @Column({
+    name: 'stripe_checkout_session_id',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  stripeCheckoutSessionId?: string;
+
   @ManyToOne(() => Usuario, (usuario) => usuario.compras)
   @JoinColumn({ name: 'id_usuario' })
   usuario: Usuario;

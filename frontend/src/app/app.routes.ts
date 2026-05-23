@@ -27,6 +27,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/perfil/perfil.component').then(m => m.PerfilComponent),
   },
   {
+    path: 'compras/exito',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/compras/compra-exito/compra-exito.component').then(m => m.CompraExitoComponent),
+  },
+  {
     path: 'festivall-admin',
     loadComponent: () => import('./pages/admin/admin-login/admin-login.component').then(m => m.AdminLoginComponent),
   },

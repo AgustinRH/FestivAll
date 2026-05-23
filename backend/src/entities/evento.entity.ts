@@ -46,6 +46,9 @@ export class Evento {
   @Column()
   stock: number;
 
+  @Column({ default: false })
+  destacado: boolean;
+
   @ManyToOne(() => Categoria, (categoria) => categoria.eventos)
   @JoinColumn({ name: 'id_categoria' })
   categoria: Categoria;

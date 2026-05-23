@@ -1,18 +1,21 @@
 import {
+  IsBoolean,
   IsDateString,
   IsInt,
   IsNumber,
   IsOptional,
   IsString,
   Min,
+  MinLength,
 } from 'class-validator';
 
 export class CreateEventoDto {
   @IsInt()
   idCategoria: number;
 
-  @IsInt()
-  idUbicacion: number;
+  @IsString()
+  @MinLength(5)
+  direccionCompleta: string;
 
   @IsString()
   titulo: string;
@@ -43,6 +46,10 @@ export class CreateEventoDto {
   @IsInt()
   @Min(0)
   stock: number;
+
+  @IsOptional()
+  @IsBoolean()
+  destacado?: boolean;
 
   @IsOptional()
   @IsString()

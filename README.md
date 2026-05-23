@@ -30,10 +30,12 @@ Levanta **MariaDB + API + web (nginx)** con un solo comando:
 
 ```bash
 cp .env.example .env
-# Edita .env: JWT_SECRET, DB_PASSWORD, APP_PORT
+# Edita .env: JWT_SECRET, DB_PASSWORD, APP_PORT, STRIPE_* (pagos)
 
 docker compose up -d --build
 ```
+
+Stripe puede ir en `.env` (raíz) o en `backend/.env`; con Docker se cargan ambos.
 
 Abre **http://localhost** (o el puerto definido en `APP_PORT`).
 
@@ -119,14 +121,22 @@ Abre http://localhost:4200
 | `/eventos` | Listado con buscador y filtros |
 | `/eventos/:id` | Detalle y compra de entradas |
 | `/perfil` | Datos, historial y cambio de contraseña |
+| `/compras/exito` | Confirmación tras pago Stripe |
 | `/festivall-admin` | Login admin (estilo wp-admin) |
 | `/festivall-admin/panel` | CRUD de eventos |
+
+## Pagos con Stripe
+
+Los eventos de pago usan **Stripe Checkout**. Guía completa: **[docs/STRIPE.md](docs/STRIPE.md)**.
+
+Resumen: cuenta en [stripe.com](https://stripe.com) (modo test) → claves en `backend/.env` → migración `002_stripe_checkout.sql` → webhook con Stripe CLI en local.
 
 ## API (puerto 3000)
 
 - `POST /auth/register` · `POST /auth/login` · `POST /auth/admin/login`
 - `GET /auth/profile` · `PUT /auth/change-password`
 - `GET /eventos` · `GET /eventos/popular` · `GET /eventos/:id`
-- `POST /compras` · `GET /compras/mis-compras`
+- `POST /compras/checkout` · `GET /compras/checkout/verificar` · `POST /compras/webhook/stripe`
+- `POST /compras` (solo eventos gratis) · `GET /compras/mis-compras`
 - `GET /catalogo/categorias` · `GET /catalogo/ubicaciones`
 - CRUD admin: `POST/PUT/DELETE /eventos` (requiere JWT admin)

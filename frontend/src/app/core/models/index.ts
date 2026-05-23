@@ -39,6 +39,7 @@ export interface Evento {
   horaFin?: string;
   precio: number;
   stock: number;
+  destacado?: boolean;
   idCategoria: number;
   idUbicacion: number;
   categoria?: Categoria;
