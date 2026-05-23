@@ -1,58 +1,90 @@
-.eventos-page {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-
-  h1 { margin-bottom: 1.5rem; }
-
-  .search-bar {
+.list-page {
+  .hero-mini {
+    position: relative;
+    height: 200px;
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    align-items: center;
+    justify-content: center;
+    background: url('https://images.unsplash.com/photo-1459749411175-04bf0292bbce?w=1600') center/cover;
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 10, 18, 0.75);
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      font-size: 1.75rem;
+      font-weight: 800;
+    }
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .filters-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+
     input {
       flex: 1;
+      min-width: 200px;
       padding: 0.75rem 1rem;
-      border-radius: 8px;
+      border-radius: var(--radius-pill);
       border: 1px solid #333;
-      background: #16213e;
-      color: #fff;
+      background: var(--bg-card);
+      color: var(--text);
     }
-    button {
-      padding: 0.75rem 1.5rem;
-      background: #e94560;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
+
+    .btn-filter {
+      background: transparent;
+      border: 1px solid #555;
+      color: var(--text);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-pill);
       cursor: pointer;
     }
   }
 
-  .filters {
+  .filters-panel {
     display: flex;
     gap: 1rem;
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
+
     select, input {
-      padding: 0.6rem;
-      border-radius: 8px;
-      border: 1px solid #333;
-      background: #16213e;
-      color: #fff;
-    }
-    .btn-clear {
-      background: transparent;
-      border: 1px solid #888;
-      color: #888;
       padding: 0.6rem 1rem;
       border-radius: 8px;
+      border: 1px solid #333;
+      background: var(--bg-card);
+      color: var(--text);
+    }
+
+    .link-clear {
+      background: none;
+      border: none;
+      color: var(--accent);
       cursor: pointer;
+      align-self: center;
     }
   }
 
-  .grid {
+  .events-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
   }
-  .empty { text-align: center; color: #888; margin-top: 2rem; }
+
+  .empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 3rem;
+  }
 }

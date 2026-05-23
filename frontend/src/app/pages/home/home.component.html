@@ -1,22 +1,54 @@
-<app-navbar />
-<main class="home">
-  <section class="hero">
-    <h1>Bienvenido a <span>FestivAll</span></h1>
-    <p>
-      Tu plataforma para descubrir los mejores eventos de la provincia de Almería.
-      Rock, festivales, reggaeton, techno, flamenco y mucho más. Compra tus entradas
-      de forma sencilla y no te pierdas ninguna fiesta.
-    </p>
-  </section>
-  <section class="populares">
-    <h2>Eventos más populares</h2>
-    <DIV class="grid">
-      @for (evento of populares; track evento.id) {
-        <app-event-card [evento]="evento" />
+<div class="page-wrap">
+  <app-navbar />
+  <main class="page-content home-page">
+    <section class="hero">
+      <div class="hero-overlay"></div>
+      <div class="hero-inner">
+        <h1>Encuentra tu próximo evento en menos de 3 clicks</h1>
+        <form class="hero-search" [formGroup]="searchForm" (ngSubmit)="buscar()">
+          <div class="search-field grow">
+            <span class="icon">🔍</span>
+            <input type="text" formControlName="busqueda" placeholder="¿Qué evento buscas?" />
+          </div>
+          <div class="search-field">
+            <span class="icon">📅</span>
+            <input type="date" formControlName="desde" placeholder="Desde" />
+          </div>
+          <span class="bar">|</span>
+          <div class="search-field">
+            <span class="icon">📅</span>
+            <input type="date" formControlName="hasta" placeholder="Hasta" />
+          </div>
+          <button type="submit" class="btn-search">BUSCAR</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="destacados container">
+      <h2 class="section-title">Festivales Destacados</h2>
+      <div class="cards-row">
+        @for (evento of populares; track evento.id) {
+          <app-event-card [evento]="evento" />
+        }
+      </div>
+      @if (populares.length === 0) {
+        <p class="empty">Cargando festivales...</p>
       }
-    </DIV>
-    @if (populares.length === 0) {
-      <p class="empty">Cargando eventos...</p>
-    }
-  </section>
-</main>
+    </section>
+
+    <section id="sobre" class="sobre container">
+      <h2 class="section-title">Sobre Nosotros</h2>
+      <p>
+        FestivAll Almería es tu plataforma para descubrir los mejores eventos de la provincia:
+        rock, festivales, reggaeton, techno, flamenco y mucho más. Compra tus entradas de forma
+        sencilla y no te pierdas ninguna fiesta en la costa almeriense.
+      </p>
+    </section>
+
+    <section id="contacto" class="contacto container">
+      <h2 class="section-title">Contacto</h2>
+      <p>¿Tienes dudas? Escríbenos a <a href="mailto:info&#64;festivall.es">info&#64;festivall.es</a></p>
+    </section>
+  </main>
+  <app-footer />
+</div>

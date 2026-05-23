@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
+import { FooterComponent } from '../../shared/footer/footer.component';
 import { AuthService } from '../../core/services/auth.service';
 import { ComprasService } from '../../core/services/compras.service';
 import { Compra } from '../../core/models';
@@ -9,7 +10,7 @@ import { Compra } from '../../core/models';
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NavbarComponent, CurrencyPipe, DatePipe],
+  imports: [CommonModule, ReactiveFormsModule, NavbarComponent, FooterComponent, CurrencyPipe, DatePipe],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.scss',
 })

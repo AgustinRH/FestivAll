@@ -1,18 +1,47 @@
 .perfil-page {
-  padding: 2rem;
-  max-width: 800px;
-  margin: 0 auto;
+  .hero-mini {
+    position: relative;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: url('https://images.unsplash.com/photo-1459749411175-04bf0292bbce?w=1600') center/cover;
 
-  h1 { margin-bottom: 1.5rem; }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 10, 18, 0.8);
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      font-size: 1.75rem;
+      font-weight: 800;
+    }
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
 
   .card {
-    background: #16213e;
-    border-radius: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    h2 { margin-top: 0; font-size: 1.2rem; color: #e94560; }
-    p { color: #ccc; margin: 0.4rem 0; }
-    .empty { color: #888; }
+
+    h2 {
+      color: var(--accent);
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    p { color: var(--text-muted); margin: 0.4rem 0; }
+    .empty { color: var(--text-muted); }
   }
 
   .compra-item {
@@ -21,10 +50,12 @@
     align-items: center;
     padding: 1rem 0;
     border-bottom: 1px solid #333;
+
     &:last-child { border-bottom: none; }
+
     .right {
       text-align: right;
-      span { display: block; color: #e94560; font-weight: 600; }
+      span { display: block; color: var(--accent); font-weight: 700; }
       code { font-size: 0.8rem; color: #2ecc71; }
     }
   }
@@ -33,23 +64,18 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+
     input {
-      padding: 0.75rem;
-      border-radius: 8px;
-      border: 1px solid #333;
-      background: #0f0c29;
-      color: #fff;
-    }
-    button {
-      padding: 0.75rem;
-      background: #e94560;
-      color: #fff;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-pill);
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      &:disabled { opacity: 0.5; }
+      background: var(--bg-input);
+      color: #222;
     }
+
+    .btn-primary { align-self: flex-start; }
   }
-  .success { color: #2ecc71; }
-  .error { color: #e94560; }
+
+  .success { color: #2ecc71; margin-bottom: 0.5rem; }
+  .error { color: #e74c3c; margin-bottom: 0.5rem; }
 }

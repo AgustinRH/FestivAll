@@ -1,13 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { getHttpErrorMessage } from '../../../core/utils/http-error';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -15,6 +15,7 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   error = '';
   loading = false;
@@ -30,9 +31,12 @@ export class LoginComponent {
     this.error = '';
     const { email, password } = this.form.getRawValue();
     this.auth.login(email!, password!).subscribe({
-      next: () => this.router.navigate(['/']),
+      next: () => {
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+        this.router.navigateByUrl(returnUrl);
+      },
       error: (err) => {
-        this.error = err.error?.message || 'Error al iniciar sesión';
+        this.error = getHttpErrorMessage(err, 'Error al iniciar sesión');
         this.loading = false;
       },
     });

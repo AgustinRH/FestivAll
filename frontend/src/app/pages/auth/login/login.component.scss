@@ -3,50 +3,81 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  background-color: #0a0a12;
+  background-image: url('/logo-festivall.png');
+  background-repeat: repeat;
+  background-size: 180px auto;
+  background-blend-mode: overlay;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 18, 0.92);
+  }
 }
 
 .auth-card {
-  background: #1a1a2e;
-  padding: 2.5rem;
-  border-radius: 16px;
+  position: relative;
+  z-index: 1;
+  background: #221e33;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 28px;
+  padding: 2.5rem 2rem;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  text-align: center;
 
   h1 {
-    text-align: center;
-    color: #fff;
-    span { color: #e94560; }
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
   }
-  .subtitle { text-align: center; color: #aaa; margin-bottom: 1.5rem; }
-  .error { color: #e94560; text-align: center; margin-bottom: 1rem; }
+
+  .error {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
 
   form {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    label { color: #ccc; font-size: 0.85rem; margin-top: 0.5rem; }
+    gap: 1rem;
+
     input {
-      padding: 0.75rem;
-      border: 1px solid #333;
-      border-radius: 8px;
-      background: #0f0c29;
-      color: #fff;
-    }
-    button {
-      margin-top: 1rem;
-      padding: 0.85rem;
-      background: #e94560;
-      color: #fff;
+      padding: 0.9rem 1.25rem;
+      border-radius: var(--radius-pill);
       border: none;
-      border-radius: 8px;
-      font-weight: 600;
+      background: var(--bg-input);
+      color: #333;
+      font-size: 0.95rem;
+
+      &::placeholder { color: #888; }
+    }
+
+    button {
+      margin-top: 0.5rem;
+      padding: 0.9rem;
+      border-radius: var(--radius-pill);
+      border: none;
+      background: #c05438;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
       cursor: pointer;
+
+      &:hover:not(:disabled) { background: var(--accent-hover); }
       &:disabled { opacity: 0.5; }
     }
   }
-  .link { text-align: center; color: #aaa; margin-top: 1rem;
-    a { color: #e94560; }
+
+  .link {
+    margin-top: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+
+    a { color: var(--accent); font-weight: 600; }
   }
 }

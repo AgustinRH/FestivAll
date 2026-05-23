@@ -1,9 +1,27 @@
-<nav class="navbar">
-  <a routerLink="/" class="brand">Festiv<span>All</span></a>
-  <div class="links">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">INICIO</a>
-    <a routerLink="/eventos" routerLinkActive="active">EVENTOS</a>
-    <a routerLink="/perfil" routerLinkActive="active">PERFIL</a>
+<header class="site-header">
+  <a routerLink="/" class="logo">
+    <img src="logo-festivall.png" alt="FestivAll Almería" />
+  </a>
+
+  <nav class="main-nav">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+    <span class="sep">|</span>
+    <a routerLink="/eventos" routerLinkActive="active">Explorar Festivales</a>
+    @if (auth.isLoggedIn()) {
+      <span class="sep">|</span>
+      <a routerLink="/perfil" routerLinkActive="active">Perfil</a>
+    }
+    <span class="sep">|</span>
+    <a routerLink="/" fragment="sobre">Sobre Nosotros</a>
+  </nav>
+
+  <div class="auth-links">
+    @if (auth.isLoggedIn()) {
+      <button type="button" class="link-btn" (click)="logout()">Salir</button>
+    } @else {
+      <a routerLink="/login">Login</a>
+      <span class="sep">|</span>
+      <a routerLink="/register">Register</a>
+    }
   </div>
-  <button class="btn-logout" (click)="logout()">Salir</button>
-</nav>
+</header>

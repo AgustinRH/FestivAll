@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { getHttpErrorMessage } from '../../../core/utils/http-error';
 
 @Component({
   selector: 'app-register',
@@ -36,10 +37,16 @@ export class RegisterComponent {
     }
     this.loading = true;
     this.error = '';
-    this.auth.register(data as { nombre: string; apellidos: string; email: string; password: string }).subscribe({
+    const payload = {
+      nombre: data.nombre!.trim(),
+      apellidos: data.apellidos!.trim(),
+      email: data.email!.trim(),
+      password: data.password!,
+    };
+    this.auth.register(payload).subscribe({
       next: () => this.router.navigate(['/']),
       error: (err) => {
-        this.error = err.error?.message || 'Error al registrarse';
+        this.error = getHttpErrorMessage(err, 'Error al registrarse');
         this.loading = false;
       },
     });

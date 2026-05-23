@@ -1,37 +1,66 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
+import { FooterComponent } from '../../../shared/footer/footer.component';
 import { EventosService } from '../../../core/services/eventos.service';
 import { ComprasService } from '../../../core/services/compras.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { getHttpErrorMessage } from '../../../core/utils/http-error';
 import { Evento, Compra } from '../../../core/models';
 
 @Component({
   selector: 'app-evento-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, NavbarComponent, CurrencyPipe, DatePipe],
+  imports: [
+    ReactiveFormsModule,
+    NavbarComponent,
+    FooterComponent,
+    CurrencyPipe,
+    DatePipe,
+  ],
   templateUrl: './evento-detail.component.html',
   styleUrl: './evento-detail.component.scss',
 })
 export class EventoDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private fb = inject(FormBuilder);
   private eventosService = inject(EventosService);
   private comprasService = inject(ComprasService);
+  auth = inject(AuthService);
 
   evento?: Evento;
   compraExitosa?: Compra;
+  showCompraModal = false;
   error = '';
   loading = false;
 
-  form = this.fb.group({
+  compraForm = this.fb.group({
+    nombre: ['', Validators.required],
+    apellidos: ['', Validators.required],
+    direccion: [''],
+    codPostal: [''],
+    ciudad: [''],
+    pais: ['España'],
+    telefono: [''],
+    codigoDescuento: [''],
     cantidad: [1, [Validators.required, Validators.min(1)]],
   });
 
   ngOnInit() {
     const id = +this.route.snapshot.paramMap.get('id')!;
-    this.eventosService.getById(id).subscribe((e) => (this.evento = e));
+    this.eventosService.getById(id).subscribe((e) => {
+      this.evento = e;
+      if (this.auth.isLoggedIn()) {
+        const user = this.auth.currentUser();
+        this.compraForm.patchValue({
+          nombre: user?.nombre || '',
+          apellidos: user?.apellidos || '',
+        });
+      }
+    });
   }
 
   get imagenUrl(): string {
@@ -39,9 +68,33 @@ export class EventoDetailComponent implements OnInit {
     return principal?.url || this.evento?.imagenes?.[0]?.url || '';
   }
 
-  comprar() {
-    if (!this.evento || this.form.invalid) return;
-    const cantidad = this.form.get('cantidad')!.value!;
+  get mapUrl(): string {
+    const u = this.evento?.ubicacion;
+    if (!u) return '';
+    const q = encodeURIComponent(`${u.direccion}, ${u.localidad}, ${u.provincia}`);
+    return `https://www.openstreetmap.org/export/embed.html?bbox=-2.5,36.8,-2.4,36.9&layer=mapnik&marker=${q}`;
+  }
+
+  abrirCompra() {
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+    this.showCompraModal = true;
+    this.error = '';
+  }
+
+  cerrarCompra() {
+    this.showCompraModal = false;
+  }
+
+  get total(): number {
+    return (this.evento?.precio || 0) * (this.compraForm.get('cantidad')?.value || 1);
+  }
+
+  confirmarCompra() {
+    if (!this.evento || this.compraForm.invalid) return;
+    const cantidad = this.compraForm.get('cantidad')!.value!;
     if (cantidad > this.evento.stock) {
       this.error = 'No hay suficiente stock';
       return;
@@ -53,9 +106,10 @@ export class EventoDetailComponent implements OnInit {
         this.compraExitosa = compra;
         this.evento!.stock -= cantidad;
         this.loading = false;
+        this.showCompraModal = false;
       },
       error: (err) => {
-        this.error = err.error?.message || 'Error al comprar';
+        this.error = getHttpErrorMessage(err, 'Error al comprar');
         this.loading = false;
       },
     });

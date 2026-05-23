@@ -73,6 +73,8 @@ npm start
 
 Abre http://localhost:4200
 
+> **WSL + Windows:** el frontend usa un proxy (`/api` → `localhost:3000`) para evitar problemas de conexión. Reinicia `npm start` tras cambios en `proxy.conf.json`.
+
 ## Rutas principales
 
 | Ruta | Descripción |

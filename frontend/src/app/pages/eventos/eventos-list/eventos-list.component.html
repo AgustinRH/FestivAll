@@ -1,33 +1,40 @@
-<app-navbar />
-<main class="eventos-page">
-  <h1>Eventos en Almería</h1>
+<div class="page-wrap">
+  <app-navbar />
+  <main class="page-content list-page">
+    <section class="hero-mini">
+      <div class="hero-overlay"></div>
+      <h1>Explorar Festivales</h1>
+    </section>
 
-  <DIV class="search-bar" [formGroup]="filters">
-    <input type="text" placeholder="Buscar eventos..." formControlName="busqueda" />
-    <button type="button" (click)="showFilters = !showFilters">
-      {{ showFilters ? 'Ocultar filtros' : 'Filtros' }}
-    </button>
-  </DIV>
+    <div class="container">
+      <form class="filters-bar" [formGroup]="filters" (ngSubmit)="aplicarFiltros()">
+        <input type="text" placeholder="¿Qué evento buscas?" formControlName="busqueda" />
+        <button type="button" class="btn-filter" (click)="showFilters = !showFilters">Filtros</button>
+        <button type="submit" class="btn-primary">BUSCAR</button>
+      </form>
 
-  @if (showFilters) {
-    <DIV class="filters" [formGroup]="filters">
-      <select formControlName="categoriaId">
-        <option value="">Todas las categorías</option>
-        @for (cat of categorias; track cat.id) {
-          <option [value]="cat.id">{{ cat.nombreCategoria }}</option>
+      @if (showFilters) {
+        <div class="filters-panel" [formGroup]="filters">
+          <select formControlName="categoriaId">
+            <option value="">Todas las categorías</option>
+            @for (cat of categorias; track cat.id) {
+              <option [value]="cat.id">{{ cat.nombreCategoria }}</option>
+            }
+          </select>
+          <input type="text" placeholder="Localidad" formControlName="localidad" />
+          <button type="button" class="link-clear" (click)="clearFilters()">Limpiar filtros</button>
+        </div>
+      }
+
+      <div class="events-grid">
+        @for (evento of eventos; track evento.id) {
+          <app-event-card [evento]="evento" />
         }
-      </select>
-      <input type="text" placeholder="Localidad..." formControlName="localidad" />
-      <button type="button" class="btn-clear" (click)="clearFilters()">Limpiar</button>
-    </DIV>
-  }
-
-  <DIV class="grid">
-    @for (evento of eventos; track evento.id) {
-      <app-event-card [evento]="evento" />
-    }
-  </DIV>
-  @if (eventos.length === 0) {
-    <p class="empty">No se encontraron eventos.</p>
-  }
-</main>
+      </div>
+      @if (eventos.length === 0) {
+        <p class="empty">No se encontraron eventos.</p>
+      }
+    </div>
+  </main>
+  <app-footer />
+</div>

@@ -1,44 +1,108 @@
-<app-navbar />
-@if (evento) {
-  <main class="detail-page">
-    <a routerLink="/eventos" class="back">← Volver a eventos</a>
-    <DIV class="detail-grid">
-      <img [src]="imagenUrl" [alt]="evento.titulo" class="cover" />
-      <DIV class="info">
-        <span class="badge">{{ evento.categoria?.nombreCategoria }}</span>
-        <h1>{{ evento.titulo }}</h1>
-        <p class="desc">{{ evento.descripcion }}</p>
-        <ul class="datos">
-          <li><strong>Fecha:</strong> {{ evento.fechaInicio | date:'fullDate':'':'es' }}
-            @if (evento.fechaFin) { – {{ evento.fechaFin | date:'fullDate':'':'es' }} }
-          </li>
-          @if (evento.horaInicio) {
-            <li><strong>Hora:</strong> {{ evento.horaInicio }} @if (evento.horaFin) { – {{ evento.horaFin }} }</li>
-          }
-          <li><strong>Lugar:</strong> {{ evento.ubicacion?.direccion }}, {{ evento.ubicacion?.localidad }}</li>
-          <li><strong>Precio:</strong> {{ evento.precio | currency:'EUR' }}</li>
-          <li><strong>Entradas disponibles:</strong> {{ evento.stock }}</li>
-        </ul>
+<div class="page-wrap">
+  <app-navbar />
+  @if (evento) {
+    <main class="page-content detail-page">
+      <section class="event-hero">
+        <div class="hero-bg" [style.background-image]="'url(' + imagenUrl + ')'"></div>
+        <div class="hero-overlay"></div>
+        <div class="bookmark">★</div>
+        <div class="hero-text">
+          <h1>{{ evento.titulo }}</h1>
+          <p>{{ evento.fechaInicio | date:'fullDate':'':'es' }}
+            @if (evento.horaInicio) { · {{ evento.horaInicio }} }
+          </p>
+        </div>
+      </section>
 
-        @if (compraExitosa) {
-          <DIV class="success">
-            <h3>¡Compra realizada!</h3>
-            <p>Código de acceso: <strong>{{ compraExitosa.codigoAcceso }}</strong></p>
-            <p>Total pagado: {{ compraExitosa.totalPago | currency:'EUR' }}</p>
-          </DIV>
-        } @else if (evento.stock > 0) {
-          <DIV class="compra" [formGroup]="form">
-            <label>Cantidad de entradas</label>
-            <input type="number" formControlName="cantidad" min="1" [max]="evento.stock" />
-            @if (error) { <p class="error">{{ error }}</p> }
-            <button (click)="comprar()" [disabled]="loading">
-              {{ loading ? 'Procesando...' : 'Comprar entrada' }}
-            </button>
-          </DIV>
-        } @else {
-          <p class="agotado">Entradas agotadas</p>
-        }
-      </DIV>
-    </DIV>
-  </main>
+      <div class="detail-columns container">
+        <section class="info-box">
+          <h2>Información General</h2>
+          <div class="box-inner">
+            <h3>{{ evento.titulo }}</h3>
+            <ul>
+              <li>📍 {{ evento.ubicacion?.direccion }}, {{ evento.ubicacion?.localidad }}</li>
+              <li>📅 {{ evento.fechaInicio | date:'longDate':'':'es' }}
+                @if (evento.horaInicio) { — {{ evento.horaInicio }}
+                  @if (evento.horaFin) { a {{ evento.horaFin }} }
+                }
+              </li>
+              <li>🎵 {{ evento.categoria?.nombreCategoria }}</li>
+              <li>💰 Desde {{ evento.precio | currency:'EUR' }}</li>
+              <li class="desc">{{ evento.descripcion }}</li>
+              <li>🎫 {{ evento.stock }} entradas disponibles</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="poster-box">
+          <h2>Cartel</h2>
+          <img [src]="imagenUrl" [alt]="evento.titulo" class="poster" />
+        </section>
+
+        <section class="map-box">
+          <h2>📍 Ubicación</h2>
+          <div class="map-placeholder">
+            <p class="map-label">{{ evento.ubicacion?.localidad }}, Almería</p>
+            <p class="map-addr">{{ evento.ubicacion?.direccion }}</p>
+          </div>
+          <div class="buy-row">
+            <span class="qty-badge">1</span>
+            @if (compraExitosa) {
+              <div class="success-inline">
+                ¡Comprado! Código: <strong>{{ compraExitosa.codigoAcceso }}</strong>
+              </div>
+            } @else if (evento.stock > 0) {
+              <button type="button" class="btn-comprar" (click)="abrirCompra()">COMPRAR</button>
+            } @else {
+              <span class="agotado">AGOTADO</span>
+            }
+          </div>
+        </section>
+      </div>
+    </main>
+  }
+  <app-footer />
+</div>
+
+@if (showCompraModal && evento) {
+  <div class="modal-backdrop" (click)="cerrarCompra()">
+    <div class="modal-compra" (click)="$event.stopPropagation()">
+      <h2>Formulario de compra</h2>
+
+      <form [formGroup]="compraForm" (ngSubmit)="confirmarCompra()">
+        <h3>Detalles del cliente</h3>
+        <div class="form-row two">
+          <input formControlName="nombre" placeholder="Nombre" />
+          <input formControlName="apellidos" placeholder="Apellidos" />
+        </div>
+        <input formControlName="direccion" placeholder="Dirección" class="full" />
+        <div class="form-row three">
+          <input formControlName="codPostal" placeholder="Cod. Postal" />
+          <input formControlName="ciudad" placeholder="Ciudad" />
+          <input formControlName="pais" placeholder="País" />
+        </div>
+        <div class="form-row two">
+          <input formControlName="telefono" placeholder="Nº Teléfono" />
+          <input formControlName="codigoDescuento" placeholder="Cod. Descuento" />
+        </div>
+
+        <h3>Datos de Compra</h3>
+        <div class="form-row ticket-row">
+          <label>Entrada Normal</label>
+          <input type="number" formControlName="cantidad" min="1" [max]="evento.stock" class="qty" />
+        </div>
+        <div class="total-row">
+          <span>TOTAL</span>
+          <strong>{{ total | currency:'EUR' }}</strong>
+        </div>
+
+        @if (error) { <p class="error">{{ error }}</p> }
+
+        <button type="submit" class="btn-primary full" [disabled]="loading || compraForm.invalid">
+          {{ loading ? 'Procesando...' : 'Confirmar compra' }}
+        </button>
+        <button type="button" class="btn-cancel" (click)="cerrarCompra()">Cancelar</button>
+      </form>
+    </div>
+  </div>
 }

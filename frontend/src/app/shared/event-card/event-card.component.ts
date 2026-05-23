@@ -1,12 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe } from '@angular/common';
 import { Evento } from '../../core/models';
 
 @Component({
   selector: 'app-event-card',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, DatePipe],
+  imports: [RouterLink, CurrencyPipe],
   templateUrl: './event-card.component.html',
   styleUrl: './event-card.component.scss',
 })
