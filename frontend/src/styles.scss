@@ -23,6 +23,7 @@ body {
   background: var(--bg-dark);
   color: var(--text);
   min-height: 100vh;
+  overflow-x: clip;
 }
 
 a {
@@ -86,4 +87,21 @@ input, select, textarea, button {
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+
+  @media (min-width: 768px) {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.35rem;
+    margin-bottom: 1rem;
+  }
 }

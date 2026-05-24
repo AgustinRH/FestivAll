@@ -1,38 +1,128 @@
 import {
+  BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
+import { MailService } from '../mail/mail.service';
 import { Usuario, RolUsuario } from '../entities/usuario.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { BCRYPT_ROUNDS } from './password.constants';
+import { ConfigService } from '@nestjs/config';
+
+const VERIFICATION_HOURS = 24;
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(Usuario) private usuarioRepo: Repository<Usuario>,
     private jwtService: JwtService,
+    private mailService: MailService,
+    private config: ConfigService,
   ) {}
 
   async register(dto: RegisterDto) {
     const exists = await this.usuarioRepo.findOne({ where: { email: dto.email } });
     if (exists) throw new ConflictException('El email ya está registrado');
 
-    const hash = await bcrypt.hash(dto.password, 10);
+    if (!this.mailService.isConfigured()) {
+      throw new ServiceUnavailableException(
+        'El registro requiere verificación por email, pero el servidor de correo no está configurado.',
+      );
+    }
+
+    const hash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
+    const token = randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + VERIFICATION_HOURS * 60 * 60 * 1000);
+
     const user = this.usuarioRepo.create({
       nombre: dto.nombre,
       apellidos: dto.apellidos,
       email: dto.email,
       password: hash,
       rol: RolUsuario.CLIENTE,
+      emailVerificado: false,
+      emailVerificationToken: token,
+      emailVerificationExpires: expires,
     });
     await this.usuarioRepo.save(user);
-    return this.buildAuthResponse(user);
+
+    await this.sendVerificationEmail(user, token);
+
+    return {
+      message: 'Cuenta creada. Revisa tu email y haz clic en el enlace de verificación para iniciar sesión.',
+      email: this.maskEmail(user.email),
+    };
+  }
+
+  async verifyEmail(token: string) {
+    if (!token?.trim()) {
+      throw new BadRequestException('Token de verificación inválido');
+    }
+
+    const user = await this.usuarioRepo
+      .createQueryBuilder('u')
+      .addSelect('u.emailVerificationToken')
+      .addSelect('u.emailVerificationExpires')
+      .where('u.email_verification_token = :token', { token: token.trim() })
+      .getOne();
+
+    if (!user) {
+      throw new BadRequestException('Enlace de verificación inválido o ya utilizado');
+    }
+
+    if (user.emailVerificado) {
+      return { message: 'Tu cuenta ya estaba verificada. Ya puedes iniciar sesión.' };
+    }
+
+    if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
+      throw new BadRequestException('El enlace ha caducado. Solicita uno nuevo desde el login.');
+    }
+
+    user.emailVerificado = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationExpires = null;
+    await this.usuarioRepo.save(user);
+
+    return { message: 'Email verificado correctamente. Ya puedes iniciar sesión.' };
+  }
+
+  async resendVerification(email: string) {
+    const user = await this.usuarioRepo
+      .createQueryBuilder('u')
+      .addSelect('u.emailVerificationToken')
+      .addSelect('u.emailVerificationExpires')
+      .where('u.email = :email', { email })
+      .getOne();
+
+    if (!user || user.emailVerificado || user.rol === RolUsuario.ADMIN) {
+      return {
+        message: 'Si el email existe y no está verificado, recibirás un nuevo enlace en breve.',
+      };
+    }
+
+    if (!this.mailService.isConfigured()) {
+      throw new ServiceUnavailableException('El servidor de correo no está configurado.');
+    }
+
+    const token = randomBytes(32).toString('hex');
+    user.emailVerificationToken = token;
+    user.emailVerificationExpires = new Date(Date.now() + VERIFICATION_HOURS * 60 * 60 * 1000);
+    await this.usuarioRepo.save(user);
+    await this.sendVerificationEmail(user, token);
+
+    return {
+      message: 'Si el email existe y no está verificado, recibirás un nuevo enlace en breve.',
+    };
   }
 
   async login(dto: LoginDto, adminOnly = false) {
@@ -51,6 +141,12 @@ export class AuthService {
       throw new UnauthorizedException('No tienes permisos de administrador');
     }
 
+    if (!adminOnly && user.rol !== RolUsuario.ADMIN && !user.emailVerificado) {
+      throw new ForbiddenException(
+        'Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada o solicita un nuevo enlace.',
+      );
+    }
+
     return this.buildAuthResponse(user);
   }
 
@@ -64,6 +160,7 @@ export class AuthService {
       email: user.email,
       rol: user.rol,
       fechaRegistro: user.fechaRegistro,
+      emailVerificado: user.emailVerificado,
     };
   }
 
@@ -79,9 +176,27 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.currentPassword, user.password);
     if (!valid) throw new UnauthorizedException('Contraseña actual incorrecta');
 
-    user.password = await bcrypt.hash(dto.newPassword, 10);
+    const sameAsCurrent = await bcrypt.compare(dto.newPassword, user.password);
+    if (sameAsCurrent) {
+      throw new BadRequestException('La nueva contraseña debe ser distinta a la actual');
+    }
+
+    user.password = await bcrypt.hash(dto.newPassword, BCRYPT_ROUNDS);
     await this.usuarioRepo.save(user);
     return { message: 'Contraseña actualizada correctamente' };
+  }
+
+  private async sendVerificationEmail(user: Usuario, token: string) {
+    const base = (this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200').replace(/\/$/, '');
+    const verifyUrl = `${base}/verificar-email?token=${token}`;
+    await this.mailService.sendVerificationEmail(user.email, user.nombre, verifyUrl);
+  }
+
+  private maskEmail(email: string): string {
+    const [local, domain] = email.split('@');
+    if (!domain) return email;
+    const visible = local.slice(0, Math.min(2, local.length));
+    return `${visible}***@${domain}`;
   }
 
   private buildAuthResponse(user: Usuario) {

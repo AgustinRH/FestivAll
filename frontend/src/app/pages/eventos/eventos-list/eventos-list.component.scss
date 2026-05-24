@@ -1,3 +1,5 @@
+@use '../../../../breakpoints' as bp;
+
 .list-page {
   .hero-mini {
     position: relative;
@@ -24,7 +26,11 @@
   .container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1rem;
+
+    @media (min-width: 768px) {
+      padding: 2rem;
+    }
   }
 
   .filters-bar {
@@ -86,5 +92,37 @@
     text-align: center;
     color: var(--text-muted);
     padding: 3rem;
+  }
+}
+
+@include bp.tablet-down {
+  .list-page {
+    .hero-mini h1 {
+      font-size: 1.35rem;
+      padding: 0 1rem;
+      text-align: center;
+    }
+
+    .filters-bar input {
+      min-width: 100%;
+      flex: 1 1 100%;
+    }
+
+    .filters-panel {
+      flex-direction: column;
+      align-items: stretch;
+
+      select,
+      input {
+        width: 100%;
+      }
+    }
+  }
+}
+
+@include bp.mobile {
+  .list-page .events-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
   }
 }

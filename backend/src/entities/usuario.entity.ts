@@ -26,6 +26,15 @@ export class Usuario {
   @Column({ type: 'enum', enum: RolUsuario, default: RolUsuario.CLIENTE })
   rol: RolUsuario;
 
+  @Column({ name: 'email_verificado', type: 'boolean', default: false })
+  emailVerificado: boolean;
+
+  @Column({ name: 'email_verification_token', type: 'varchar', length: 64, nullable: true, select: false })
+  emailVerificationToken: string | null;
+
+  @Column({ name: 'email_verification_expires', type: 'datetime', nullable: true, select: false })
+  emailVerificationExpires: Date | null;
+
   @Column({ name: 'fecha_registro', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   fechaRegistro: Date;
 

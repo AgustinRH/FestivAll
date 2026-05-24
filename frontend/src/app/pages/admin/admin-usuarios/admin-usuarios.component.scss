@@ -1,0 +1,117 @@
+@use '../admin-shared' as *;
+
+:host {
+  display: block;
+}
+
+.user-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.user-card {
+  background: var(--admin-surface-2, #1f2430);
+  border: 1px solid var(--admin-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--admin-radius, 12px);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &.is-self {
+    border-color: rgba(232, 93, 59, 0.4);
+  }
+}
+
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(232, 93, 59, 0.2);
+  color: var(--admin-accent, #e85d3b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.card-email {
+  margin: 0;
+  color: var(--admin-muted, #9ca3af);
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.role-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--admin-muted, #9ca3af);
+
+  &.admin {
+    background: rgba(232, 93, 59, 0.2);
+    color: var(--admin-accent, #e85d3b);
+  }
+}
+
+.pill {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+
+  &.verified {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+
+  &.pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+}
+
+.self-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: var(--admin-accent, #e85d3b);
+}
+
+.password-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--admin-muted, #9ca3af);
+}
+
+.optional {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--admin-muted, #9ca3af);
+}
+
+.verificado-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--admin-surface-2, #1f2430);
+  border: 1px solid var(--admin-border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--admin-radius, 12px);
+  margin-bottom: 1.5rem;
+
+  &.is-active {
+    border-color: rgba(34, 197, 94, 0.35);
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    color: var(--admin-muted, #9ca3af);
+  }
+}

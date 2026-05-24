@@ -199,7 +199,7 @@ Rutas principales:
 
 **Credenciales admin** (se crean al arrancar el backend):
 
-- Email: `admin@festivall.es`
+- Email: `info@festivall.club`
 - Contraseña: `Admin123!`
 
 Cámbialas en producción creando otro admin o actualizando la contraseña en base de datos.

@@ -1,0 +1,14 @@
+<div class="auth-page">
+  <div class="auth-card">
+  <h1>Verificación de email</h1>
+  @if (loading) {
+    <p class="hint">Verificando tu cuenta…</p>
+  } @else if (message) {
+    <p class="success">{{ message }}</p>
+    <a routerLink="/login" class="btn-link">Iniciar sesión</a>
+  } @else {
+    <p class="error">{{ error }}</p>
+    <a routerLink="/login" class="btn-link">Volver al login</a>
+  }
+  </div>
+</div>

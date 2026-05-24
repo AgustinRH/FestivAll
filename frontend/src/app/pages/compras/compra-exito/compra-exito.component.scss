@@ -1,3 +1,5 @@
+@use '../../../../breakpoints' as bp;
+
 .exito-page {
   padding: 3rem 1rem 4rem;
   min-height: 60vh;
@@ -72,13 +74,28 @@
   padding: 0;
 
   li {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
     padding: 0.85rem 1rem;
     background: rgba(255, 255, 255, 0.04);
     border-radius: 10px;
     margin-bottom: 0.5rem;
+  }
+
+  .ticket-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .ticket-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .ticket-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.15rem;
   }
 
   .code {
@@ -86,6 +103,28 @@
     font-weight: 700;
     font-size: 1.05rem;
     color: var(--accent);
+  }
+
+  .btn-download {
+    align-self: flex-start;
+    margin-top: 0.35rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid rgba(232, 93, 59, 0.55);
+    background: rgba(232, 93, 59, 0.12);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: rgba(232, 93, 59, 0.22);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
   }
 
   .meta {
@@ -109,4 +148,25 @@
 
 a.btn-outline {
   display: inline-block;
+}
+
+@include bp.tablet-down {
+  .exito-page {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+
+    .btn-primary,
+    a.btn-outline {
+      width: 100%;
+      text-align: center;
+    }
+  }
 }

@@ -2,9 +2,15 @@
   <div class="auth-card">
     <h1>Login</h1>
     @if (error) { <p class="error">{{ error }}</p> }
+  @if (showResend) {
+    <button type="button" class="btn-resend" (click)="resendVerification()" [disabled]="resendLoading">
+      {{ resendLoading ? 'Enviando…' : 'Reenviar email de verificación' }}
+    </button>
+    @if (resendMsg) { <p class="resend-msg">{{ resendMsg }}</p> }
+  }
     <form [formGroup]="form" (ngSubmit)="submit()">
-      <input type="email" formControlName="email" placeholder="Email" />
-      <input type="password" formControlName="password" placeholder="Password" />
+      <input type="email" formControlName="email" placeholder="Email" autocomplete="username" />
+      <input type="password" formControlName="password" placeholder="Password" autocomplete="current-password" />
       <button type="submit" [disabled]="form.invalid || loading">
         {{ loading ? 'Entrando...' : 'Iniciar Sesión' }}
       </button>

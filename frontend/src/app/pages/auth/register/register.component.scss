@@ -3,3 +3,21 @@
 .auth-card h1 {
   font-size: 1.5rem;
 }
+
+.success-msg {
+  color: #2ecc71;
+  line-height: 1.55;
+  margin-bottom: 1rem;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+
+.btn-link {
+  display: inline-block;
+  color: var(--accent);
+  font-weight: 700;
+}

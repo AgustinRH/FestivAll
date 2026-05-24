@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,14 +7,16 @@ import { EventosService } from '../../../core/services/eventos.service';
 import { CatalogoService } from '../../../core/services/catalogo.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Evento, Categoria } from '../../../core/models';
+import { AdminUsuariosComponent } from '../admin-usuarios/admin-usuarios.component';
 
+type AdminSection = 'eventos' | 'usuarios';
 type AdminView = 'list' | 'form';
 type MsgType = 'success' | 'error';
 
 @Component({
   selector: 'app-admin-panel',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, AdminUsuariosComponent],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.scss',
 })
@@ -25,6 +27,9 @@ export class AdminPanelComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
 
+  @ViewChild(AdminUsuariosComponent) adminUsuarios?: AdminUsuariosComponent;
+
+  section: AdminSection = 'eventos';
   eventos: Evento[] = [];
   categorias: Categoria[] = [];
   editingId: number | null = null;
@@ -36,6 +41,7 @@ export class AdminPanelComponent implements OnInit {
   filterCategoria = '';
   msg = '';
   msgType: MsgType = 'success';
+  sidebarOpen = false;
   private msgTimer?: ReturnType<typeof setTimeout>;
 
   form = this.fb.group({
@@ -120,17 +126,77 @@ export class AdminPanelComponent implements OnInit {
     return ini;
   }
 
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar() {
+    this.sidebarOpen = false;
+  }
+
+  selectEventos() {
+    this.section = 'eventos';
+    this.closeSidebar();
+    this.closeForm();
+  }
+
+  selectUsuarios() {
+    this.section = 'usuarios';
+    this.closeSidebar();
+    this.adminUsuarios?.closeForm();
+  }
+
+  openNewUsuario() {
+    this.section = 'usuarios';
+    this.closeSidebar();
+    setTimeout(() => this.adminUsuarios?.openCreate(), 0);
+  }
+
+  get pageTitle(): string {
+    if (this.section === 'usuarios') {
+      const u = this.adminUsuarios;
+      if (u?.view === 'form') {
+        return u.editingId ? 'Editar usuario' : 'Crear usuario';
+      }
+      return 'Gestión de usuarios';
+    }
+    return this.view === 'form'
+      ? this.editingId
+        ? 'Editar evento'
+        : 'Crear evento'
+      : 'Gestión de eventos';
+  }
+
+  get pageSubtitle(): string {
+    if (this.section === 'usuarios') {
+      const u = this.adminUsuarios;
+      if (u?.view === 'form') {
+        return 'Completa los datos y guarda el usuario en FestivAll';
+      }
+      return 'Añade, edita o elimina cuentas de clientes y administradores';
+    }
+    if (this.view === 'list') {
+      return 'Administra festivales, entradas y eventos destacados del inicio';
+    }
+    return 'Completa los datos y guarda para publicar en FestivAll';
+  }
+
   openCreate() {
+    this.section = 'eventos';
+    this.closeSidebar();
     this.cancelEdit();
     this.view = 'form';
   }
 
   openEdit(evento: Evento) {
+    this.section = 'eventos';
+    this.closeSidebar();
     this.edit(evento);
     this.view = 'form';
   }
 
   closeForm() {
+    this.closeSidebar();
     this.cancelEdit();
     this.view = 'list';
   }

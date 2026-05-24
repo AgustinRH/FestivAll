@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
 import { EventosModule } from './eventos/eventos.module';
 import { ComprasModule } from './compras/compras.module';
 import { CatalogoModule } from './catalogo/catalogo.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
 import { Categoria } from './entities/categoria.entity';
 import { Ubicacion } from './entities/ubicacion.entity';
 import { Usuario } from './entities/usuario.entity';
@@ -29,10 +31,12 @@ import { Compra } from './entities/compra.entity';
         synchronize: false,
       }),
     }),
+    MailModule,
     AuthModule,
     EventosModule,
     ComprasModule,
     CatalogoModule,
+    UsuariosModule,
   ],
 })
 export class AppModule {}

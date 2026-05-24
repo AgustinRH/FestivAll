@@ -1,3 +1,5 @@
+@use '../../../breakpoints' as bp;
+
 .perfil-page {
   .hero-mini {
     position: relative;
@@ -24,7 +26,11 @@
   .container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1rem;
+
+    @media (min-width: 768px) {
+      padding: 2rem;
+    }
   }
 
   .card {
@@ -67,31 +73,71 @@
     }
 
     .ticket-side {
-      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
       flex-shrink: 0;
+      text-align: right;
 
       .precio {
-        display: block;
         color: var(--accent);
         font-weight: 700;
-        margin-bottom: 0.35rem;
+      }
+
+      app-ticket-qr {
+        flex-shrink: 0;
       }
 
       .codigo {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: #2ecc71;
         background: rgba(46, 204, 113, 0.1);
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
+        word-break: break-all;
+        max-width: 140px;
+      }
+
+      .btn-download {
+        margin-top: 0.15rem;
+        padding: 0.45rem 0.85rem;
+        border-radius: 8px;
+        border: 1px solid rgba(232, 93, 59, 0.55);
+        background: rgba(232, 93, 59, 0.12);
+        color: var(--accent);
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s, border-color 0.15s;
+
+        &:hover:not(:disabled) {
+          background: rgba(232, 93, 59, 0.22);
+          border-color: var(--accent);
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: wait;
+        }
       }
     }
   }
 
-  @media (max-width: 600px) {
+  @include bp.tablet-down {
+    .hero-mini h1 {
+      font-size: 1.35rem;
+    }
+
     .entrada-ticket {
       flex-direction: column;
       align-items: flex-start;
-      .ticket-side { text-align: left; }
+
+      .ticket-side {
+        align-items: flex-start;
+        text-align: left;
+      }
     }
   }
 
@@ -101,11 +147,19 @@
     gap: 0.75rem;
 
     input {
+      width: 100%;
       padding: 0.75rem 1rem;
       border-radius: var(--radius-pill);
       border: none;
       background: var(--bg-input);
       color: #222;
+    }
+
+    .password-hint {
+      margin: -0.25rem 0 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.35;
     }
 
     .btn-primary { align-self: flex-start; }

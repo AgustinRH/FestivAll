@@ -20,6 +20,9 @@ CREATE TABLE usuario (
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     rol ENUM('admin', 'cliente') DEFAULT 'cliente',
+    email_verificado BOOLEAN NOT NULL DEFAULT FALSE,
+    email_verification_token VARCHAR(64) NULL,
+    email_verification_expires DATETIME NULL,
     fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

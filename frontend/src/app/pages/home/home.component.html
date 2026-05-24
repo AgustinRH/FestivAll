@@ -10,12 +10,15 @@
             <span class="icon">🔍</span>
             <input type="text" formControlName="busqueda" placeholder="¿Qué evento buscas?" />
           </div>
-          <div class="search-field">
-            <input type="date" formControlName="desde" aria-label="Desde" />
-          </div>
-          <span class="bar">|</span>
-          <div class="search-field">
-            <input type="date" formControlName="hasta" aria-label="Hasta" />
+          <div class="search-dates">
+            <label class="search-field date-field">
+              <span class="field-label">Desde</span>
+              <input type="date" formControlName="desde" />
+            </label>
+            <label class="search-field date-field">
+              <span class="field-label">Hasta</span>
+              <input type="date" formControlName="hasta" />
+            </label>
           </div>
           <button type="submit" class="btn-search">BUSCAR</button>
         </form>
@@ -56,7 +59,7 @@
 
     <section id="contacto" class="contacto container">
       <h2 class="section-title">Contacto</h2>
-      <p>¿Tienes dudas? Escríbenos a <a href="mailto:info&#64;festivall.es">info&#64;festivall.es</a></p>
+      <p>¿Tienes dudas? Escríbenos a <a href="mailto:info&#64;festivall.club">info&#64;festivall.club</a></p>
     </section>
   </main>
   <app-footer />

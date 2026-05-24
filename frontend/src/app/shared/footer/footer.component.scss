@@ -1,3 +1,5 @@
+@use '../../../breakpoints' as bp;
+
 .site-footer {
   display: flex;
   align-items: center;
@@ -34,9 +36,10 @@
   }
 }
 
-@media (max-width: 768px) {
+@include bp.tablet-down {
   .site-footer {
     flex-direction: column;
     text-align: center;
+    padding: 1.25rem 1rem;
   }
 }

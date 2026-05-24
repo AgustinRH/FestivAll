@@ -25,15 +25,29 @@
         <p class="lead">{{ compras.length }} entrada(s) para <strong>{{ compras[0].evento?.titulo }}</strong></p>
 
         <ul class="tickets">
-          @for (c of compras; track c.id) {
+          @for (entrada of entradas; track entrada.key) {
             <li>
-              <span class="code">{{ c.codigoAcceso }}</span>
-              <span class="meta">{{ c.totalPago | currency:'EUR' }} · {{ c.fechaCompra | date:'short':'':'es' }}</span>
+              <div class="ticket-row">
+                <app-ticket-qr [value]="entrada.codigoAcceso" [size]="96" />
+                <div class="ticket-info">
+                  <strong class="ticket-title">{{ entrada.eventoTitulo }}</strong>
+                  <span class="code">{{ entrada.codigoAcceso }}</span>
+                  <span class="meta">{{ entrada.precio | currency:'EUR' }} · {{ entrada.fechaCompra | date:'short':'':'es' }}</span>
+                  <button
+                    type="button"
+                    class="btn-download"
+                    [disabled]="downloadingKey === entrada.key"
+                    (click)="descargarEntrada(entrada)"
+                  >
+                    {{ downloadingKey === entrada.key ? 'Generando…' : 'Descargar PDF' }}
+                  </button>
+                </div>
+              </div>
             </li>
           }
         </ul>
 
-        <p class="hint">Guarda estos códigos. También los encontrarás en tu perfil.</p>
+        <p class="hint">Muestra el QR en la entrada. También lo tienes en tu perfil.</p>
         <div class="actions">
           <a routerLink="/perfil" class="btn-primary">Ver mis entradas</a>
           <a routerLink="/eventos" class="btn-outline">Seguir explorando</a>

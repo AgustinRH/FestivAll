@@ -6,6 +6,11 @@ export interface User {
   rol: 'admin' | 'cliente';
 }
 
+export interface AdminUser extends User {
+  emailVerificado: boolean;
+  fechaRegistro: string;
+}
+
 export interface AuthResponse {
   access_token: string;
   user: User;

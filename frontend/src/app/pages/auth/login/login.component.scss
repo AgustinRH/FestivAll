@@ -1,8 +1,11 @@
+@use '../../../../breakpoints' as bp;
+
 .auth-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
   background-color: #0a0a12;
   background-image: url('/logo-festivall.png');
   background-repeat: repeat;
@@ -24,10 +27,14 @@
   background: #221e33;
   border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 28px;
-  padding: 2.5rem 2rem;
+  padding: 2rem 1.25rem;
   width: 100%;
   max-width: 400px;
   text-align: center;
+
+  @media (min-width: 768px) {
+    padding: 2.5rem 2rem;
+  }
 
   h1 {
     font-size: 1.75rem;
@@ -57,6 +64,14 @@
       &::placeholder { color: #888; }
     }
 
+    .password-hint {
+      margin: -0.5rem 0 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: left;
+      line-height: 1.35;
+    }
+
     button {
       margin-top: 0.5rem;
       padding: 0.9rem;
@@ -79,5 +94,25 @@
     font-size: 0.9rem;
 
     a { color: var(--accent); font-weight: 600; }
+  }
+
+  .btn-resend {
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0.65rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    font-weight: 600;
+    cursor: pointer;
+
+    &:disabled { opacity: 0.5; }
+  }
+
+  .resend-msg {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
   }
 }

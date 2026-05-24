@@ -1,0 +1,20 @@
+@use '../login/login.component.scss';
+
+.auth-card {
+  .success {
+    color: #2ecc71;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .hint {
+    color: var(--text-muted);
+  }
+
+  .btn-link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--accent);
+    font-weight: 700;
+  }
+}

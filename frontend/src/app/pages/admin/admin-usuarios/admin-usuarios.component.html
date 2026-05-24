@@ -1,0 +1,180 @@
+@if (msg) {
+  <div class="toast" [class.error]="msgType === 'error'" role="status">
+    <span>{{ msg }}</span>
+    <button type="button" class="toast-close" (click)="dismissMsg()" aria-label="Cerrar">×</button>
+  </div>
+}
+
+@if (view === 'list') {
+  <section class="stats">
+    <article class="stat-card">
+      <span class="stat-label">Total usuarios</span>
+      <strong class="stat-value">{{ usuarios.length }}</strong>
+    </article>
+    <article class="stat-card accent">
+      <span class="stat-label">Administradores</span>
+      <strong class="stat-value">{{ adminCount }}</strong>
+    </article>
+    <article class="stat-card warn" [class.highlight]="unverifiedCount > 0">
+      <span class="stat-label">Email sin verificar</span>
+      <strong class="stat-value">{{ unverifiedCount }}</strong>
+    </article>
+  </section>
+
+  <section class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon" aria-hidden="true">🔍</span>
+      <input
+        type="search"
+        [(ngModel)]="search"
+        placeholder="Buscar por nombre, apellidos o email…"
+        class="search-input"
+      />
+    </div>
+    <select [(ngModel)]="filterRol" class="filter-select" aria-label="Filtrar por rol">
+      <option value="">Todos los roles</option>
+      <option value="admin">Administradores</option>
+      <option value="cliente">Clientes</option>
+    </select>
+    <select [(ngModel)]="filterVerificado" class="filter-select" aria-label="Filtrar verificación">
+      <option value="all">Verificación: todos</option>
+      <option value="si">Email verificado</option>
+      <option value="no">Pendiente de verificar</option>
+    </select>
+    @if (search || filterRol || filterVerificado !== 'all') {
+      <button type="button" class="btn-ghost" (click)="clearFilters()">Limpiar filtros</button>
+    }
+    <button type="button" class="btn-primary" (click)="openCreate()">+ Nuevo usuario</button>
+  </section>
+
+  @if (loading) {
+    <div class="state-box">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Cargando usuarios…</p>
+    </div>
+  } @else if (usuarios.length === 0) {
+    <div class="state-box empty">
+      <p class="state-title">Aún no hay usuarios</p>
+      <p>Crea el primero manualmente o espera registros desde la web.</p>
+      <button type="button" class="btn-primary" (click)="openCreate()">Crear primer usuario</button>
+    </div>
+  } @else if (filteredUsuarios.length === 0) {
+    <div class="state-box empty">
+      <p class="state-title">Sin resultados</p>
+      <p>Prueba con otros filtros o términos de búsqueda.</p>
+      <button type="button" class="btn-ghost" (click)="clearFilters()">Quitar filtros</button>
+    </div>
+  } @else {
+    <p class="results-count">
+      Mostrando {{ filteredUsuarios.length }} de {{ usuarios.length }} usuarios
+    </p>
+    <div class="user-grid">
+      @for (u of filteredUsuarios; track u.id) {
+        <article class="user-card" [class.is-self]="isSelf(u)">
+          <div class="user-avatar" aria-hidden="true">
+            {{ u.nombre.charAt(0) }}{{ u.apellidos.charAt(0) }}
+          </div>
+          <div class="card-body">
+            <div class="card-head">
+              <h3>{{ u.nombre }} {{ u.apellidos }}</h3>
+              <span class="role-tag" [class.admin]="u.rol === 'admin'">
+                {{ u.rol === 'admin' ? 'Admin' : 'Cliente' }}
+              </span>
+            </div>
+            <p class="card-email">{{ u.email }}</p>
+            <div class="card-meta">
+              <span>📅 Registro: {{ formatFecha(u.fechaRegistro) }}</span>
+              @if (u.emailVerificado) {
+                <span class="pill verified">Email verificado</span>
+              } @else {
+                <span class="pill pending">Pendiente verificación</span>
+              }
+            </div>
+            @if (isSelf(u)) {
+              <p class="self-hint">Tu cuenta (no puedes eliminarla)</p>
+            }
+          </div>
+          <div class="card-actions">
+            <button type="button" class="btn-secondary" (click)="openEdit(u)">Editar</button>
+            <button
+              type="button"
+              class="btn-danger"
+              [disabled]="isSelf(u)"
+              (click)="delete(u, $event)"
+            >
+              Eliminar
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+} @else {
+  <div class="form-layout">
+    <button type="button" class="back-link" (click)="closeForm()">← Volver al listado</button>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="user-form" novalidate>
+      <fieldset class="form-block">
+        <legend>Datos personales</legend>
+        <div class="form-grid">
+          <label [class.has-error]="isInvalid('nombre')">
+            <span>Nombre <em>*</em></span>
+            <input formControlName="nombre" placeholder="Nombre" />
+          </label>
+          <label [class.has-error]="isInvalid('apellidos')">
+            <span>Apellidos <em>*</em></span>
+            <input formControlName="apellidos" placeholder="Apellidos" />
+          </label>
+          <label class="span-2" [class.has-error]="isInvalid('email')">
+            <span>Email <em>*</em></span>
+            <input type="email" formControlName="email" placeholder="correo@ejemplo.com" autocomplete="off" />
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="form-block">
+        <legend>Acceso</legend>
+        <div class="form-grid">
+          <label class="span-2" [class.has-error]="isInvalid('password')">
+            <span>
+              Contraseña
+              @if (!editingId) {
+                <em>*</em>
+              } @else {
+                <span class="optional">(dejar vacío para no cambiar)</span>
+              }
+            </span>
+            <input type="password" formControlName="password" autocomplete="new-password" />
+            <p class="password-hint">{{ passwordHint }}</p>
+          </label>
+          <label [class.has-error]="isInvalid('rol')">
+            <span>Rol <em>*</em></span>
+            <select formControlName="rol">
+              <option value="cliente">Cliente</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="verificado-box" [class.is-active]="form.get('emailVerificado')?.value">
+        <div class="verificado-info">
+          <strong>✉️ Email verificado</strong>
+          <p>Marca si el usuario puede iniciar sesión sin verificar el correo.</p>
+        </div>
+        <label class="switch" title="Email verificado">
+          <input type="checkbox" formControlName="emailVerificado" />
+          <span class="slider"></span>
+          <span class="switch-label">{{ form.get('emailVerificado')?.value ? 'Sí' : 'No' }}</span>
+        </label>
+      </div>
+
+      <div class="form-footer">
+        <button type="button" class="btn-ghost" (click)="closeForm()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="saving">
+          {{ saving ? 'Guardando…' : (editingId ? 'Guardar cambios' : 'Crear usuario') }}
+        </button>
+      </div>
+    </form>
+  </div>
+}

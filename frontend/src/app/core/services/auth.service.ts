@@ -5,6 +5,11 @@ import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, User } from '../models';
 
+export interface RegisterResponse {
+  message: string;
+  email: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = `${environment.apiUrl}/auth`;
@@ -16,9 +21,15 @@ export class AuthService {
   ) {}
 
   register(data: { nombre: string; apellidos: string; email: string; password: string }) {
-    return this.http.post<AuthResponse>(`${this.api}/register`, data).pipe(
-      tap((res) => this.setSession(res)),
-    );
+    return this.http.post<RegisterResponse>(`${this.api}/register`, data);
+  }
+
+  verifyEmail(token: string) {
+    return this.http.get<{ message: string }>(`${this.api}/verify-email`, { params: { token } });
+  }
+
+  resendVerification(email: string) {
+    return this.http.post<{ message: string }>(`${this.api}/resend-verification`, { email });
   }
 
   login(email: string, password: string) {
@@ -34,7 +45,7 @@ export class AuthService {
   }
 
   getProfile() {
-    return this.http.get<User & { fechaRegistro: string }>(`${this.api}/profile`);
+    return this.http.get<User & { fechaRegistro: string; emailVerificado?: boolean }>(`${this.api}/profile`);
   }
 
   changePassword(currentPassword: string, newPassword: string) {

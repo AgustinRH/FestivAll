@@ -1,6 +1,6 @@
 /**
  * Ejecutar: npm run seed:admin
- * Crea usuario admin@festivall.es / Admin123!
+ * Crea o actualiza admin info@festivall.club (contraseña por defecto solo en cuenta nueva)
  */
 import { config } from 'dotenv';
 import { resolve } from 'path';
@@ -11,6 +11,10 @@ if (process.env.NODE_ENV !== 'production') {
   config({ path: resolve(__dirname, '../../.env') });
 }
 
+const ADMIN_EMAIL = 'info@festivall.club';
+const LEGACY_ADMIN_EMAIL = 'admin@festivall.es';
+const DEFAULT_PASSWORD = 'Admin1234!';
+
 async function seed() {
   const conn = await mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
@@ -20,27 +24,31 @@ async function seed() {
     database: process.env.DB_DATABASE || 'FestivAll',
   });
 
-  const email = 'admin@festivall.es';
-  const hash = await bcrypt.hash('Admin123!', 10);
+  await conn.execute(
+    'UPDATE usuario SET email = ?, email_verificado = TRUE, rol = ? WHERE email = ?',
+    [ADMIN_EMAIL, 'admin', LEGACY_ADMIN_EMAIL],
+  );
 
   const [rows] = await conn.execute<mysql.RowDataPacket[]>(
     'SELECT id FROM usuario WHERE email = ?',
-    [email],
+    [ADMIN_EMAIL],
   );
 
   if (rows.length > 0) {
     await conn.execute(
-      'UPDATE usuario SET password = ?, rol = ? WHERE email = ?',
-      [hash, 'admin', email],
+      'UPDATE usuario SET rol = ?, email_verificado = TRUE WHERE email = ?',
+      ['admin', ADMIN_EMAIL],
     );
+    console.log(`Admin actualizado: ${ADMIN_EMAIL} (contraseña sin cambios)`);
   } else {
+    const hash = await bcrypt.hash(DEFAULT_PASSWORD, 12);
     await conn.execute(
-      'INSERT INTO usuario (nombre, apellidos, email, password, rol) VALUES (?, ?, ?, ?, ?)',
-      ['Admin', 'FestivAll', email, hash, 'admin'],
+      'INSERT INTO usuario (nombre, apellidos, email, password, rol, email_verificado) VALUES (?, ?, ?, ?, ?, TRUE)',
+      ['Admin', 'FestivAll', ADMIN_EMAIL, hash, 'admin'],
     );
+    console.log(`Admin creado: ${ADMIN_EMAIL} / ${DEFAULT_PASSWORD}`);
   }
 
-  console.log('Admin creado: admin@festivall.es / Admin123!');
   await conn.end();
 }
 

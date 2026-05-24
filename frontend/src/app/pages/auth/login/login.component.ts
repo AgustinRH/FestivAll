@@ -19,6 +19,9 @@ export class LoginComponent {
 
   error = '';
   loading = false;
+  showResend = false;
+  resendMsg = '';
+  resendLoading = false;
 
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -29,6 +32,8 @@ export class LoginComponent {
     if (this.form.invalid) return;
     this.loading = true;
     this.error = '';
+    this.showResend = false;
+    this.resendMsg = '';
     const { email, password } = this.form.getRawValue();
     this.auth.login(email!, password!).subscribe({
       next: () => {
@@ -37,7 +42,28 @@ export class LoginComponent {
       },
       error: (err) => {
         this.error = getHttpErrorMessage(err, 'Error al iniciar sesión');
+        this.showResend = err.status === 403;
         this.loading = false;
+      },
+    });
+  }
+
+  resendVerification() {
+    const email = this.form.getRawValue().email?.trim();
+    if (!email) {
+      this.resendMsg = 'Introduce tu email arriba para reenviar el enlace.';
+      return;
+    }
+    this.resendLoading = true;
+    this.resendMsg = '';
+    this.auth.resendVerification(email).subscribe({
+      next: (res) => {
+        this.resendMsg = res.message;
+        this.resendLoading = false;
+      },
+      error: (err) => {
+        this.resendMsg = getHttpErrorMessage(err, 'No se pudo reenviar el email.');
+        this.resendLoading = false;
       },
     });
   }

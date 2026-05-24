@@ -46,8 +46,8 @@ Abre **http://localhost** (o el puerto definido en `APP_PORT`).
 | `mariadb`  | festivall-db    | Base de datos + schema/seed inicial  |
 
 El admin se crea al arrancar el backend:
-- Email: `admin@festivall.es`
-- Contraseña: `Admin123!`
+- Email: `info@festivall.club`
+- Contraseña: `Admin1234!` (solo al crear el admin por primera vez; cámbiala en producción)
 
 Comandos útiles:
 
@@ -96,8 +96,8 @@ npx ts-node -r tsconfig-paths/register src/scripts/seed-admin.ts
 ```
 
 Credenciales admin por defecto:
-- Email: `admin@festivall.es`
-- Contraseña: `Admin123!`
+- Email: `info@festivall.club`
+- Contraseña: `Admin1234!` (solo al crear el admin por primera vez; cámbiala en producción)
 
 ### 3. Frontend
 

@@ -18,6 +18,9 @@
 
       <section class="card">
         <h2>Mis entradas ({{ entradas.length }})</h2>
+        @if (downloadError) {
+          <p class="error">{{ downloadError }}</p>
+        }
         @if (entradas.length === 0) {
           <p class="empty">Aún no has comprado ninguna entrada.</p>
         }
@@ -34,7 +37,16 @@
               </div>
               <div class="ticket-side">
                 <span class="precio">{{ entrada.precio | currency:'EUR' }}</span>
+                <app-ticket-qr [value]="entrada.codigoAcceso" [size]="112" />
                 <code class="codigo">{{ entrada.codigoAcceso }}</code>
+                <button
+                  type="button"
+                  class="btn-download"
+                  [disabled]="downloadingKey === entrada.key"
+                  (click)="descargarEntrada(entrada)"
+                >
+                  {{ downloadingKey === entrada.key ? 'Generando…' : 'Descargar PDF' }}
+                </button>
               </div>
             </article>
           }
@@ -47,8 +59,9 @@
         @if (passwordError) { <p class="error">{{ passwordError }}</p> }
         <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
           <input type="password" placeholder="Contraseña actual" formControlName="currentPassword" />
-          <input type="password" placeholder="Nueva contraseña" formControlName="newPassword" />
-          <input type="password" placeholder="Confirmar nueva contraseña" formControlName="confirmPassword" />
+          <input type="password" placeholder="Nueva contraseña" formControlName="newPassword" autocomplete="new-password" />
+          <p class="password-hint">{{ passwordHint }}</p>
+          <input type="password" placeholder="Confirmar nueva contraseña" formControlName="confirmPassword" autocomplete="new-password" />
           <button type="submit" class="btn-primary" [disabled]="passwordForm.invalid">Actualizar contraseña</button>
         </form>
       </section>

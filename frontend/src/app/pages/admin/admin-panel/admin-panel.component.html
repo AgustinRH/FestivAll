@@ -1,29 +1,55 @@
-<div class="admin-shell">
-  <aside class="sidebar">
+<div class="admin-shell" [class.sidebar-open]="sidebarOpen">
+  @if (sidebarOpen) {
+    <button type="button" class="sidebar-backdrop" (click)="closeSidebar()" aria-label="Cerrar menú"></button>
+  }
+
+  <aside class="sidebar" [class.open]="sidebarOpen">
     <a routerLink="/" class="brand" title="Ir a la web pública">
       <img src="logo-festivall.png" alt="FestivAll" />
       <span>Admin</span>
     </a>
 
     <nav class="sidebar-nav">
+      <p class="nav-section-label">Eventos</p>
       <button
         type="button"
         class="nav-item"
-        [class.active]="view === 'list'"
-        (click)="closeForm()"
+        [class.active]="section === 'eventos' && view === 'list'"
+        (click)="selectEventos()"
       >
         <span class="nav-icon" aria-hidden="true">📋</span>
-        Eventos
+        Listado
         <span class="badge">{{ eventos.length }}</span>
       </button>
       <button
         type="button"
         class="nav-item"
-        [class.active]="view === 'form' && !editingId"
+        [class.active]="section === 'eventos' && view === 'form' && !editingId"
         (click)="openCreate()"
       >
         <span class="nav-icon" aria-hidden="true">➕</span>
         Nuevo evento
+      </button>
+
+      <p class="nav-section-label">Usuarios</p>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="section === 'usuarios' && adminUsuarios?.view === 'list'"
+        (click)="selectUsuarios()"
+      >
+        <span class="nav-icon" aria-hidden="true">👥</span>
+        Listado
+        <span class="badge">{{ adminUsuarios?.usuarios?.length ?? 0 }}</span>
+      </button>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="section === 'usuarios' && adminUsuarios?.view === 'form' && !adminUsuarios?.editingId"
+        (click)="openNewUsuario()"
+      >
+        <span class="nav-icon" aria-hidden="true">➕</span>
+        Nuevo usuario
       </button>
     </nav>
 
@@ -34,15 +60,18 @@
 
   <div class="main">
     <header class="topbar">
+      <button
+        type="button"
+        class="sidebar-toggle"
+        (click)="toggleSidebar()"
+        [attr.aria-expanded]="sidebarOpen"
+        aria-label="Abrir menú de administración"
+      >
+        ☰
+      </button>
       <div class="topbar-title">
-        <h1>{{ view === 'form' ? (editingId ? 'Editar evento' : 'Crear evento') : 'Gestión de eventos' }}</h1>
-        <p class="subtitle">
-          @if (view === 'list') {
-            Administra festivales, entradas y eventos destacados del inicio
-          } @else {
-            Completa los datos y guarda para publicar en FestivAll
-          }
-        </p>
+        <h1>{{ pageTitle }}</h1>
+        <p class="subtitle">{{ pageSubtitle }}</p>
       </div>
       <div class="topbar-actions">
         @if (user(); as u) {
@@ -52,6 +81,9 @@
       </div>
     </header>
 
+    @if (section === 'usuarios') {
+      <app-admin-usuarios />
+    } @else {
     @if (msg) {
       <div class="toast" [class.error]="msgType === 'error'" role="status">
         <span>{{ msg }}</span>
@@ -274,6 +306,7 @@
           </div>
         </form>
       </div>
+    }
     }
   </div>
 </div>

@@ -1,17 +1,28 @@
 <div class="auth-page">
   <div class="auth-card">
-    <h1>Register</h1>
-    @if (error) { <p class="error">{{ error }}</p> }
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <input formControlName="nombre" placeholder="Nombre" />
-      <input formControlName="apellidos" placeholder="Apellidos" />
-      <input type="email" formControlName="email" placeholder="Email" />
-      <input type="password" formControlName="password" placeholder="Password" />
-      <input type="password" formControlName="confirmPassword" placeholder="Confirmar Password" />
-      <button type="submit" [disabled]="form.invalid || loading">
-        {{ loading ? 'Registrando...' : 'Crear cuenta' }}
-      </button>
-    </form>
-    <p class="link">¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
+    @if (success) {
+      <h1>Revisa tu email</h1>
+      <p class="success-msg">
+        Te hemos enviado un enlace de verificación a <strong>{{ registeredEmail }}</strong>.
+        Haz clic en el enlace para activar tu cuenta e iniciar sesión.
+      </p>
+      <p class="hint">Si no lo ves, mira en spam o correo no deseado.</p>
+      <a routerLink="/login" class="btn-link">Ir al login</a>
+    } @else {
+      <h1>Register</h1>
+      @if (error) { <p class="error">{{ error }}</p> }
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <input formControlName="nombre" placeholder="Nombre" />
+        <input formControlName="apellidos" placeholder="Apellidos" />
+        <input type="email" formControlName="email" placeholder="Email" autocomplete="email" />
+        <input type="password" formControlName="password" placeholder="Contraseña" autocomplete="new-password" />
+        <p class="password-hint">{{ passwordHint }}</p>
+        <input type="password" formControlName="confirmPassword" placeholder="Confirmar contraseña" autocomplete="new-password" />
+        <button type="submit" [disabled]="form.invalid || loading">
+          {{ loading ? 'Registrando...' : 'Crear cuenta' }}
+        </button>
+      </form>
+      <p class="link">¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
+    }
   </div>
 </div>

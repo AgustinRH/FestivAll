@@ -12,7 +12,18 @@ import { AuthService } from '../../core/services/auth.service';
 export class NavbarComponent {
   auth = inject(AuthService);
 
+  menuOpen = false;
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
+  }
+
+  closeMenu() {
+    this.menuOpen = false;
+  }
+
   logout() {
+    this.closeMenu();
     this.auth.logout();
   }
 }
