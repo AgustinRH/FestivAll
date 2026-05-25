@@ -17,27 +17,66 @@
       }
 
       <section class="card">
-        <h2>Mis entradas ({{ entradas.length }})</h2>
+        <h2>Mis entradas ({{ entradasActivas.length }})</h2>
         @if (downloadError) {
           <p class="error">{{ downloadError }}</p>
         }
-        @if (entradas.length === 0) {
+        @if (sinCompras) {
           <p class="empty">Aún no has comprado ninguna entrada.</p>
+        } @else if (entradasActivas.length === 0) {
+          <p class="empty">No tienes entradas para eventos próximos. Las de eventos pasados están en el historial.</p>
         }
         <div class="entradas-list">
-          @for (entrada of entradas; track entrada.key) {
+          @for (entrada of entradasActivas; track entrada.key) {
             <article class="entrada-ticket">
               <div class="ticket-main">
                 <strong>{{ entrada.eventoTitulo }}</strong>
                 <p class="meta">
                   @if (entrada.categoria) { {{ entrada.categoria }} · }
                   @if (entrada.localidad) { {{ entrada.localidad }} · }
-                  {{ entrada.fechaCompra | date:'medium':'':'es' }}
+                  Evento: {{ entrada.fechaEvento | date:'longDate':'':'es' }}
                 </p>
               </div>
               <div class="ticket-side">
                 <span class="precio">{{ entrada.precio | currency:'EUR' }}</span>
                 <app-ticket-qr [value]="entrada.codigoAcceso" [size]="112" />
+                <code class="codigo">{{ entrada.codigoAcceso }}</code>
+                <button
+                  type="button"
+                  class="btn-download"
+                  [disabled]="downloadingKey === entrada.key"
+                  (click)="descargarEntrada(entrada)"
+                >
+                  {{ downloadingKey === entrada.key ? 'Generando…' : 'Descargar PDF' }}
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+
+      <section class="card card-historial">
+        <h2>Historial de compras ({{ historialEntradas.length }})</h2>
+        <p class="historial-hint">Entradas de eventos que ya han finalizado.</p>
+        @if (historialEntradas.length === 0) {
+          <p class="empty">Aún no tienes compras en el historial.</p>
+        }
+        <div class="entradas-list">
+          @for (entrada of historialEntradas; track entrada.key) {
+            <article class="entrada-ticket entrada-ticket--pasado">
+              <div class="ticket-main">
+                <strong>{{ entrada.eventoTitulo }}</strong>
+                <span class="badge-pasado">Finalizado</span>
+                <p class="meta">
+                  @if (entrada.categoria) { {{ entrada.categoria }} · }
+                  @if (entrada.localidad) { {{ entrada.localidad }} · }
+                  Evento: {{ entrada.fechaEvento | date:'longDate':'':'es' }} ·
+                  Compra: {{ entrada.fechaCompra | date:'medium':'':'es' }}
+                </p>
+              </div>
+              <div class="ticket-side">
+                <span class="precio">{{ entrada.precio | currency:'EUR' }}</span>
+                <app-ticket-qr [value]="entrada.codigoAcceso" [size]="96" />
                 <code class="codigo">{{ entrada.codigoAcceso }}</code>
                 <button
                   type="button"

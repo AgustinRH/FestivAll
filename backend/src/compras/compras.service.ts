@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,17 +11,57 @@ import { randomBytes } from 'crypto';
 import Stripe from 'stripe';
 import { Compra } from '../entities/compra.entity';
 import { Evento } from '../entities/evento.entity';
+import { RolUsuario, Usuario } from '../entities/usuario.entity';
 import { CreateCompraDto } from './dto/create-compra.dto';
 import { StripeService } from './stripe.service';
+import { MailService } from '../mail/mail.service';
 import { getPrecioUnitario, aplicaDescuentoUltimasEntradas } from '../eventos/precio.util';
+import { eventoEstaActivo } from '../eventos/evento-activo.util';
 
 @Injectable()
 export class ComprasService {
+  private readonly logger = new Logger(ComprasService.name);
+
   constructor(
     @InjectRepository(Compra) private compraRepo: Repository<Compra>,
     @InjectRepository(Evento) private eventoRepo: Repository<Evento>,
+    @InjectRepository(Usuario) private usuarioRepo: Repository<Usuario>,
     private stripeService: StripeService,
+    private mailService: MailService,
   ) {}
+
+  private async assertEmailVerified(userId: number): Promise<Usuario> {
+    const user = await this.usuarioRepo.findOne({ where: { id: userId } });
+    if (!user) throw new ForbiddenException('Usuario no encontrado');
+    if (user.rol !== RolUsuario.ADMIN && !user.emailVerificado) {
+      throw new ForbiddenException(
+        'Debes verificar tu email antes de comprar entradas. Revisa tu bandeja de entrada o solicita un nuevo enlace de verificación.',
+      );
+    }
+    return user;
+  }
+
+  private async notifyPurchaseConfirmation(userId: number, compras: Compra[]): Promise<void> {
+    if (compras.length === 0) return;
+    const user = await this.usuarioRepo.findOne({ where: { id: userId } });
+    if (!user) return;
+
+    const evento = compras[0].evento;
+    const total = compras.reduce((sum, c) => sum + Number(c.totalPago), 0);
+    const perfilUrl = `${this.stripeService.getFrontendUrl()}/perfil`;
+
+    try {
+      await this.mailService.sendPurchaseConfirmationEmail(user.email, user.nombre, {
+        eventoTitulo: evento?.titulo ?? 'Evento',
+        cantidad: compras.length,
+        total,
+        codigos: compras.map((c) => c.codigoAcceso),
+        perfilUrl,
+      });
+    } catch (err) {
+      this.logger.error(`No se pudo enviar confirmación de compra a ${user.email}`, err);
+    }
+  }
 
   private generarCodigo(): string {
     return `FA-${randomBytes(6).toString('hex').toUpperCase()}`;
@@ -33,6 +74,8 @@ export class ComprasService {
     cantidad: number,
     stripeCheckoutSessionId?: string,
   ): Promise<Compra[]> {
+    await this.assertEmailVerified(userId);
+
     if (stripeCheckoutSessionId) {
       const yaProcesada = await this.compraRepo.count({
         where: { stripeCheckoutSessionId },
@@ -48,6 +91,9 @@ export class ComprasService {
 
     const evento = await this.eventoRepo.findOne({ where: { id: idEvento } });
     if (!evento) throw new NotFoundException('Evento no encontrado');
+    if (!eventoEstaActivo(evento)) {
+      throw new BadRequestException('Este evento ya ha finalizado y no admite más compras');
+    }
 
     if (evento.stock < cantidad) {
       throw new BadRequestException('No hay suficiente stock disponible');
@@ -69,16 +115,23 @@ export class ComprasService {
     await this.eventoRepo.save(evento);
     const guardadas = await this.compraRepo.save(entradas);
 
-    return this.compraRepo.find({
+    const compras = await this.compraRepo.find({
       where: { id: In(guardadas.map((c) => c.id)) },
       relations: ['evento', 'evento.categoria', 'evento.ubicacion', 'evento.imagenes'],
       order: { id: 'ASC' },
     });
+
+    await this.notifyPurchaseConfirmation(userId, compras);
+    return compras;
   }
 
   async create(userId: number, dto: CreateCompraDto) {
+    await this.assertEmailVerified(userId);
     const evento = await this.eventoRepo.findOne({ where: { id: dto.idEvento } });
     if (!evento) throw new NotFoundException('Evento no encontrado');
+    if (!eventoEstaActivo(evento)) {
+      throw new BadRequestException('Este evento ya ha finalizado y no admite más compras');
+    }
 
     const precio = Number(evento.precio);
     if (precio > 0) {
@@ -91,8 +144,13 @@ export class ComprasService {
   }
 
   async createCheckoutSession(userId: number, dto: CreateCompraDto) {
+    await this.assertEmailVerified(userId);
+
     const evento = await this.eventoRepo.findOne({ where: { id: dto.idEvento } });
     if (!evento) throw new NotFoundException('Evento no encontrado');
+    if (!eventoEstaActivo(evento)) {
+      throw new BadRequestException('Este evento ya ha finalizado y no admite más compras');
+    }
 
     const precioUnitario = getPrecioUnitario(evento);
     if (precioUnitario <= 0) {
@@ -180,6 +238,8 @@ export class ComprasService {
   }
 
   async verifyCheckoutSession(userId: number, sessionId: string) {
+    await this.assertEmailVerified(userId);
+
     const stripe = this.stripeService.getClient();
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 

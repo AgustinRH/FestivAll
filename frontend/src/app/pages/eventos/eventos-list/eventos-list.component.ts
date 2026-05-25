@@ -22,62 +22,142 @@ export class EventosListComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
+  readonly pageSize = 20;
+
   eventos: Evento[] = [];
   categorias: Categoria[] = [];
   showFilters = false;
+  loading = false;
+  page = 1;
+  total = 0;
+  totalPages = 1;
 
   filters = this.fb.group({
     busqueda: [''],
     categoriaId: [''],
     localidad: [''],
+    precioMin: ['' as string | number],
+    precioMax: ['' as string | number],
+    ultimasEntradas: [false],
   });
 
   ngOnInit() {
     this.catalogoService.getCategorias().subscribe((c) => (this.categorias = c));
 
     this.route.queryParams.subscribe((params) => {
+      const ultimas =
+        params['ultimasEntradas'] === 'true' || params['ultimasEntradas'] === '1';
+      if (ultimas || params['precioMin'] || params['precioMax']) {
+        this.showFilters = true;
+      }
       this.filters.patchValue({
         busqueda: params['busqueda'] || '',
         categoriaId: params['categoriaId'] || '',
         localidad: params['localidad'] || '',
+        precioMin: params['precioMin'] ?? '',
+        precioMax: params['precioMax'] ?? '',
+        ultimasEntradas: ultimas,
       });
-      this.loadEventos(params['desde'], params['hasta']);
+      const page = Math.max(1, +(params['page'] || 1) || 1);
+      this.loadEventos(page, params['desde'], params['hasta']);
     });
   }
 
-  loadEventos(desde?: string, hasta?: string) {
+  private parsePrecioFiltro(value: string | number | null | undefined): number | undefined {
+    if (value === '' || value === null || value === undefined) return undefined;
+    const n = typeof value === 'number' ? value : +value;
+    return Number.isFinite(n) && n >= 0 ? n : undefined;
+  }
+
+  loadEventos(page = 1, desde?: string, hasta?: string) {
     const v = this.filters.getRawValue();
+    const precioMin = this.parsePrecioFiltro(v.precioMin);
+    let precioMax = this.parsePrecioFiltro(v.precioMax);
+    if (precioMin != null && precioMax != null && precioMax < precioMin) {
+      precioMax = precioMin;
+    }
+
+    this.loading = true;
     this.eventosService
-      .getAll({
+      .getPaginated({
         busqueda: v.busqueda || undefined,
         categoriaId: v.categoriaId ? +v.categoriaId : undefined,
         localidad: v.localidad || undefined,
+        ultimasEntradas: v.ultimasEntradas || undefined,
+        precioMin,
+        precioMax,
+        desde: desde || undefined,
+        hasta: hasta || undefined,
+        page,
+        limit: this.pageSize,
       })
-      .subscribe((list) => {
-        this.eventos = list.filter((e) => {
-          if (desde && e.fechaInicio < desde) return false;
-          if (hasta && e.fechaInicio > hasta) return false;
-          return true;
-        });
+      .subscribe({
+        next: (res) => {
+          this.eventos = res.items;
+          this.page = res.page;
+          this.total = res.total;
+          this.totalPages = res.totalPages;
+          this.loading = false;
+        },
+        error: () => {
+          this.eventos = [];
+          this.total = 0;
+          this.totalPages = 1;
+          this.loading = false;
+        },
       });
   }
 
   aplicarFiltros() {
     const v = this.filters.getRawValue();
+    const precioMin = this.parsePrecioFiltro(v.precioMin);
+    let precioMax = this.parsePrecioFiltro(v.precioMax);
+    if (precioMin != null && precioMax != null && precioMax < precioMin) {
+      precioMax = precioMin;
+      this.filters.patchValue({ precioMax: precioMin });
+    }
     this.router.navigate(['/eventos'], {
       queryParams: {
         busqueda: v.busqueda || null,
         categoriaId: v.categoriaId || null,
         localidad: v.localidad || null,
+        precioMin: precioMin ?? null,
+        precioMax: precioMax ?? null,
+        ultimasEntradas: v.ultimasEntradas ? true : null,
+        page: null,
       },
       queryParamsHandling: 'merge',
     });
-    this.loadEventos();
   }
 
   clearFilters() {
-    this.filters.reset({ busqueda: '', categoriaId: '', localidad: '' });
-    this.router.navigate(['/eventos']);
-    this.loadEventos();
+    this.filters.reset({
+      busqueda: '',
+      categoriaId: '',
+      localidad: '',
+      precioMin: '',
+      precioMax: '',
+      ultimasEntradas: false,
+    });
+    this.router.navigate(['/eventos'], { queryParams: { page: null } });
+  }
+
+  goToPage(nextPage: number) {
+    if (nextPage < 1 || nextPage > this.totalPages || nextPage === this.page) return;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: nextPage > 1 ? nextPage : null },
+      queryParamsHandling: 'merge',
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  get rangoInicio(): number {
+    if (this.total === 0) return 0;
+    return (this.page - 1) * this.pageSize + 1;
+  }
+
+  get rangoFin(): number {
+    return Math.min(this.page * this.pageSize, this.total);
   }
 }

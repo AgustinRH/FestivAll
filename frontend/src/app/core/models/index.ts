@@ -4,6 +4,7 @@ export interface User {
   apellidos: string;
   email: string;
   rol: 'admin' | 'cliente';
+  emailVerificado?: boolean;
 }
 
 export interface AdminUser extends User {
@@ -32,6 +33,14 @@ export interface Imagen {
   id: number;
   url: string;
   esPrincipal: boolean;
+}
+
+export interface EventosPaginatedResponse {
+  items: Evento[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export interface Evento {

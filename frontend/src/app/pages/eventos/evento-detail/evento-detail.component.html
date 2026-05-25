@@ -1,6 +1,11 @@
 <div class="page-wrap">
   <app-navbar />
-  @if (evento) {
+  @if (error && !evento) {
+    <main class="page-content detail-page container">
+      <p class="error-msg">{{ error }}</p>
+      <a routerLink="/eventos" class="btn-back">Ver festivales disponibles</a>
+    </main>
+  } @else if (evento) {
     <main class="page-content detail-page">
       <section class="event-hero">
         <div class="hero-bg" [style.background-image]="'url(' + imagenUrl + ')'"></div>
@@ -112,14 +117,30 @@
           </div>
         </div>
 
-        @if (error) { <p class="error">{{ error }}</p> }
+        @if (!puedeComprar) {
+          <div class="verify-block">
+            <p>Para comprar entradas debes verificar tu correo electrónico.</p>
+            <p class="verify-email">{{ auth.currentUser()?.email }}</p>
+            <button
+              type="button"
+              class="btn-primary full"
+              [disabled]="resendLoading"
+              (click)="reenviarVerificacion()"
+            >
+              {{ resendLoading ? 'Enviando…' : 'Reenviar email de verificación' }}
+            </button>
+            @if (resendMsg) { <p class="resend-msg">{{ resendMsg }}</p> }
+          </div>
+        } @else {
+          @if (error) { <p class="error">{{ error }}</p> }
 
-        @if (!esGratis) {
-          <p class="pago-info">Serás redirigido a Stripe para pagar de forma segura con tarjeta.</p>
+          @if (!esGratis) {
+            <p class="pago-info">Serás redirigido a Stripe para pagar de forma segura con tarjeta.</p>
+          }
+          <button type="submit" class="btn-primary full" [disabled]="loading || compraForm.invalid">
+            {{ textoBotonPago }}
+          </button>
         }
-        <button type="submit" class="btn-primary full" [disabled]="loading || compraForm.invalid">
-          {{ textoBotonPago }}
-        </button>
         <button type="button" class="btn-cancel" (click)="cerrarCompra()">Cancelar</button>
       </form>
     </div>

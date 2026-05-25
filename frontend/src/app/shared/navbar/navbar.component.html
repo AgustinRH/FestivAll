@@ -4,6 +4,28 @@
       <img src="logo-festivall.png" alt="FestivAll Almería" />
     </a>
 
+    <nav class="main-nav">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
+      <span class="sep">|</span>
+      <a routerLink="/eventos" routerLinkActive="active" (click)="closeMenu()">Explorar Festivales</a>
+      @if (auth.isLoggedIn()) {
+        <span class="sep">|</span>
+        <a routerLink="/perfil" routerLinkActive="active" (click)="closeMenu()">Perfil</a>
+      }
+      <span class="sep">|</span>
+      <a routerLink="/sobre-nosotros" routerLinkActive="active" (click)="closeMenu()">Sobre Nosotros</a>
+    </nav>
+
+    <div class="header-auth">
+      @if (auth.isLoggedIn()) {
+        <button type="button" class="link-btn" (click)="logout()">Salir</button>
+      } @else {
+        <a routerLink="/login" (click)="closeMenu()">Login</a>
+        <span class="sep">|</span>
+        <a routerLink="/register" (click)="closeMenu()">Register</a>
+      }
+    </div>
+
     <button
       type="button"
       class="menu-toggle"
@@ -23,26 +45,21 @@
       <button type="button" class="menu-backdrop" (click)="closeMenu()" aria-label="Cerrar menú"></button>
     }
 
-    <div id="mobile-nav-panel" class="nav-panel" [class.open]="menuOpen">
-      <nav class="main-nav">
+    <div id="mobile-nav-panel" class="mobile-nav" [class.open]="menuOpen">
+      <nav class="main-nav-mobile">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
-        <span class="sep">|</span>
         <a routerLink="/eventos" routerLinkActive="active" (click)="closeMenu()">Explorar Festivales</a>
         @if (auth.isLoggedIn()) {
-          <span class="sep">|</span>
           <a routerLink="/perfil" routerLinkActive="active" (click)="closeMenu()">Perfil</a>
         }
-        <span class="sep">|</span>
         <a routerLink="/sobre-nosotros" routerLinkActive="active" (click)="closeMenu()">Sobre Nosotros</a>
       </nav>
 
-      <div class="auth-links">
+      <div class="header-auth-mobile">
         @if (auth.isLoggedIn()) {
-          <span class="sep">|</span>
           <button type="button" class="link-btn" (click)="logout()">Salir</button>
         } @else {
           <a routerLink="/login" (click)="closeMenu()">Login</a>
-          <span class="sep">|</span>
           <a routerLink="/register" (click)="closeMenu()">Register</a>
         }
       </div>

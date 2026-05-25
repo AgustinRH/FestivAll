@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
@@ -18,6 +18,7 @@ import { Evento, Compra } from '../../../core/models';
     ReactiveFormsModule,
     NavbarComponent,
     FooterComponent,
+    RouterLink,
     CurrencyPipe,
     DatePipe,
   ],
@@ -37,6 +38,9 @@ export class EventoDetailComponent implements OnInit {
   showCompraModal = false;
   error = '';
   loading = false;
+  emailVerificado: boolean | null = null;
+  resendMsg = '';
+  resendLoading = false;
 
   compraForm = this.fb.group({
     nombre: ['', Validators.required],
@@ -55,15 +59,34 @@ export class EventoDetailComponent implements OnInit {
     if (this.route.snapshot.queryParamMap.get('pago') === 'cancelado') {
       this.error = 'Has cancelado el pago. Puedes volver a intentarlo cuando quieras.';
     }
-    this.eventosService.getById(id).subscribe((e) => {
-      this.evento = e;
-      if (this.auth.isLoggedIn()) {
-        const user = this.auth.currentUser();
-        this.compraForm.patchValue({
-          nombre: user?.nombre || '',
-          apellidos: user?.apellidos || '',
-        });
-      }
+    this.eventosService.getById(id).subscribe({
+      next: (e) => {
+        this.evento = e;
+        if (this.auth.isLoggedIn()) {
+          this.cargarPerfilCompra();
+        }
+      },
+      error: (err) => {
+        if (err.status === 404) {
+          this.error = 'Este evento ya no está disponible (ha finalizado o no existe).';
+        }
+      },
+    });
+  }
+
+  private cargarPerfilCompra() {
+    const user = this.auth.currentUser();
+    this.compraForm.patchValue({
+      nombre: user?.nombre || '',
+      apellidos: user?.apellidos || '',
+    });
+    this.auth.getProfile().subscribe({
+      next: (p) => {
+        this.emailVerificado = p.emailVerificado ?? true;
+      },
+      error: () => {
+        this.emailVerificado = true;
+      },
     });
   }
 
@@ -96,13 +119,53 @@ export class EventoDetailComponent implements OnInit {
     return `https://www.openstreetmap.org/export/embed.html?bbox=-2.5,36.8,-2.4,36.9&layer=mapnik&marker=${q}`;
   }
 
+  get puedeComprar(): boolean {
+    return this.emailVerificado !== false;
+  }
+
   abrirCompra() {
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
       return;
     }
+    if (this.emailVerificado === null) {
+      this.auth.getProfile().subscribe({
+        next: (p) => {
+          this.emailVerificado = p.emailVerificado ?? true;
+          this.abrirCompra();
+        },
+        error: () => {
+          this.emailVerificado = true;
+          this.abrirCompra();
+        },
+      });
+      return;
+    }
+    if (!this.puedeComprar) {
+      this.error =
+        'Debes verificar tu email antes de comprar. Revisa tu bandeja de entrada o reenvía el enlace de verificación.';
+      this.showCompraModal = true;
+      return;
+    }
     this.showCompraModal = true;
     this.error = '';
+  }
+
+  reenviarVerificacion() {
+    const email = this.auth.currentUser()?.email;
+    if (!email) return;
+    this.resendLoading = true;
+    this.resendMsg = '';
+    this.auth.resendVerification(email).subscribe({
+      next: (res) => {
+        this.resendMsg = res.message;
+        this.resendLoading = false;
+      },
+      error: (err) => {
+        this.resendMsg = getHttpErrorMessage(err, 'No se pudo reenviar el email.');
+        this.resendLoading = false;
+      },
+    });
   }
 
   cerrarCompra() {
@@ -114,6 +177,7 @@ export class EventoDetailComponent implements OnInit {
   }
 
   confirmarCompra() {
+    if (!this.puedeComprar) return;
     if (!this.evento || this.compraForm.invalid) return;
     const cantidad = this.compraForm.get('cantidad')!.value!;
     if (cantidad > this.evento.stock) {
@@ -140,6 +204,9 @@ export class EventoDetailComponent implements OnInit {
       },
       error: (err) => {
         this.error = getHttpErrorMessage(err, 'Error al procesar la compra');
+        if (err.status === 403) {
+          this.emailVerificado = false;
+        }
         this.loading = false;
       },
     });

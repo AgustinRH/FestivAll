@@ -1,4 +1,5 @@
 import { Compra } from '../models';
+import { eventoHaPasado, fechaReferenciaEvento } from './evento.util';
 
 export interface EntradaPerfil {
   key: string;
@@ -6,6 +7,8 @@ export interface EntradaPerfil {
   categoria?: string;
   localidad?: string;
   fechaCompra: string;
+  fechaEvento: string;
+  eventoPasado: boolean;
   precio: number;
   codigoAcceso: string;
 }
@@ -19,13 +22,19 @@ export function expandirEntradas(compras: Compra[]): EntradaPerfil[] {
     const precioUnitario =
       cantidad === 1 ? Number(compra.totalPago) : Number(compra.totalPago) / cantidad;
 
+    const ev = compra.evento;
+    const fechaEvento = ev ? fechaReferenciaEvento(ev) : compra.fechaCompra.slice(0, 10);
+    const pasado = ev ? eventoHaPasado(ev) : false;
+
     for (let i = 0; i < cantidad; i++) {
       entradas.push({
         key: `${compra.id}-${i}`,
-        eventoTitulo: compra.evento?.titulo ?? 'Evento',
-        categoria: compra.evento?.categoria?.nombreCategoria,
-        localidad: compra.evento?.ubicacion?.localidad,
+        eventoTitulo: ev?.titulo ?? 'Evento',
+        categoria: ev?.categoria?.nombreCategoria,
+        localidad: ev?.ubicacion?.localidad,
         fechaCompra: compra.fechaCompra,
+        fechaEvento,
+        eventoPasado: pasado,
         precio: precioUnitario,
         codigoAcceso:
           cantidad === 1

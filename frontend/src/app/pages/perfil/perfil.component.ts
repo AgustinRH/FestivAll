@@ -36,7 +36,8 @@ export class PerfilComponent implements OnInit {
   private entradaPdf = inject(EntradaPdfService);
 
   profile: { nombre: string; apellidos: string; email: string; fechaRegistro: string } | null = null;
-  entradas: EntradaPerfil[] = [];
+  entradasActivas: EntradaPerfil[] = [];
+  historialEntradas: EntradaPerfil[] = [];
   downloadingKey: string | null = null;
   downloadError = '';
   passwordMsg = '';
@@ -51,7 +52,15 @@ export class PerfilComponent implements OnInit {
 
   ngOnInit() {
     this.auth.getProfile().subscribe((p) => (this.profile = p));
-    this.comprasService.misCompras().subscribe((c) => (this.entradas = expandirEntradas(c)));
+    this.comprasService.misCompras().subscribe((c) => {
+      const todas = expandirEntradas(c);
+      this.entradasActivas = todas.filter((e) => !e.eventoPasado);
+      this.historialEntradas = todas.filter((e) => e.eventoPasado);
+    });
+  }
+
+  get sinCompras(): boolean {
+    return this.entradasActivas.length === 0 && this.historialEntradas.length === 0;
   }
 
   async descargarEntrada(entrada: EntradaPerfil) {

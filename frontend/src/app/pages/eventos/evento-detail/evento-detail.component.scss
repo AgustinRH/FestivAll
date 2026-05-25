@@ -1,6 +1,27 @@
 @use '../../../../breakpoints' as bp;
 
 .detail-page {
+  &.container {
+    padding: 3rem 1.5rem;
+    text-align: center;
+  }
+
+  .error-msg {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .btn-back {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
   .event-hero {
     position: relative;
     height: 320px;
@@ -258,6 +279,33 @@
     }
 
     strong { color: var(--accent); font-size: 1.3rem; }
+  }
+
+  .verify-block {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background: rgba(232, 93, 59, 0.08);
+    border: 1px solid rgba(232, 93, 59, 0.35);
+    text-align: center;
+
+    p {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .verify-email {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 1rem !important;
+    }
+
+    .resend-msg {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: #2ecc71;
+    }
   }
 
   .error { color: #e74c3c; margin-bottom: 0.75rem; font-size: 0.9rem; }

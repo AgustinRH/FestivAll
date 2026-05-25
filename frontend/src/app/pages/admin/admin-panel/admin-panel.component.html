@@ -176,7 +176,7 @@
                   <h3>{{ e.titulo }}</h3>
                   <span class="category-tag">{{ e.categoria?.nombreCategoria || '—' }}</span>
                 </div>
-                <p class="card-address" [title]="getDireccion(e)">📍 {{ getDireccion(e) }}</p>
+                <p class="card-address" [title]="getUbicacionTexto(e)">📍 {{ getUbicacionTexto(e) }}</p>
                 <div class="card-meta">
                   <span>📅 {{ formatRango(e) }}</span>
                   <span class="price">{{ e.precio | number:'1.2-2' }} €</span>
@@ -225,12 +225,26 @@
                   }
                 </select>
               </label>
-              <label class="span-2" [class.has-error]="isInvalid('direccionCompleta')">
-                <span>Dirección completa <em>*</em></span>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-block">
+            <legend>Ubicación</legend>
+            <div class="form-grid">
+              <label class="span-2" [class.has-error]="isInvalid('direccion')">
+                <span>Dirección <em>*</em></span>
                 <input
-                  formControlName="direccionCompleta"
-                  placeholder="Calle, número, CP, localidad, provincia"
+                  formControlName="direccion"
+                  placeholder="Calle, número, recinto, etc."
                 />
+              </label>
+              <label [class.has-error]="isInvalid('localidad')">
+                <span>Localidad <em>*</em></span>
+                <input formControlName="localidad" placeholder="Ej. Almería, Roquetas de Mar" />
+              </label>
+              <label [class.has-error]="isInvalid('provincia')">
+                <span>Provincia <em>*</em></span>
+                <input formControlName="provincia" placeholder="Ej. Almería" />
               </label>
             </div>
           </fieldset>

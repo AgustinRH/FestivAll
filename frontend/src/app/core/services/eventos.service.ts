@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Evento } from '../models';
+import { Evento, EventosPaginatedResponse } from '../models';
+
+const PAGE_SIZE = 20;
 
 @Injectable({ providedIn: 'root' })
 export class EventosService {
@@ -9,12 +11,55 @@ export class EventosService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(filters?: { busqueda?: string; categoriaId?: number; localidad?: string }) {
+  getAll(filters?: {
+    busqueda?: string;
+    categoriaId?: number;
+    localidad?: string;
+    ultimasEntradas?: boolean;
+    precioMin?: number;
+    precioMax?: number;
+  }) {
+    return this.http.get<Evento[]>(this.api, { params: this.buildFilterParams(filters) });
+  }
+
+  getPaginated(
+    filters: {
+      busqueda?: string;
+      categoriaId?: number;
+      localidad?: string;
+      ultimasEntradas?: boolean;
+      precioMin?: number;
+      precioMax?: number;
+      desde?: string;
+      hasta?: string;
+      page?: number;
+      limit?: number;
+    },
+  ) {
+    let params = this.buildFilterParams(filters);
+    params = params.set('page', String(filters.page ?? 1));
+    params = params.set('limit', String(filters.limit ?? PAGE_SIZE));
+    if (filters.desde) params = params.set('desde', filters.desde);
+    if (filters.hasta) params = params.set('hasta', filters.hasta);
+    return this.http.get<EventosPaginatedResponse>(this.api, { params });
+  }
+
+  private buildFilterParams(filters?: {
+    busqueda?: string;
+    categoriaId?: number;
+    localidad?: string;
+    ultimasEntradas?: boolean;
+    precioMin?: number;
+    precioMax?: number;
+  }): HttpParams {
     let params = new HttpParams();
     if (filters?.busqueda) params = params.set('busqueda', filters.busqueda);
     if (filters?.categoriaId) params = params.set('categoriaId', filters.categoriaId);
     if (filters?.localidad) params = params.set('localidad', filters.localidad);
-    return this.http.get<Evento[]>(this.api, { params });
+    if (filters?.ultimasEntradas) params = params.set('ultimasEntradas', 'true');
+    if (filters?.precioMin != null) params = params.set('precioMin', filters.precioMin);
+    if (filters?.precioMax != null) params = params.set('precioMax', filters.precioMax);
+    return params;
   }
 
   getPopular(limit?: number) {

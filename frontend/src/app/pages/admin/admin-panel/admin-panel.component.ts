@@ -48,7 +48,9 @@ export class AdminPanelComponent implements OnInit {
     titulo: ['', Validators.required],
     descripcion: [''],
     idCategoria: ['', Validators.required],
-    direccionCompleta: ['', [Validators.required, Validators.minLength(5)]],
+    direccion: ['', [Validators.required, Validators.minLength(3)]],
+    localidad: ['', [Validators.required, Validators.minLength(2)]],
+    provincia: ['Almería', [Validators.required, Validators.minLength(2)]],
     fechaInicio: ['', Validators.required],
     fechaFin: [''],
     horaInicio: [''],
@@ -72,7 +74,7 @@ export class AdminPanelComponent implements OnInit {
       if (this.filterDestacados === 'destacados' && !e.destacado) return false;
       if (this.filterCategoria && String(e.idCategoria) !== this.filterCategoria) return false;
       if (!q) return true;
-      const dir = this.getDireccion(e).toLowerCase();
+      const dir = this.getUbicacionTexto(e).toLowerCase();
       const cat = e.categoria?.nombreCategoria?.toLowerCase() ?? '';
       return e.titulo.toLowerCase().includes(q) || dir.includes(q) || cat.includes(q);
     });
@@ -104,8 +106,11 @@ export class AdminPanelComponent implements OnInit {
     });
   }
 
-  getDireccion(evento: Evento): string {
-    return evento.ubicacion?.direccion || '—';
+  getUbicacionTexto(evento: Evento): string {
+    const u = evento.ubicacion;
+    if (!u) return '—';
+    const partes = [u.direccion, u.localidad, u.provincia].filter(Boolean);
+    return partes.join(', ') || '—';
   }
 
   getImageUrl(evento: Evento): string | null {
@@ -208,7 +213,9 @@ export class AdminPanelComponent implements OnInit {
       titulo: evento.titulo,
       descripcion: evento.descripcion,
       idCategoria: String(evento.idCategoria),
-      direccionCompleta: this.getDireccion(evento),
+      direccion: evento.ubicacion?.direccion ?? '',
+      localidad: evento.ubicacion?.localidad ?? '',
+      provincia: evento.ubicacion?.provincia ?? 'Almería',
       fechaInicio: evento.fechaInicio,
       fechaFin: evento.fechaFin || '',
       horaInicio: evento.horaInicio || '',
@@ -222,7 +229,7 @@ export class AdminPanelComponent implements OnInit {
 
   cancelEdit() {
     this.editingId = null;
-    this.form.reset({ precio: 0, stock: 0, destacado: false });
+    this.form.reset({ precio: 0, stock: 0, destacado: false, provincia: 'Almería' });
   }
 
   submit() {
@@ -236,7 +243,9 @@ export class AdminPanelComponent implements OnInit {
       titulo: raw.titulo!,
       descripcion: raw.descripcion || undefined,
       idCategoria: +raw.idCategoria!,
-      direccionCompleta: raw.direccionCompleta!.trim(),
+      direccion: raw.direccion!.trim(),
+      localidad: raw.localidad!.trim(),
+      provincia: raw.provincia?.trim() || 'Almería',
       fechaInicio: raw.fechaInicio!,
       fechaFin: raw.fechaFin || undefined,
       horaInicio: raw.horaInicio || undefined,

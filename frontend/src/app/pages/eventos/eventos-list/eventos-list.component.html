@@ -22,17 +22,59 @@
             }
           </select>
           <input type="text" placeholder="Localidad" formControlName="localidad" />
+          <div class="filter-precio">
+            <span class="filter-precio__label">Precio (€)</span>
+            <input type="number" formControlName="precioMin" min="0" step="1" placeholder="Mín." />
+            <span class="filter-precio__sep" aria-hidden="true">—</span>
+            <input type="number" formControlName="precioMax" min="0" step="1" placeholder="Máx." />
+          </div>
+          <label class="filter-check">
+            <input type="checkbox" formControlName="ultimasEntradas" />
+            <span>Últimas unidades (≤5 entradas, 15% dto.)</span>
+          </label>
           <button type="button" class="link-clear" (click)="clearFilters()">Limpiar filtros</button>
         </div>
       }
 
-      <div class="events-grid">
-        @for (evento of eventos; track evento.id) {
-          <app-event-card [evento]="evento" />
+      @if (loading) {
+        <p class="loading-msg">Cargando festivales…</p>
+      } @else {
+        <div class="events-grid">
+          @for (evento of eventos; track evento.id) {
+            <app-event-card [evento]="evento" />
+          }
+        </div>
+        @if (eventos.length === 0) {
+          <p class="empty">No se encontraron eventos.</p>
         }
-      </div>
-      @if (eventos.length === 0) {
-        <p class="empty">No se encontraron eventos.</p>
+        @if (totalPages > 1) {
+          <nav class="pagination" aria-label="Paginación de festivales">
+            <button
+              type="button"
+              class="pagination-btn"
+              [disabled]="page <= 1"
+              (click)="goToPage(page - 1)"
+            >
+              Anterior
+            </button>
+            <span class="pagination-info">
+              Página <strong>{{ page }}</strong> de <strong>{{ totalPages }}</strong>
+            </span>
+            <button
+              type="button"
+              class="pagination-btn"
+              [disabled]="page >= totalPages"
+              (click)="goToPage(page + 1)"
+            >
+              Siguiente
+            </button>
+          </nav>
+          <p class="pagination-meta">
+            Mostrando {{ rangoInicio }}–{{ rangoFin }} de {{ total }} festivales
+          </p>
+        } @else if (total > 0) {
+          <p class="pagination-meta">{{ total }} festival{{ total === 1 ? '' : 'es' }}</p>
+        }
       }
     </div>
   </main>

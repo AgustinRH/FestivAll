@@ -14,8 +14,17 @@ export class CreateEventoDto {
   idCategoria: number;
 
   @IsString()
-  @MinLength(5)
-  direccionCompleta: string;
+  @MinLength(3)
+  direccion: string;
+
+  @IsString()
+  @MinLength(2)
+  localidad: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  provincia?: string;
 
   @IsString()
   titulo: string;

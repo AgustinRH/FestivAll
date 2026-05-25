@@ -26,6 +26,56 @@ export class MailService {
     return !!this.transporter;
   }
 
+  async sendPurchaseConfirmationEmail(
+    to: string,
+    nombre: string,
+    data: {
+      eventoTitulo: string;
+      cantidad: number;
+      total: number;
+      codigos: string[];
+      perfilUrl: string;
+    },
+  ): Promise<void> {
+    const from =
+      this.config.get<string>('MAIL_FROM') ||
+      this.config.get<string>('SMTP_USER') ||
+      'noreply@festivall.club';
+    const subject = `Confirmación de compra — ${data.eventoTitulo}`;
+    const safeName = this.escapeHtml(nombre);
+    const safeTitulo = this.escapeHtml(data.eventoTitulo);
+    const totalFmt = data.total.toFixed(2).replace('.', ',');
+    const codigosHtml = data.codigos
+      .map((c) => `<li style="font-family:monospace;font-size:14px">${this.escapeHtml(c)}</li>`)
+      .join('');
+    const html = `<div style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;color:#222">
+<h2 style="color:#e85d3b">FestivAll Almería</h2>
+<p>Hola ${safeName},</p>
+<p>Tu compra se ha completado correctamente.</p>
+<ul style="padding-left:1.2em;line-height:1.6">
+<li><strong>Evento:</strong> ${safeTitulo}</li>
+<li><strong>Entradas:</strong> ${data.cantidad}</li>
+<li><strong>Total:</strong> ${totalFmt} €</li>
+</ul>
+${data.codigos.length ? `<p><strong>Códigos de acceso:</strong></p><ul>${codigosHtml}</ul>` : ''}
+<p>Puedes ver y descargar tus entradas en cualquier momento desde tu perfil:</p>
+<p style="margin:28px 0"><a href="${data.perfilUrl}" style="background:#e85d3b;color:#fff;padding:12px 24px;border-radius:999px;text-decoration:none;font-weight:700">Ver mis entradas</a></p>
+<p style="font-size:13px;color:#666">Si el botón no funciona, copia este enlace:</p>
+<p style="font-size:13px;word-break:break-all">${data.perfilUrl}</p>
+<p style="font-size:13px;color:#666">Muestra el código QR en la entrada del evento.</p>
+</div>`;
+
+    const codigosText = data.codigos.length ? `\nCódigos:\n${data.codigos.join('\n')}\n` : '';
+    const text = `Hola ${nombre},\n\nCompra confirmada en FestivAll.\n\nEvento: ${data.eventoTitulo}\nEntradas: ${data.cantidad}\nTotal: ${totalFmt} €${codigosText}\nVer tus entradas: ${data.perfilUrl}\n`;
+
+    if (!this.transporter) {
+      this.logger.warn(`SMTP no configurado. Confirmación de compra para ${to}: ${data.perfilUrl}`);
+      return;
+    }
+
+    await this.transporter.sendMail({ from, to, subject, html, text });
+  }
+
   async sendVerificationEmail(to: string, nombre: string, verifyUrl: string): Promise<void> {
     const from =
       this.config.get<string>('MAIL_FROM') ||

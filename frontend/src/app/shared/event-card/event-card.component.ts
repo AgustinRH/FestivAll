@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { Evento } from '../../core/models';
-import { getPrecioUnitario } from '../../core/utils/precio.util';
+import { aplicaDescuentoUltimasEntradas, getPrecioUnitario } from '../../core/utils/precio.util';
 
 @Component({
   selector: 'app-event-card',
@@ -13,7 +13,6 @@ import { getPrecioUnitario } from '../../core/utils/precio.util';
 })
 export class EventCardComponent {
   @Input({ required: true }) evento!: Evento;
-  @Input() mostrarDescuento = false;
 
   get imagenUrl(): string {
     const principal = this.evento.imagenes?.find((i) => i.esPrincipal);
@@ -25,6 +24,9 @@ export class EventCardComponent {
   }
 
   get tieneDescuento(): boolean {
-    return this.mostrarDescuento && this.precioFinal < Number(this.evento.precio);
+    return (
+      aplicaDescuentoUltimasEntradas(this.evento.stock) &&
+      this.precioFinal < Number(this.evento.precio)
+    );
   }
 }

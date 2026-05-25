@@ -1,60 +1,79 @@
 <div class="page-wrap">
   <app-navbar />
   <main class="page-content home-page">
-    <section class="hero">
-      <div class="hero-overlay"></div>
-      <div class="hero-inner">
-        <h1>Encuentra tu próximo evento en menos de 3 clicks</h1>
-        <form class="hero-search" [formGroup]="searchForm" (ngSubmit)="buscar()">
-          <div class="search-field grow">
-            <span class="icon">🔍</span>
-            <input type="text" formControlName="busqueda" placeholder="¿Qué evento buscas?" />
-          </div>
-          <div class="search-dates">
-            <label class="search-field date-field">
-              <span class="field-label">Desde</span>
-              <input type="date" formControlName="desde" />
-            </label>
-            <label class="search-field date-field">
-              <span class="field-label">Hasta</span>
-              <input type="date" formControlName="hasta" />
-            </label>
-          </div>
-          <button type="submit" class="btn-search">BUSCAR</button>
-        </form>
-      </div>
-    </section>
+    <section class="home-showcase">
+      <div class="home-showcase__bg" aria-hidden="true"></div>
+      <div class="home-showcase__overlay" aria-hidden="true"></div>
 
-    <section class="destacados container">
-      <h2 class="section-title">Festivales Destacados</h2>
-      <div class="cards-row">
-        @for (evento of populares; track evento.id) {
-          <app-event-card [evento]="evento" />
-        }
-      </div>
-      @if (loading) {
-        <p class="empty">Cargando festivales...</p>
-      } @else if (error) {
-        <p class="empty error">{{ error }}</p>
-      } @else if (populares.length === 0) {
-        <p class="empty">No hay festivales destacados por ahora.</p>
-      }
-    </section>
-
-    <section class="ultimas-entradas container">
-      <h2 class="section-title">Últimas Entradas</h2>
-      <p class="section-subtitle">15% de descuento en eventos con 5 entradas o menos</p>
-      @if (loading) {
-        <p class="empty">Cargando ofertas…</p>
-      } @else if (!error && ultimasEntradas.length === 0) {
-        <p class="empty">No hay eventos con pocas entradas ahora mismo.</p>
-      } @else if (!error) {
-        <div class="cards-row">
-          @for (evento of ultimasEntradas; track evento.id) {
-            <app-event-card [evento]="evento" [mostrarDescuento]="true" />
-          }
+      <div class="hero">
+        <div class="hero-glow" aria-hidden="true">
+          <span class="hero-glow__orb hero-glow__orb--magenta"></span>
+          <span class="hero-glow__orb hero-glow__orb--cyan"></span>
         </div>
-      }
+        <div class="hero-inner">
+          <h1>Encuentra tu próximo evento en menos de 3 clicks</h1>
+          <form class="hero-search" [formGroup]="searchForm" (ngSubmit)="buscar()">
+            <div class="search-field grow">
+              <span class="icon">🔍</span>
+              <input type="text" formControlName="busqueda" placeholder="¿Qué evento buscas?" />
+            </div>
+            <div class="search-dates">
+              <label class="search-field date-field">
+                <span class="field-label">Desde</span>
+                <input type="date" formControlName="desde" />
+              </label>
+              <label class="search-field date-field">
+                <span class="field-label">Hasta</span>
+                <input type="date" formControlName="hasta" />
+              </label>
+            </div>
+            <button type="submit" class="btn-search">BUSCAR</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="home-sections">
+        <section class="destacados container">
+          <h2 class="section-title">Festivales Destacados</h2>
+          <div class="cards-row">
+            @for (evento of populares; track evento.id) {
+              <app-event-card [evento]="evento" />
+            }
+          </div>
+          @if (loading) {
+            <p class="empty">Cargando festivales...</p>
+          } @else if (error) {
+            <p class="empty error">{{ error }}</p>
+          } @else if (populares.length === 0) {
+            <p class="empty">No hay festivales destacados por ahora.</p>
+          }
+        </section>
+
+        <section class="ultimas-entradas container">
+          <div class="section-header-row">
+            <div class="section-header-text">
+              <h2 class="section-title">Últimas Entradas</h2>
+              <p class="section-subtitle">15% de descuento en eventos con 5 entradas o menos</p>
+            </div>
+            @if (!loading && !error && hayMasUltimasEntradas) {
+              <a routerLink="/eventos" [queryParams]="{ ultimasEntradas: true }" class="btn-ver-mas">
+                Ver todas las ofertas
+              </a>
+            }
+          </div>
+          @if (loading) {
+            <p class="empty">Cargando ofertas…</p>
+          } @else if (!error && ultimasEntradas.length === 0) {
+            <p class="empty">No hay eventos con pocas entradas ahora mismo.</p>
+          } @else if (!error) {
+            <div class="cards-row">
+              @for (evento of ultimasEntradas; track evento.id) {
+                <app-event-card [evento]="evento" />
+              }
+            </div>
+          }
+        </section>
+      </div>
     </section>
 
     <section id="contacto" class="contacto container">

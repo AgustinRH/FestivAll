@@ -26,11 +26,42 @@ export class EventosController {
     @Query('busqueda') busqueda?: string,
     @Query('categoriaId') categoriaId?: string,
     @Query('localidad') localidad?: string,
+    @Query('ultimasEntradas') ultimasEntradas?: string,
+    @Query('precioMin') precioMin?: string,
+    @Query('precioMax') precioMax?: string,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
+    const parsePrecio = (v?: string) => {
+      if (v === undefined || v === '') return undefined;
+      const n = +v;
+      return Number.isFinite(n) ? n : undefined;
+    };
+    const parsePage = (v?: string) => {
+      if (v === undefined || v === '') return undefined;
+      const n = +v;
+      return Number.isFinite(n) && n >= 1 ? Math.floor(n) : undefined;
+    };
+    const parseLimit = (v?: string) => {
+      if (v === undefined || v === '') return undefined;
+      const n = +v;
+      return Number.isFinite(n) && n >= 1 ? Math.min(Math.floor(n), 100) : undefined;
+    };
+    const parsedPage = parsePage(page);
     return this.eventosService.findAll({
       busqueda,
       categoriaId: categoriaId ? +categoriaId : undefined,
       localidad,
+      ultimasEntradas: ultimasEntradas === 'true' || ultimasEntradas === '1',
+      precioMin: parsePrecio(precioMin),
+      precioMax: parsePrecio(precioMax),
+      desde: desde || undefined,
+      hasta: hasta || undefined,
+      page: parsedPage,
+      limit: parseLimit(limit),
+      soloActivos: parsedPage != null,
     });
   }
 
@@ -46,7 +77,7 @@ export class EventosController {
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.eventosService.findOne(id);
+    return this.eventosService.findOnePublic(id);
   }
 
   @UseGuards(JwtAuthGuard, AdminGuard)
