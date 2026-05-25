@@ -12,23 +12,7 @@
         </div>
         <div class="hero-inner">
           <h1>Encuentra tu próximo evento en menos de 3 clicks</h1>
-          <form class="hero-search" [formGroup]="searchForm" (ngSubmit)="buscar()">
-            <div class="search-field grow">
-              <span class="icon">🔍</span>
-              <input type="text" formControlName="busqueda" placeholder="¿Qué evento buscas?" />
-            </div>
-            <div class="search-dates">
-              <label class="search-field date-field">
-                <span class="field-label">Desde</span>
-                <input type="date" formControlName="desde" />
-              </label>
-              <label class="search-field date-field">
-                <span class="field-label">Hasta</span>
-                <input type="date" formControlName="hasta" />
-              </label>
-            </div>
-            <button type="submit" class="btn-search">BUSCAR</button>
-          </form>
+          <a routerLink="/eventos" class="btn-explorar">Explorar festivales</a>
         </div>
       </div>
 

@@ -41,6 +41,12 @@ input, select, textarea, button {
   flex-direction: column;
 }
 
+@media (max-width: 768px) {
+  .page-wrap {
+    padding-top: 68px;
+  }
+}
+
 .page-content {
   flex: 1;
 }

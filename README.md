@@ -45,9 +45,7 @@ Abre **http://localhost** (o el puerto definido en `APP_PORT`).
 | `backend`  | festivall-api   | NestJS en modo producción            |
 | `mariadb`  | festivall-db    | Base de datos + schema/seed inicial  |
 
-El admin se crea al arrancar el backend:
-- Email: `info@festivall.club`
-- Contraseña: `Admin1234!` (solo al crear el admin por primera vez; cámbiala en producción)
+El usuario administrador **no** se crea automáticamente al reiniciar Docker. Créalo una vez con el script (ver abajo) o desde el panel de usuarios si ya tienes otro admin.
 
 Comandos útiles:
 

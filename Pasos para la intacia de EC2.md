@@ -197,12 +197,13 @@ Rutas principales:
 | `http://TU_IP/sobre-nosotros` | Sobre nosotros |
 | `http://TU_IP/festivall-admin` | Panel administrador |
 
-**Credenciales admin** (se crean al arrancar el backend):
+**Usuario administrador:** no se crea solo al reiniciar Docker. Si necesitas el admin por defecto la primera vez:
 
-- Email: `info@festivall.club`
-- Contraseña: `Admin123!`
+```bash
+docker compose exec backend node dist/scripts/seed-admin.js
+```
 
-Cámbialas en producción creando otro admin o actualizando la contraseña en base de datos.
+(Eso crea `info@festivall.club` / `Admin1234!` solo si esa cuenta no existe.)
 
 ---
 
@@ -267,7 +268,7 @@ sudo swapon /swapfile
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 ```
 
-### Recrear el usuario admin
+### Crear el usuario admin por defecto (solo si no existe)
 
 ```bash
 docker compose exec backend node dist/scripts/seed-admin.js

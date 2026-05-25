@@ -1,4 +1,8 @@
-<header class="site-header" [class.menu-open]="menuOpen">
+<header
+  class="site-header"
+  [class.menu-open]="menuOpen"
+  [class.nav-hidden]="!navVisible"
+>
   <div class="header-inner">
     <a routerLink="/" class="logo" (click)="closeMenu()">
       <img src="logo-festivall.png" alt="FestivAll Almería" />
@@ -10,7 +14,7 @@
       <a routerLink="/eventos" routerLinkActive="active" (click)="closeMenu()">Explorar Festivales</a>
       @if (auth.isLoggedIn()) {
         <span class="sep">|</span>
-        <a routerLink="/perfil" routerLinkActive="active" (click)="closeMenu()">Perfil</a>
+        <a routerLink="/perfil" routerLinkActive="active" class="nav-user" (click)="closeMenu()">{{ saludoPerfil }}</a>
       }
       <span class="sep">|</span>
       <a routerLink="/sobre-nosotros" routerLinkActive="active" (click)="closeMenu()">Sobre Nosotros</a>
@@ -50,7 +54,7 @@
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
         <a routerLink="/eventos" routerLinkActive="active" (click)="closeMenu()">Explorar Festivales</a>
         @if (auth.isLoggedIn()) {
-          <a routerLink="/perfil" routerLinkActive="active" (click)="closeMenu()">Perfil</a>
+          <a routerLink="/perfil" routerLinkActive="active" class="nav-user" (click)="closeMenu()">{{ saludoPerfil }}</a>
         }
         <a routerLink="/sobre-nosotros" routerLinkActive="active" (click)="closeMenu()">Sobre Nosotros</a>
       </nav>

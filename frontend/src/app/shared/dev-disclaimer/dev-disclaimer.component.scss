@@ -1,0 +1,55 @@
+.disclaimer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.disclaimer-dialog {
+  position: fixed;
+  z-index: 10001;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 480px);
+  padding: 1.75rem 1.5rem;
+  background: #12121f;
+  border: 1px solid rgba(232, 93, 59, 0.45);
+  border-radius: var(--radius-card);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.55);
+  text-align: center;
+
+  h2 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-aceptar {
+    width: 100%;
+    max-width: 220px;
+    padding: 0.85rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--accent-hover);
+    }
+  }
+}

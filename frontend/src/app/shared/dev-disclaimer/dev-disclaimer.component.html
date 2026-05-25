@@ -1,0 +1,17 @@
+@if (visible) {
+  <div class="disclaimer-backdrop" role="presentation"></div>
+  <div
+    class="disclaimer-dialog"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="disclaimer-title"
+    aria-describedby="disclaimer-text"
+  >
+    <h2 id="disclaimer-title">Aviso importante</h2>
+    <p id="disclaimer-text">
+      Esta web está en desarrollo. Todo el contenido es ficticio. Si realiza alguna compra, el
+      equipo de FestivAll no se hará responsable.
+    </p>
+    <button type="button" class="btn-aceptar" (click)="aceptar()">Aceptar</button>
+  </div>
+}

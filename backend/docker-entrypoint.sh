@@ -10,10 +10,5 @@ while ! nc -z "$DB_HOST" "$DB_PORT" 2>/dev/null; do
 done
 echo "MariaDB disponible."
 
-if [ -f dist/scripts/seed-admin.js ]; then
-  echo "Comprobando usuario administrador..."
-  node dist/scripts/seed-admin.js || echo "Aviso: no se pudo ejecutar seed-admin (puede que ya exista)."
-fi
-
 echo "Iniciando API NestJS..."
 exec node dist/main.js

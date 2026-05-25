@@ -10,6 +10,7 @@
   z-index: 100;
   background: #050508;
   border-bottom: 1px solid #1a1a28;
+  transition: transform 0.28s ease;
 }
 
 .header-inner {
@@ -60,6 +61,13 @@
     &.active {
       color: var(--accent);
     }
+  }
+
+  .nav-user {
+    max-width: 11rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .sep {
@@ -121,6 +129,22 @@
 }
 
 @include bp.tablet-down {
+  .site-header {
+    position: fixed;
+    left: 0;
+    right: 0;
+
+    &.nav-hidden:not(.menu-open) {
+      transform: translateY(-100%);
+      pointer-events: none;
+    }
+
+    &.menu-open {
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+  }
+
   .header-inner {
     padding: 0.75rem 1rem;
     min-height: auto;
@@ -213,6 +237,11 @@
       &.active {
         color: var(--accent);
       }
+    }
+
+    .nav-user {
+      max-width: none;
+      white-space: normal;
     }
   }
 
