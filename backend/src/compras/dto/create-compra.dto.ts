@@ -1,4 +1,4 @@
-import { IsInt, Min } from 'class-validator';
+import { Equals, IsBoolean, IsInt, Min } from 'class-validator';
 
 export class CreateCompraDto {
   @IsInt()
@@ -7,4 +7,8 @@ export class CreateCompraDto {
   @IsInt()
   @Min(1)
   cantidad: number;
+
+  @IsBoolean()
+  @Equals(true, { message: 'Debes aceptar los términos y condiciones de compra' })
+  aceptoTerminos: boolean;
 }

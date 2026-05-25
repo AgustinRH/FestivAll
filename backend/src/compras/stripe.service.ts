@@ -37,4 +37,10 @@ export class StripeService {
   getFrontendUrl(): string {
     return (this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200').replace(/\/$/, '');
   }
+
+  /** ID del tipo impositivo en Stripe (txr_...), p. ej. IVA 21 % */
+  getTaxRateId(): string | undefined {
+    const id = this.config.get<string>('STRIPE_TAX_RATE_ID')?.trim();
+    return id || undefined;
+  }
 }

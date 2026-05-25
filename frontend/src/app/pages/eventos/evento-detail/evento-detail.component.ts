@@ -10,6 +10,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { getHttpErrorMessage } from '../../../core/utils/http-error';
 import { getPrecioUnitario, aplicaDescuentoUltimasEntradas } from '../../../core/utils/precio.util';
 import { Evento, Compra } from '../../../core/models';
+import { LegalPrimeraCapaComponent } from '../../../shared/legal-primera-capa/legal-primera-capa.component';
 
 @Component({
   selector: 'app-evento-detail',
@@ -18,6 +19,7 @@ import { Evento, Compra } from '../../../core/models';
     ReactiveFormsModule,
     NavbarComponent,
     FooterComponent,
+    LegalPrimeraCapaComponent,
     RouterLink,
     CurrencyPipe,
     DatePipe,
@@ -52,6 +54,7 @@ export class EventoDetailComponent implements OnInit {
     telefono: [''],
     codigoDescuento: [''],
     cantidad: [1, [Validators.required, Validators.min(1)]],
+    aceptoTerminos: [false, Validators.requiredTrue],
   });
 
   ngOnInit() {
@@ -149,6 +152,7 @@ export class EventoDetailComponent implements OnInit {
     }
     this.showCompraModal = true;
     this.error = '';
+    this.compraForm.patchValue({ aceptoTerminos: false });
   }
 
   reenviarVerificacion() {
@@ -170,6 +174,7 @@ export class EventoDetailComponent implements OnInit {
 
   cerrarCompra() {
     this.showCompraModal = false;
+    this.compraForm.patchValue({ aceptoTerminos: false });
   }
 
   get total(): number {
@@ -186,7 +191,8 @@ export class EventoDetailComponent implements OnInit {
     }
     this.loading = true;
     this.error = '';
-    this.comprasService.iniciarCheckout(this.evento.id, cantidad).subscribe({
+    const aceptoTerminos = this.compraForm.get('aceptoTerminos')!.value === true;
+    this.comprasService.iniciarCheckout(this.evento.id, cantidad, aceptoTerminos).subscribe({
       next: (res) => {
         if (res.free && res.compras) {
           this.comprasExitosas = res.compras;

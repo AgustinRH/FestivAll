@@ -31,6 +31,18 @@ FRONTEND_URL=http://localhost
 
 En producción: `FRONTEND_URL=https://tu-dominio.com`
 
+### IVA (tipo impositivo)
+
+1. En Stripe: **Configuración → Impuestos** (o al crear el impuesto en el producto).
+2. Copia el **ID del tipo impositivo** (`txr_...`).
+3. Añádelo al `.env`:
+
+```env
+STRIPE_TAX_RATE_ID=txr_1TayvCLO2zXhVKm5n878GCo7
+```
+
+En cada Checkout se aplica ese IVA sobre el precio de la entrada (el precio del evento en la web es **sin IVA**; Stripe muestra base + impuesto al pagar). El importe guardado en `total_pago` tras el pago es el **total cobrado por entrada** (con IVA).
+
 Reinicia el backend o `docker compose up -d --build` tras cambiar variables.
 
 ## 3. Migración de base de datos

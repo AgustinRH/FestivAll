@@ -281,6 +281,40 @@
     strong { color: var(--accent); font-size: 1.3rem; }
   }
 
+  .legal-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin: 1rem 0;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: #f4f5f7;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    text-align: left;
+
+    input[type='checkbox'] {
+      width: 1.15rem;
+      height: 1.15rem;
+      margin-top: 0.2rem;
+      flex-shrink: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    span {
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: #333;
+
+      a {
+        color: var(--accent);
+        font-weight: 600;
+        text-decoration: underline;
+      }
+    }
+  }
+
   .verify-block {
     margin-top: 1rem;
     padding: 1rem;

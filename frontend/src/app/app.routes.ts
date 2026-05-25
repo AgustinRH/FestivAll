@@ -15,6 +15,30 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/sobre-nosotros/sobre-nosotros.component').then(m => m.SobreNosotrosComponent),
   },
   {
+    path: 'terminos-y-condiciones',
+    loadComponent: () =>
+      import('./pages/legal/terminos-y-condiciones/terminos-y-condiciones.component').then(
+        (m) => m.TerminosYCondicionesComponent,
+      ),
+  },
+  {
+    path: 'privacidad',
+    loadComponent: () =>
+      import('./pages/legal/politica-privacidad/politica-privacidad.component').then(
+        (m) => m.PoliticaPrivacidadComponent,
+      ),
+  },
+  {
+    path: 'politica-privacidad',
+    redirectTo: 'privacidad',
+    pathMatch: 'full',
+  },
+  {
+    path: 'aviso-legal',
+    loadComponent: () =>
+      import('./pages/legal/aviso-legal/aviso-legal.component').then((m) => m.AvisoLegalComponent),
+  },
+  {
     path: 'eventos',
     loadComponent: () => import('./pages/eventos/eventos-list/eventos-list.component').then(m => m.EventosListComponent),
   },

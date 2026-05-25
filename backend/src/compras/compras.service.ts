@@ -67,6 +67,30 @@ export class ComprasService {
     return `FA-${randomBytes(6).toString('hex').toUpperCase()}`;
   }
 
+  /** Importe por entrada cobrado en Stripe (base + IVA si aplica). */
+  private async resolvePrecioUnitarioPagado(
+    precioCatalogo: number,
+    cantidad: number,
+    stripeCheckoutSessionId?: string,
+  ): Promise<number> {
+    if (!stripeCheckoutSessionId || cantidad < 1) {
+      return precioCatalogo;
+    }
+    try {
+      const stripe = this.stripeService.getClient();
+      const session = await stripe.checkout.sessions.retrieve(stripeCheckoutSessionId);
+      if (session.amount_total != null && session.amount_total > 0) {
+        return Math.round((session.amount_total / 100 / cantidad) * 100) / 100;
+      }
+    } catch (err) {
+      this.logger.warn(
+        `No se pudo leer importe de sesión Stripe ${stripeCheckoutSessionId}, se usa precio catálogo`,
+        err,
+      );
+    }
+    return precioCatalogo;
+  }
+
   /** Crea entradas y descuenta stock (eventos gratis o tras pago confirmado). */
   async fulfillPurchase(
     userId: number,
@@ -99,7 +123,11 @@ export class ComprasService {
       throw new BadRequestException('No hay suficiente stock disponible');
     }
 
-    const precioUnitario = getPrecioUnitario(evento);
+    const precioUnitario = await this.resolvePrecioUnitarioPagado(
+      getPrecioUnitario(evento),
+      cantidad,
+      stripeCheckoutSessionId,
+    );
     const entradas = Array.from({ length: cantidad }, () =>
       this.compraRepo.create({
         idUsuario: userId,
@@ -125,7 +153,16 @@ export class ComprasService {
     return compras;
   }
 
+  private assertTerminosAceptados(aceptoTerminos: boolean) {
+    if (aceptoTerminos !== true) {
+      throw new BadRequestException(
+        'Debes aceptar los términos del servicio y las condiciones de compra',
+      );
+    }
+  }
+
   async create(userId: number, dto: CreateCompraDto) {
+    this.assertTerminosAceptados(dto.aceptoTerminos);
     await this.assertEmailVerified(userId);
     const evento = await this.eventoRepo.findOne({ where: { id: dto.idEvento } });
     if (!evento) throw new NotFoundException('Evento no encontrado');
@@ -144,6 +181,7 @@ export class ComprasService {
   }
 
   async createCheckoutSession(userId: number, dto: CreateCompraDto) {
+    this.assertTerminosAceptados(dto.aceptoTerminos);
     await this.assertEmailVerified(userId);
 
     const evento = await this.eventoRepo.findOne({ where: { id: dto.idEvento } });
@@ -172,22 +210,26 @@ export class ComprasService {
       ? `Entrada · ${evento.fechaInicio} · 15% dto. últimas entradas`
       : `Entrada · ${evento.fechaInicio}`;
 
+    const taxRateId = this.stripeService.getTaxRateId();
+    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
+      price_data: {
+        currency: 'eur',
+        product_data: {
+          name: evento.titulo,
+          description: descripcion,
+        },
+        unit_amount: amountCents,
+      },
+      quantity: dto.cantidad,
+    };
+    if (taxRateId) {
+      lineItem.tax_rates = [taxRateId];
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: evento.titulo,
-              description: descripcion,
-            },
-            unit_amount: amountCents,
-          },
-          quantity: dto.cantidad,
-        },
-      ],
+      line_items: [lineItem],
       metadata: {
         userId: String(userId),
         eventoId: String(dto.idEvento),

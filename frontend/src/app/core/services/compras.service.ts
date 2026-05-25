@@ -22,8 +22,12 @@ export class ComprasService {
   constructor(private http: HttpClient) {}
 
   /** Inicia pago Stripe o confirma entrada gratuita. */
-  iniciarCheckout(idEvento: number, cantidad: number) {
-    return this.http.post<CheckoutResponse>(`${this.api}/checkout`, { idEvento, cantidad });
+  iniciarCheckout(idEvento: number, cantidad: number, aceptoTerminos: boolean) {
+    return this.http.post<CheckoutResponse>(`${this.api}/checkout`, {
+      idEvento,
+      cantidad,
+      aceptoTerminos,
+    });
   }
 
   verificarCheckout(sessionId: string) {
@@ -32,8 +36,8 @@ export class ComprasService {
   }
 
   /** Solo para eventos con precio 0 (legacy). */
-  comprar(idEvento: number, cantidad: number) {
-    return this.http.post<Compra[]>(this.api, { idEvento, cantidad });
+  comprar(idEvento: number, cantidad: number, aceptoTerminos: boolean) {
+    return this.http.post<Compra[]>(this.api, { idEvento, cantidad, aceptoTerminos });
   }
 
   misCompras() {

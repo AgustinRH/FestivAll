@@ -134,8 +134,23 @@
         } @else {
           @if (error) { <p class="error">{{ error }}</p> }
 
+          <app-legal-primera-capa />
+
+          <label class="legal-check">
+            <input type="checkbox" formControlName="aceptoTerminos" />
+            <span>
+              Acepto la
+              <a routerLink="/privacidad" target="_blank" rel="noopener" (click)="$event.stopPropagation()">Política de Privacidad</a>
+              y los
+              <a routerLink="/terminos-y-condiciones" target="_blank" rel="noopener" (click)="$event.stopPropagation()">Términos del Servicio y Condiciones de Compra</a>,
+              incluyendo la exención de responsabilidad del evento por parte de festivall.club y la política de no devolución.
+            </span>
+          </label>
+
           @if (!esGratis) {
-            <p class="pago-info">Serás redirigido a Stripe para pagar de forma segura con tarjeta.</p>
+            <p class="pago-info">
+              Serás redirigido a Stripe para pagar con tarjeta. El IVA se aplicará en el checkout.
+            </p>
           }
           <button type="submit" class="btn-primary full" [disabled]="loading || compraForm.invalid">
             {{ textoBotonPago }}

@@ -7,11 +7,12 @@ import {
   PASSWORD_REQUIREMENTS_HINT,
   strongPasswordValidator,
 } from '../../../core/validators/password.validators';
+import { LegalPrimeraCapaComponent } from '../../../shared/legal-primera-capa/legal-primera-capa.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, LegalPrimeraCapaComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
