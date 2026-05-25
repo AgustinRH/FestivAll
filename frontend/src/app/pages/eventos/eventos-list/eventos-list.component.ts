@@ -1,12 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import { slugify } from '../../../core/utils/seo-slug.util';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 import { FooterComponent } from '../../../shared/footer/footer.component';
 import { EventCardComponent } from '../../../shared/event-card/event-card.component';
 import { EventosService } from '../../../core/services/eventos.service';
 import { CatalogoService } from '../../../core/services/catalogo.service';
-import { Evento, Categoria } from '../../../core/models';
+import { Evento, Categoria, Ubicacion } from '../../../core/models';
 
 @Component({
   selector: 'app-eventos-list',
@@ -26,6 +28,7 @@ export class EventosListComponent implements OnInit {
 
   eventos: Evento[] = [];
   categorias: Categoria[] = [];
+  ubicaciones: Ubicacion[] = [];
   showFilters = false;
   loading = false;
   page = 1;
@@ -42,25 +45,54 @@ export class EventosListComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.catalogoService.getCategorias().subscribe((c) => (this.categorias = c));
-
-    this.route.queryParams.subscribe((params) => {
-      const ultimas =
-        params['ultimasEntradas'] === 'true' || params['ultimasEntradas'] === '1';
-      if (ultimas || params['precioMin'] || params['precioMax']) {
-        this.showFilters = true;
-      }
-      this.filters.patchValue({
-        busqueda: params['busqueda'] || '',
-        categoriaId: params['categoriaId'] || '',
-        localidad: params['localidad'] || '',
-        precioMin: params['precioMin'] ?? '',
-        precioMax: params['precioMax'] ?? '',
-        ultimasEntradas: ultimas,
-      });
-      const page = Math.max(1, +(params['page'] || 1) || 1);
-      this.loadEventos(page, params['desde'], params['hasta']);
+    forkJoin({
+      categorias: this.catalogoService.getCategorias(),
+      ubicaciones: this.catalogoService.getUbicaciones(),
+    }).subscribe(({ categorias, ubicaciones }) => {
+      this.categorias = categorias;
+      this.ubicaciones = ubicaciones;
     });
+
+    this.route.queryParams.subscribe((params) => this.applyRouteState(params));
+    this.route.paramMap.subscribe(() =>
+      this.applyRouteState(this.route.snapshot.queryParams),
+    );
+  }
+
+  private resolveSeoFilters(): { localidad?: string; categoriaId?: string } {
+    const path = this.router.url.split('?')[0];
+    const locMatch = path.match(/^\/eventos\/localidad\/([^/]+)/);
+    if (locMatch) {
+      const slug = decodeURIComponent(locMatch[1]);
+      const u = this.ubicaciones.find((x) => slugify(x.localidad) === slug);
+      return u ? { localidad: u.localidad } : {};
+    }
+    const catMatch = path.match(/^\/eventos\/categoria\/([^/]+)/);
+    if (catMatch) {
+      const slug = decodeURIComponent(catMatch[1]);
+      const c = this.categorias.find((x) => slugify(x.nombreCategoria) === slug);
+      return c ? { categoriaId: String(c.id) } : {};
+    }
+    return {};
+  }
+
+  private applyRouteState(params: Record<string, string>) {
+    const seo = this.resolveSeoFilters();
+    const ultimas =
+      params['ultimasEntradas'] === 'true' || params['ultimasEntradas'] === '1';
+    if (ultimas || params['precioMin'] || params['precioMax'] || seo.localidad || seo.categoriaId) {
+      this.showFilters = true;
+    }
+    this.filters.patchValue({
+      busqueda: params['busqueda'] || '',
+      categoriaId: seo.categoriaId || params['categoriaId'] || '',
+      localidad: seo.localidad || params['localidad'] || '',
+      precioMin: params['precioMin'] ?? '',
+      precioMax: params['precioMax'] ?? '',
+      ultimasEntradas: ultimas,
+    });
+    const page = Math.max(1, +(params['page'] || 1) || 1);
+    this.loadEventos(page, params['desde'], params['hasta']);
   }
 
   private parsePrecioFiltro(value: string | number | null | undefined): number | undefined {

@@ -187,6 +187,7 @@ export class EventosService {
       ...rest,
       idUbicacion,
       destacado: dto.destacado ?? false,
+      soloMayoresEdad: dto.soloMayoresEdad ?? false,
     });
     const saved = await this.eventoRepo.save(evento);
 

@@ -23,6 +23,8 @@ CREATE TABLE usuario (
     email_verificado BOOLEAN NOT NULL DEFAULT FALSE,
     email_verification_token VARCHAR(64) NULL,
     email_verification_expires DATETIME NULL,
+    password_reset_token VARCHAR(64) NULL,
+    password_reset_expires DATETIME NULL,
     fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -39,6 +41,7 @@ CREATE TABLE evento (
     precio DECIMAL(10, 2) NOT NULL,
     stock INT NOT NULL,
     destacado BOOLEAN NOT NULL DEFAULT FALSE,
+    solo_mayores_edad BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT fk_evento_categoria FOREIGN KEY (id_categoria)
         REFERENCES categoria (id) ON DELETE CASCADE,
     CONSTRAINT fk_evento_ubicacion FOREIGN KEY (id_ubicacion)

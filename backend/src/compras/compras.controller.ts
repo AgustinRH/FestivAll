@@ -16,6 +16,7 @@ import type { Request as ExpressRequest } from 'express';
 import { ComprasService } from './compras.service';
 import { CreateCompraDto } from './dto/create-compra.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
 
 @Controller('compras')
 export class ComprasController {
@@ -62,6 +63,13 @@ export class ComprasController {
   @Get('mis-compras')
   findMine(@Request() req: { user: { id: number } }) {
     return this.comprasService.findByUser(req.user.id);
+  }
+
+  /** Cierre de caja: recaudación, comisiones y neto a transferir al local. */
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Get('admin/eventos/:idEvento/cierre-caja')
+  cierreCaja(@Param('idEvento', ParseIntPipe) idEvento: number) {
+    return this.comprasService.calcularCierreCaja(idEvento);
   }
 
   @UseGuards(JwtAuthGuard)

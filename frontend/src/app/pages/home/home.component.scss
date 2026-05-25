@@ -154,6 +154,11 @@ $home-festival-bg: url('/hero-festival-bg.png');
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
+    align-items: stretch;
+
+    app-event-card {
+      min-height: 100%;
+    }
   }
 
   .empty {

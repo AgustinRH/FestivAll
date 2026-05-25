@@ -13,6 +13,28 @@ export interface CheckoutResponse {
 export interface VerifyCheckoutResponse {
   status: string;
   compras: Compra[];
+  message?: string;
+  refunded?: boolean;
+}
+
+export interface CierreCajaReport {
+  eventoId: number;
+  eventoTitulo: string;
+  localNombre: string;
+  entradasVendidas: number;
+  transaccionesPagadas: number;
+  entradasGratuitas: number;
+  totalRecaudado: number;
+  comisionStripe: number;
+  comisionStripeEsEstimada: boolean;
+  transaccionesConFeeReal: number;
+  comisionFestivall: number;
+  totalTransferirLocal: number;
+  festivallComisionPct: number;
+  stripeFeePercent: number;
+  stripeFeeFixedEur: number;
+  stripeMode: string;
+  nota: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,5 +64,10 @@ export class ComprasService {
 
   misCompras() {
     return this.http.get<Compra[]>(`${this.api}/mis-compras`);
+  }
+
+  /** Panel admin: liquidación para transferir al local. */
+  getCierreCaja(idEvento: number) {
+    return this.http.get<CierreCajaReport>(`${this.api}/admin/eventos/${idEvento}/cierre-caja`);
   }
 }

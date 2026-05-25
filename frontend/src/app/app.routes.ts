@@ -7,12 +7,31 @@ export const routes: Routes = [
   { path: 'register', loadComponent: () => import('./pages/auth/register/register.component').then(m => m.RegisterComponent) },
   { path: 'verificar-email', loadComponent: () => import('./pages/auth/verify-email/verify-email.component').then(m => m.VerifyEmailComponent) },
   {
+    path: 'olvidar-contrasena',
+    loadComponent: () =>
+      import('./pages/auth/olvidar-contrasena/olvidar-contrasena.component').then(
+        (m) => m.OlvidarContrasenaComponent,
+      ),
+  },
+  {
+    path: 'restablecer-contrasena',
+    loadComponent: () =>
+      import('./pages/auth/restablecer-contrasena/restablecer-contrasena.component').then(
+        (m) => m.RestablecerContrasenaComponent,
+      ),
+  },
+  {
     path: '',
     loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
   },
   {
     path: 'sobre-nosotros',
     loadComponent: () => import('./pages/sobre-nosotros/sobre-nosotros.component').then(m => m.SobreNosotrosComponent),
+  },
+  {
+    path: 'contacto',
+    loadComponent: () =>
+      import('./pages/contacto/contacto.component').then((m) => m.ContactoComponent),
   },
   {
     path: 'terminos-y-condiciones',
@@ -40,6 +59,14 @@ export const routes: Routes = [
   },
   {
     path: 'eventos',
+    loadComponent: () => import('./pages/eventos/eventos-list/eventos-list.component').then(m => m.EventosListComponent),
+  },
+  {
+    path: 'eventos/localidad/:slug',
+    loadComponent: () => import('./pages/eventos/eventos-list/eventos-list.component').then(m => m.EventosListComponent),
+  },
+  {
+    path: 'eventos/categoria/:slug',
     loadComponent: () => import('./pages/eventos/eventos-list/eventos-list.component').then(m => m.EventosListComponent),
   },
   {

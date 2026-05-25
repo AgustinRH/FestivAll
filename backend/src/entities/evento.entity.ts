@@ -49,6 +49,9 @@ export class Evento {
   @Column({ default: false })
   destacado: boolean;
 
+  @Column({ name: 'solo_mayores_edad', default: false })
+  soloMayoresEdad: boolean;
+
   @ManyToOne(() => Categoria, (categoria) => categoria.eventos)
   @JoinColumn({ name: 'id_categoria' })
   categoria: Categoria;

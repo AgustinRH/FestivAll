@@ -61,6 +61,10 @@ export class CreateEventoDto {
   destacado?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  soloMayoresEdad?: boolean;
+
+  @IsOptional()
   @IsString()
   imagenUrl?: string;
 }

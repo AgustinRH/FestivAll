@@ -1,0 +1,25 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>Nueva contraseña</h1>
+    @if (success) {
+      <p class="success-msg">{{ success }}</p>
+      <p class="hint">Redirigiendo al login…</p>
+      <a routerLink="/login" class="btn-link">Iniciar sesión ahora</a>
+    } @else if (!token) {
+      <p class="error">{{ error }}</p>
+      <a routerLink="/olvidar-contrasena" class="btn-link">Solicitar nuevo enlace</a>
+    } @else {
+      <p class="hint">Elige una contraseña segura para tu cuenta.</p>
+      @if (error) { <p class="error">{{ error }}</p> }
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <input type="password" formControlName="newPassword" placeholder="Nueva contraseña" autocomplete="new-password" />
+        <p class="password-hint">{{ passwordHint }}</p>
+        <input type="password" formControlName="confirmPassword" placeholder="Confirmar contraseña" autocomplete="new-password" />
+        <button type="submit" [disabled]="form.invalid || loading">
+          {{ loading ? 'Guardando…' : 'Restablecer contraseña' }}
+        </button>
+      </form>
+      <p class="link"><a routerLink="/login">Volver al login</a></p>
+    }
+  </div>
+</div>

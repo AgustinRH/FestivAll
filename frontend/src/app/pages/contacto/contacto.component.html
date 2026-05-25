@@ -1,0 +1,118 @@
+<div class="page-wrap">
+  <app-navbar />
+  <main class="page-content legal-page contacto-page">
+    <section class="hero-mini">
+      <div class="hero-overlay"></div>
+      <h1>Contacto</h1>
+      <p class="hero-sub">Ayuda, dudas frecuentes y atención al usuario</p>
+    </section>
+
+    <div class="container">
+      <article class="legal-card">
+        <h2>¿Cómo contactar con FestivAll?</h2>
+
+        <section class="contacto-block">
+          <p>
+            Para consultas sobre entradas, pagos, incidencias técnicas o colaboraciones, escríbenos a:
+          </p>
+          <p class="contacto-email">
+            <a href="mailto:info@festivall.club">info&#64;festivall.club</a>
+          </p>
+          <p class="contacto-hint">
+            Intentamos responder en un plazo de 24–48 horas laborables. Indica en el asunto el nombre
+            del evento y, si aplica, el email de tu cuenta.
+          </p>
+        </section>
+
+        <section>
+          <h3>Dudas frecuentes</h3>
+          <div class="faq-list">
+            <details class="faq-item">
+              <summary>¿Cómo compro una entrada?</summary>
+              <p>
+                Regístrate o inicia sesión, elige un evento en la web, pulsa <strong>COMPRAR</strong>
+                y completa el pago con tarjeta (Stripe) o confirma si el evento es gratuito. Tras el
+                pago verás tus entradas en <a routerLink="/perfil" fragment="entradas">Mi perfil</a>.
+              </p>
+            </details>
+
+            <details class="faq-item">
+              <summary>¿Dónde están mis entradas después de comprar?</summary>
+              <p>
+                En <a routerLink="/perfil" fragment="entradas">Mi perfil → Mis entradas</a>. Cada
+                entrada tiene un código QR que debes mostrar en la puerta del evento. También puedes
+                descargar un PDF desde el perfil.
+              </p>
+            </details>
+
+            <details class="faq-item">
+              <summary>No puedo iniciar sesión o no me llega el email de verificación</summary>
+              <p>
+                Comprueba la carpeta de spam. En la pantalla de login puedes reenviar el enlace de
+                verificación. Si el problema continúa, escribe a
+                <a href="mailto:info@festivall.club">info&#64;festivall.club</a> con el email de registro.
+              </p>
+            </details>
+
+            <details class="faq-item">
+              <summary>He olvidado mi contraseña</summary>
+              <p>
+                En el login, usa <a routerLink="/olvidar-contrasena">¿Has olvidado la contraseña?</a>
+                o, si ya estás logueado, solicita un enlace desde la sección Contraseña en tu perfil.
+              </p>
+            </details>
+
+            <details class="faq-item">
+              <summary>¿Puedo devolver o cambiar una entrada?</summary>
+              <p>
+                Las condiciones de cancelación y reembolso dependen de cada evento y del organizador.
+                Consulta los <a routerLink="/terminos-y-condiciones">Términos y condiciones de compra</a>.
+                Para una solicitud concreta, contacta con nosotros indicando tu número de pedido o código
+                de entrada.
+              </p>
+            </details>
+
+            <details class="faq-item">
+              <summary>El pago se ha completado pero no veo mis entradas</summary>
+              <p>
+                Espera unos minutos y recarga tu perfil. Si tras 15 minutos no aparecen, envía un
+                correo a <a href="mailto:info@festivall.club">info&#64;festivall.club</a> con la fecha
+                del evento y el email de tu cuenta.
+              </p>
+            </details>
+
+            <details class="faq-item">
+              <summary>¿Sois el organizador del festival?</summary>
+              <p>
+                FestivAll es la plataforma de venta de entradas. La producción y el acceso al recinto
+                corresponden al organizador o local de cada evento. Para dudas sobre el cartel, horarios
+                o normas del recinto, indícalo en tu mensaje y te orientaremos.
+              </p>
+            </details>
+          </div>
+        </section>
+
+        <section class="contacto-block contacto-block--secondary">
+          <h3>Responsable del servicio</h3>
+          <p><strong>Agustín Rubí Hernández</strong></p>
+          <p>
+            Más información legal en
+            <a routerLink="/aviso-legal">Aviso legal</a>
+            y
+            <a routerLink="/privacidad">Política de privacidad</a>.
+          </p>
+        </section>
+
+        <p class="legal-meta">Última actualización: mayo de 2026</p>
+        <p class="legal-contact">
+          <a routerLink="/terminos-y-condiciones">Términos y condiciones</a>
+          ·
+          <a routerLink="/privacidad">Privacidad</a>
+          ·
+          <a routerLink="/aviso-legal">Aviso legal</a>
+        </p>
+      </article>
+    </div>
+  </main>
+  <app-footer />
+</div>

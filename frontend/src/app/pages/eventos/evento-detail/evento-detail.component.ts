@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -30,12 +31,15 @@ import { LegalPrimeraCapaComponent } from '../../../shared/legal-primera-capa/le
 export class EventoDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private fb = inject(FormBuilder);
   private eventosService = inject(EventosService);
   private comprasService = inject(ComprasService);
   auth = inject(AuthService);
 
   evento?: Evento;
+  /** Bloquea el detalle hasta confirmar edad (+18). */
+  mostrarAvisoEdad = false;
   comprasExitosas: Compra[] = [];
   showCompraModal = false;
   error = '';
@@ -65,7 +69,8 @@ export class EventoDetailComponent implements OnInit {
     this.eventosService.getById(id).subscribe({
       next: (e) => {
         this.evento = e;
-        if (this.auth.isLoggedIn()) {
+        this.mostrarAvisoEdad = this.requiereConfirmacionEdad(e);
+        if (this.auth.isLoggedIn() && !this.mostrarAvisoEdad) {
           this.cargarPerfilCompra();
         }
       },
@@ -75,6 +80,32 @@ export class EventoDetailComponent implements OnInit {
         }
       },
     });
+  }
+
+  private edadStorageKey(eventoId: number): string {
+    return `festivall_edad_ok_${eventoId}`;
+  }
+
+  private requiereConfirmacionEdad(evento: Evento): boolean {
+    if (!evento.soloMayoresEdad) return false;
+    return sessionStorage.getItem(this.edadStorageKey(evento.id)) !== '1';
+  }
+
+  confirmarMayorEdad(): void {
+    if (!this.evento) return;
+    sessionStorage.setItem(this.edadStorageKey(this.evento.id), '1');
+    this.mostrarAvisoEdad = false;
+    if (this.auth.isLoggedIn()) {
+      this.cargarPerfilCompra();
+    }
+  }
+
+  rechazarMayorEdad(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      void this.router.navigate(['/eventos']);
+    }
   }
 
   private cargarPerfilCompra() {
@@ -195,10 +226,12 @@ export class EventoDetailComponent implements OnInit {
     this.comprasService.iniciarCheckout(this.evento.id, cantidad, aceptoTerminos).subscribe({
       next: (res) => {
         if (res.free && res.compras) {
-          this.comprasExitosas = res.compras;
-          this.evento!.stock -= cantidad;
           this.loading = false;
           this.showCompraModal = false;
+          void this.router.navigate(['/perfil'], {
+            fragment: 'entradas',
+            queryParams: { compra: 'ok' },
+          });
           return;
         }
         if (res.url) {

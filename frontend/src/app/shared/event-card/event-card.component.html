@@ -3,19 +3,26 @@
     <img [src]="imagenUrl" [alt]="evento.titulo" />
   </a>
   <div class="card-body">
-    <h3>{{ evento.titulo }}</h3>
-    <p class="meta">📍 {{ evento.ubicacion?.localidad }}, {{ evento.ubicacion?.provincia }}</p>
-    <p class="meta">{{ evento.categoria?.nombreCategoria }}</p>
-  @if (tieneDescuento) {
-    <p class="precio descuento">
-      <span class="original">{{ evento.precio | currency:'EUR':'symbol':'1.0-2' }}</span>
-      <span class="final">{{ precioFinal | currency:'EUR':'symbol':'1.0-2' }}</span>
-      <span class="badge-dto">-15%</span>
-    </p>
-    <p class="stock-hint">Quedan {{ evento.stock }} entradas</p>
-  } @else {
-    <p class="precio">{{ evento.precio | currency:'EUR':'symbol':'1.0-0' }}</p>
-  }
-    <a [routerLink]="['/eventos', evento.id]" class="btn-outline card-btn">VER DETALLES</a>
+    <div class="card-top">
+      <h3>{{ evento.titulo }}</h3>
+      <p class="meta">📍 {{ evento.ubicacion?.localidad }}, {{ evento.ubicacion?.provincia }}</p>
+      <p class="meta">{{ evento.categoria?.nombreCategoria }}</p>
+    </div>
+    <div class="card-footer">
+      <div class="precio-zone">
+        @if (tieneDescuento) {
+          <p class="precio descuento">
+            <span class="original">{{ evento.precio | currency:'EUR':'symbol':'1.0-2' }}</span>
+            <span class="final">{{ precioFinal | currency:'EUR':'symbol':'1.0-2' }}</span>
+            <span class="badge-dto">-15%</span>
+          </p>
+          <p class="stock-hint">Quedan {{ evento.stock }} entradas</p>
+        } @else {
+          <p class="precio">{{ evento.precio | currency:'EUR':'symbol':'1.0-0' }}</p>
+          <p class="stock-hint stock-hint--spacer" aria-hidden="true">Quedan 0 entradas</p>
+        }
+      </div>
+      <a [routerLink]="['/eventos', evento.id]" class="btn-outline card-btn">VER DETALLES</a>
+    </div>
   </div>
 </article>

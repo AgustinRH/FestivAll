@@ -193,6 +193,9 @@
                   {{ e.destacado ? '★' : '☆' }}
                   <span class="sr-only">{{ e.destacado ? 'Quitar destacado' : 'Destacar' }}</span>
                 </button>
+                <button type="button" class="btn-cierre" (click)="verCierreCaja(e, $event)" title="Cierre de caja">
+                  Cierre caja
+                </button>
                 <button type="button" class="btn-secondary" (click)="openEdit(e)">Editar</button>
                 <button type="button" class="btn-danger" (click)="delete(e.id, e.titulo, $event)">Eliminar</button>
               </div>
@@ -312,6 +315,18 @@
             </label>
           </div>
 
+          <div class="destacado-box edad-box" [class.is-active]="form.get('soloMayoresEdad')?.value">
+            <div class="destacado-info">
+              <strong>🔞 Solo mayores de 18 años</strong>
+              <p>Al entrar al evento, el usuario deberá confirmar que tiene 18 años o más.</p>
+            </div>
+            <label class="switch" title="Restricción de edad">
+              <input type="checkbox" formControlName="soloMayoresEdad" />
+              <span class="slider"></span>
+              <span class="switch-label">{{ form.get('soloMayoresEdad')?.value ? 'Activado' : 'Desactivado' }}</span>
+            </label>
+          </div>
+
           <div class="form-footer">
             <button type="button" class="btn-ghost" (click)="closeForm()">Cancelar</button>
             <button type="submit" class="btn-primary" [disabled]="saving">
@@ -323,4 +338,58 @@
     }
     }
   </div>
+
+  @if (cierreEvento) {
+    <div class="cierre-overlay" role="dialog" aria-labelledby="cierre-title" aria-modal="true">
+      <div class="cierre-modal">
+        <header class="cierre-head">
+          <div>
+            <h2 id="cierre-title">Cierre de caja</h2>
+            <p class="cierre-sub">{{ cierreEvento.titulo }}</p>
+          </div>
+          <button type="button" class="cierre-close" (click)="cerrarCierreCaja()" aria-label="Cerrar">×</button>
+        </header>
+
+        @if (cierreLoading) {
+          <p class="cierre-loading">Calculando liquidación…</p>
+        } @else if (cierreData) {
+          <p class="cierre-local">📍 {{ cierreData.localNombre }}</p>
+          <dl class="cierre-grid">
+            <div><dt>Entradas emitidas</dt><dd>{{ cierreData.entradasVendidas }}</dd></div>
+            <div><dt>Transacciones Stripe</dt><dd>{{ cierreData.transaccionesPagadas }}</dd></div>
+            <div><dt>Entradas gratuitas</dt><dd>{{ cierreData.entradasGratuitas }}</dd></div>
+            <div class="highlight"><dt>Total recaudado</dt><dd>{{ cierreData.totalRecaudado | currency:'EUR':'symbol':'1.2-2':'es' }}</dd></div>
+            <div>
+              <dt>
+                Comisión Stripe
+                @if (cierreData.comisionStripeEsEstimada) {
+                  <span class="cierre-tag-est">estimada</span>
+                } @else {
+                  <span class="cierre-tag-real">real</span>
+                }
+              </dt>
+              <dd>−{{ cierreData.comisionStripe | currency:'EUR':'symbol':'1.2-2':'es' }}</dd>
+            </div>
+            @if (cierreData.transaccionesConFeeReal > 0) {
+              <div class="cierre-fee-detail">
+                <dt>Fee real Stripe</dt>
+                <dd>{{ cierreData.transaccionesConFeeReal }} / {{ cierreData.transaccionesPagadas }} transacciones</dd>
+              </div>
+            }
+            <div><dt>Comisión FestivAll ({{ cierreData.festivallComisionPct }}%)</dt><dd>−{{ cierreData.comisionFestivall | currency:'EUR':'symbol':'1.2-2':'es' }}</dd></div>
+          </dl>
+          <p class="cierre-neto">
+            Total a transferir al local:
+            <strong>{{ cierreData.totalTransferirLocal | currency:'EUR':'symbol':'1.2-2':'es' }}</strong>
+          </p>
+          <p class="cierre-nota">{{ cierreData.nota }}</p>
+          <p class="cierre-mode">Stripe: modo {{ cierreData.stripeMode }}</p>
+        }
+
+        <footer class="cierre-foot">
+          <button type="button" class="btn-primary" (click)="cerrarCierreCaja()">Cerrar</button>
+        </footer>
+      </div>
+    </div>
+  }
 </div>

@@ -9,23 +9,38 @@ Guía paso a paso para activar pagos reales (modo prueba) en local y en producci
 3. Ve a **Developers → API keys**.
 4. Copia la **Secret key** (`sk_test_...`).
 
-## 2. Configurar claves
+## 2. Configurar claves y modo test/live
 
-Puedes usar **uno u otro** (o ambos; si repites una variable, gana `backend/.env` en Docker):
+Usa `STRIPE_MODE=test` en local y `STRIPE_MODE=live` en producción. Así mantienes ambos juegos de claves sin borrar el modo prueba:
+
+```env
+STRIPE_MODE=test
+STRIPE_SECRET_KEY_TEST=sk_test_...
+STRIPE_WEBHOOK_SECRET_TEST=whsec_...
+STRIPE_TAX_RATE_ID_TEST=txr_...
+
+STRIPE_SECRET_KEY_LIVE=sk_live_...
+STRIPE_WEBHOOK_SECRET_LIVE=whsec_...
+STRIPE_TAX_RATE_ID_LIVE=txr_...
+```
+
+También puedes seguir usando `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` (legacy); deben coincidir con el `STRIPE_MODE` activo.
 
 **Desarrollo local** (`backend/.env`):
 
 ```env
-STRIPE_SECRET_KEY=sk_test_tu_clave_aqui
-STRIPE_WEBHOOK_SECRET=whsec_lo_obtendras_en_el_paso_4
+STRIPE_MODE=test
+STRIPE_SECRET_KEY_TEST=sk_test_tu_clave_aqui
+STRIPE_WEBHOOK_SECRET_TEST=whsec_lo_obtendras_en_el_paso_4
 FRONTEND_URL=http://localhost:4200
 ```
 
-**Docker Compose** (`.env` en la raíz del proyecto, copia desde `.env.example`):
+**Docker Compose** (`.env` en la raíz):
 
 ```env
-STRIPE_SECRET_KEY=sk_test_tu_clave_aqui
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_MODE=test
+STRIPE_SECRET_KEY_TEST=sk_test_...
+STRIPE_WEBHOOK_SECRET_TEST=whsec_...
 FRONTEND_URL=http://localhost
 ```
 
@@ -128,9 +143,28 @@ Las entradas **solo se crean cuando Stripe confirma el pago** (webhook o verific
 ## 7. Pasar a pagos reales
 
 1. Completa la verificación de negocio en Stripe.
-2. Desactiva “Test mode” y usa las claves **live** (`sk_live_...`).
-3. Configura el webhook de producción con la URL HTTPS real.
-4. Actualiza `STRIPE_SECRET_KEY` y `STRIPE_WEBHOOK_SECRET` en el servidor.
+2. En el servidor: `STRIPE_MODE=live` y claves `STRIPE_*_LIVE`.
+3. Configura el webhook de producción con la URL HTTPS real (`/api/compras/webhook/stripe`).
+4. Mantén las claves test en `.env` para seguir desarrollando en local con `STRIPE_MODE=test`.
+
+## 7b. Metadata, aforo y cierre de caja
+
+- Cada checkout guarda en Stripe `metadata`: `id_pedido_interno`, `local_id`, `userId`, `eventoId`, `cantidad`. Si el servidor cae tras el pago, el webhook puede reconciliar el pedido.
+- En `checkout.session.completed` el endpoint responde **200 OK al instante**; el procesamiento va en background. El stock se descuenta con un `UPDATE` atómico (sin bloqueo pesimista largo). Si no hay aforo, el **reembolso** se lanza en async (`setImmediate`).
+- El cierre de caja intenta leer la comisión **real** de cada sesión vía `balance_transaction.fee`; si falla, usa la estimación de `STRIPE_FEE_*`.
+- **Cierre de caja** (admin): botón “Cierre caja” en cada evento del panel, o por consola:
+
+```bash
+cd backend && npm run cierre-caja -- 3
+```
+
+Variables de liquidación en `.env`:
+
+```env
+FESTIVALL_COMMISSION_PERCENT=10
+STRIPE_FEE_PERCENT=1.5
+STRIPE_FEE_FIXED_EUR=0.25
+```
 
 ## 8. Problemas frecuentes
 

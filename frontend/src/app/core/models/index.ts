@@ -54,6 +54,7 @@ export interface Evento {
   precio: number;
   stock: number;
   destacado?: boolean;
+  soloMayoresEdad?: boolean;
   idCategoria: number;
   idUbicacion: number;
   categoria?: Categoria;

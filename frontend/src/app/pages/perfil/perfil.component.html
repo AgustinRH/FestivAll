@@ -7,103 +7,187 @@
     </section>
 
     <div class="container">
-      @if (profile) {
-        <section class="card">
-          <h2>Mis datos</h2>
-          <p><strong>Nombre:</strong> {{ profile.nombre }} {{ profile.apellidos }}</p>
-          <p><strong>Email:</strong> {{ profile.email }}</p>
-          <p><strong>Registrado:</strong> {{ profile.fechaRegistro | date:'longDate':'':'es' }}</p>
-        </section>
-      }
+      <section id="entradas" class="card card-entradas">
+        <div class="entradas-header">
+          <h2>Mis entradas</h2>
+          @if (!sinCompras) {
+            <nav class="entradas-tabs" aria-label="Tipo de entradas">
+              <button
+                type="button"
+                class="tab-btn"
+                [class.is-active]="tabEntradas === 'activas'"
+                (click)="setTab('activas')"
+              >
+                Próximas
+                <span class="tab-count">{{ entradasActivas.length }}</span>
+              </button>
+              <button
+                type="button"
+                class="tab-btn"
+                [class.is-active]="tabEntradas === 'historial'"
+                (click)="setTab('historial')"
+              >
+                Historial
+                <span class="tab-count">{{ historialEntradas.length }}</span>
+              </button>
+            </nav>
+          }
+        </div>
 
-      <section class="card">
-        <h2>Mis entradas ({{ entradasActivas.length }})</h2>
+        @if (compraVerificando) {
+          <p class="compra-banner compra-banner--pending">Confirmando tu pago…</p>
+        }
+        @if (compraBanner) {
+          <p class="compra-banner" [class]="'compra-banner--' + compraBanner.type">{{ compraBanner.text }}</p>
+        }
         @if (downloadError) {
           <p class="error">{{ downloadError }}</p>
         }
+
         @if (sinCompras) {
           <p class="empty">Aún no has comprado ninguna entrada.</p>
-        } @else if (entradasActivas.length === 0) {
-          <p class="empty">No tienes entradas para eventos próximos. Las de eventos pasados están en el historial.</p>
-        }
-        <div class="entradas-list">
-          @for (entrada of entradasActivas; track entrada.key) {
-            <article class="entrada-ticket">
-              <div class="ticket-main">
-                <strong>{{ entrada.eventoTitulo }}</strong>
-                <p class="meta">
-                  @if (entrada.categoria) { {{ entrada.categoria }} · }
-                  @if (entrada.localidad) { {{ entrada.localidad }} · }
-                  Evento: {{ entrada.fechaEvento | date:'longDate':'':'es' }}
-                </p>
-              </div>
-              <div class="ticket-side">
-                <span class="precio">{{ entrada.precio | currency:'EUR' }}</span>
-                <app-ticket-qr [value]="entrada.codigoAcceso" [size]="112" />
-                <code class="codigo">{{ entrada.codigoAcceso }}</code>
+        } @else if (tabEntradas === 'activas' && entradasActivas.length === 0) {
+          <p class="empty">No tienes entradas para eventos próximos. Revisa la pestaña Historial.</p>
+        } @else if (tabEntradas === 'historial' && historialEntradas.length === 0) {
+          <p class="empty">Aún no tienes entradas en el historial.</p>
+        } @else {
+          <p class="entradas-resumen">
+            {{ totalEntradasTab }} entrada(s) en {{ gruposVisibles.length }} evento(s).
+            @if (tabEntradas === 'historial') {
+              <span class="resumen-hint">Eventos ya finalizados.</span>
+            }
+          </p>
+
+          <div class="grupos-list">
+            @for (grupo of gruposPagina; track grupo.key) {
+              <article
+                class="grupo-entrada"
+                [class.is-expanded]="grupoExpandido === grupo.key"
+                [class.grupo-entrada--pasado]="tabEntradas === 'historial'"
+              >
                 <button
                   type="button"
-                  class="btn-download"
-                  [disabled]="downloadingKey === entrada.key"
-                  (click)="descargarEntrada(entrada)"
+                  class="grupo-head"
+                  (click)="toggleGrupo(grupo.key)"
+                  [attr.aria-expanded]="grupoExpandido === grupo.key"
                 >
-                  {{ downloadingKey === entrada.key ? 'Generando…' : 'Descargar PDF' }}
+                  <span class="grupo-main">
+                    <strong class="grupo-titulo">{{ grupo.eventoTitulo }}</strong>
+                    <span class="grupo-meta">
+                      @if (grupo.localidad) { {{ grupo.localidad }} · }
+                      {{ grupo.fechaEvento | date:'d MMM y':'':'es' }}
+                    </span>
+                  </span>
+                  <span class="grupo-count">{{ grupo.entradas.length }} entrada(s)</span>
+                  <span class="grupo-chevron" aria-hidden="true"></span>
                 </button>
-              </div>
-            </article>
-          }
-        </div>
-      </section>
 
-      <section class="card card-historial">
-        <h2>Historial de compras ({{ historialEntradas.length }})</h2>
-        <p class="historial-hint">Entradas de eventos que ya han finalizado.</p>
-        @if (historialEntradas.length === 0) {
-          <p class="empty">Aún no tienes compras en el historial.</p>
+                @if (grupoExpandido === grupo.key) {
+                  <div class="grupo-body">
+                    @for (entrada of grupo.entradas; track entrada.key) {
+                      <div
+                        class="entrada-row"
+                        [class.is-open]="entradaExpandida === entrada.key"
+                      >
+                        <div class="entrada-row-head">
+                          <span class="entrada-num">#{{ indiceEntrada(grupo, entrada) }}</span>
+                          <code class="entrada-codigo">{{ entrada.codigoAcceso }}</code>
+                          <span class="entrada-precio">{{ entrada.precio | currency:'EUR' }}</span>
+                          <button
+                            type="button"
+                            class="btn-ver"
+                            (click)="toggleEntrada(entrada.key)"
+                          >
+                            {{ entradaExpandida === entrada.key ? 'Ocultar' : 'Ver QR' }}
+                          </button>
+                          <button
+                            type="button"
+                            class="btn-download-sm"
+                            [disabled]="downloadingKey === entrada.key"
+                            (click)="descargarEntrada(entrada)"
+                          >
+                            {{ downloadingKey === entrada.key ? '…' : 'PDF' }}
+                          </button>
+                        </div>
+                        @if (entradaExpandida === entrada.key) {
+                          <div class="entrada-detalle">
+                            <app-ticket-qr [value]="entrada.codigoAcceso" [size]="120" />
+                            <p class="detalle-hint">Muestra este código en la entrada del evento.</p>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </article>
+            }
+          </div>
+
+          @if (totalPaginas > 1) {
+            <nav class="entradas-pagination" aria-label="Páginas de entradas">
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="paginaActual <= 1"
+                (click)="irPagina(paginaActual - 1)"
+              >
+                Anterior
+              </button>
+              <span class="page-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+              <button
+                type="button"
+                class="page-btn"
+                [disabled]="paginaActual >= totalPaginas"
+                (click)="irPagina(paginaActual + 1)"
+              >
+                Siguiente
+              </button>
+            </nav>
+          }
         }
-        <div class="entradas-list">
-          @for (entrada of historialEntradas; track entrada.key) {
-            <article class="entrada-ticket entrada-ticket--pasado">
-              <div class="ticket-main">
-                <strong>{{ entrada.eventoTitulo }}</strong>
-                <span class="badge-pasado">Finalizado</span>
-                <p class="meta">
-                  @if (entrada.categoria) { {{ entrada.categoria }} · }
-                  @if (entrada.localidad) { {{ entrada.localidad }} · }
-                  Evento: {{ entrada.fechaEvento | date:'longDate':'':'es' }} ·
-                  Compra: {{ entrada.fechaCompra | date:'medium':'':'es' }}
-                </p>
-              </div>
-              <div class="ticket-side">
-                <span class="precio">{{ entrada.precio | currency:'EUR' }}</span>
-                <app-ticket-qr [value]="entrada.codigoAcceso" [size]="96" />
-                <code class="codigo">{{ entrada.codigoAcceso }}</code>
-                <button
-                  type="button"
-                  class="btn-download"
-                  [disabled]="downloadingKey === entrada.key"
-                  (click)="descargarEntrada(entrada)"
-                >
-                  {{ downloadingKey === entrada.key ? 'Generando…' : 'Descargar PDF' }}
-                </button>
-              </div>
-            </article>
-          }
-        </div>
       </section>
 
-      <section class="card">
-        <h2>Cambiar contraseña</h2>
-        @if (passwordMsg) { <p class="success">{{ passwordMsg }}</p> }
-        @if (passwordError) { <p class="error">{{ passwordError }}</p> }
-        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
-          <input type="password" placeholder="Contraseña actual" formControlName="currentPassword" />
-          <input type="password" placeholder="Nueva contraseña" formControlName="newPassword" autocomplete="new-password" />
-          <p class="password-hint">{{ passwordHint }}</p>
-          <input type="password" placeholder="Confirmar nueva contraseña" formControlName="confirmPassword" autocomplete="new-password" />
-          <button type="submit" class="btn-primary" [disabled]="passwordForm.invalid">Actualizar contraseña</button>
-        </form>
-      </section>
+      @if (profile) {
+        <details class="card card-collapsible">
+          <summary><h2>Mis datos</h2></summary>
+          <div class="card-collapsible-body">
+            <p><strong>Nombre:</strong> {{ profile.nombre }} {{ profile.apellidos }}</p>
+            <p><strong>Email:</strong> {{ profile.email }}</p>
+            <p><strong>Registrado:</strong> {{ profile.fechaRegistro | date:'longDate':'':'es' }}</p>
+          </div>
+        </details>
+      }
+
+      <details class="card card-collapsible">
+        <summary><h2>Contraseña</h2></summary>
+        <div class="card-collapsible-body">
+          <div class="reset-email-block">
+            <p class="reset-email-hint">
+              ¿No recuerdas tu contraseña actual? Te enviamos un enlace a tu email para establecer una nueva.
+            </p>
+            @if (resetEmailMsg) { <p class="success">{{ resetEmailMsg }}</p> }
+            @if (resetEmailError) { <p class="error">{{ resetEmailError }}</p> }
+            <button
+              type="button"
+              class="btn-outline"
+              [disabled]="resetEmailLoading"
+              (click)="solicitarResetPorEmail()"
+            >
+              {{ resetEmailLoading ? 'Enviando…' : 'Enviarme enlace por email' }}
+            </button>
+          </div>
+          <h3 class="subsection-title">Cambiar con la contraseña actual</h3>
+          @if (passwordMsg) { <p class="success">{{ passwordMsg }}</p> }
+          @if (passwordError) { <p class="error">{{ passwordError }}</p> }
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <input type="password" placeholder="Contraseña actual" formControlName="currentPassword" />
+            <input type="password" placeholder="Nueva contraseña" formControlName="newPassword" autocomplete="new-password" />
+            <p class="password-hint">{{ passwordHint }}</p>
+            <input type="password" placeholder="Confirmar nueva contraseña" formControlName="confirmPassword" autocomplete="new-password" />
+            <button type="submit" class="btn-primary" [disabled]="passwordForm.invalid">Actualizar contraseña</button>
+          </form>
+        </div>
+      </details>
     </div>
   </main>
   <app-footer />

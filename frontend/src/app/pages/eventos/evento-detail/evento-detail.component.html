@@ -5,6 +5,22 @@
       <p class="error-msg">{{ error }}</p>
       <a routerLink="/eventos" class="btn-back">Ver festivales disponibles</a>
     </main>
+  } @else if (evento && mostrarAvisoEdad) {
+    <main class="page-content detail-page edad-gate-page">
+      <div class="edad-gate" role="dialog" aria-labelledby="edad-gate-title" aria-modal="true">
+        <div class="edad-gate__card">
+          <span class="edad-gate__badge" aria-hidden="true">18+</span>
+          <h1 id="edad-gate-title">¿Tienes 18 años o más?</h1>
+          <p class="edad-gate__lead">
+            <strong>{{ evento.titulo }}</strong> está reservado a mayores de edad. Debes confirmar tu edad para ver la información y comprar entradas.
+          </p>
+          <div class="edad-gate__actions">
+            <button type="button" class="btn-primary" (click)="confirmarMayorEdad()">Sí, tengo 18 años o más</button>
+            <button type="button" class="btn-outline" (click)="rechazarMayorEdad()">No</button>
+          </div>
+        </div>
+      </div>
+    </main>
   } @else if (evento) {
     <main class="page-content detail-page">
       <section class="event-hero">
@@ -12,6 +28,9 @@
         <div class="hero-overlay"></div>
         <div class="bookmark">★</div>
         <div class="hero-text">
+          @if (evento.soloMayoresEdad) {
+            <span class="badge-18" title="Solo mayores de 18 años">18+</span>
+          }
           <h1>{{ evento.titulo }}</h1>
           <p>{{ evento.fechaInicio | date:'fullDate':'':'es' }}
             @if (evento.horaInicio) { · {{ evento.horaInicio }} }

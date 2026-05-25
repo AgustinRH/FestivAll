@@ -107,6 +107,37 @@ ${data.codigos.length ? `<p><strong>Códigos de acceso:</strong></p><ul>${codigo
     });
   }
 
+  async sendPasswordResetEmail(to: string, nombre: string, resetUrl: string): Promise<void> {
+    const from =
+      this.config.get<string>('MAIL_FROM') ||
+      this.config.get<string>('SMTP_USER') ||
+      'noreply@festivall.club';
+    const subject = 'Restablece tu contraseña en FestivAll';
+    const safeName = this.escapeHtml(nombre);
+    const html = `<div style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;color:#222">
+<h2 style="color:#e85d3b">FestivAll Almería</h2>
+<p>Hola ${safeName},</p>
+<p>Has solicitado restablecer tu contraseña. Pulsa el botón para elegir una nueva:</p>
+<p style="margin:28px 0"><a href="${resetUrl}" style="background:#e85d3b;color:#fff;padding:12px 24px;border-radius:999px;text-decoration:none;font-weight:700">Restablecer contraseña</a></p>
+<p style="font-size:13px;color:#666">Si el botón no funciona, copia este enlace:</p>
+<p style="font-size:13px;word-break:break-all">${resetUrl}</p>
+<p style="font-size:13px;color:#666">El enlace caduca en 1 hora. Si no solicitaste este cambio, ignora este correo.</p>
+</div>`;
+
+    if (!this.transporter) {
+      this.logger.warn(`SMTP no configurado. Enlace de reset para ${to}: ${resetUrl}`);
+      return;
+    }
+
+    await this.transporter.sendMail({
+      from,
+      to,
+      subject,
+      html,
+      text: `Hola ${nombre},\n\nRestablece tu contraseña en FestivAll:\n${resetUrl}\n\nEl enlace caduca en 1 hora. Si no lo solicitaste, ignora este mensaje.`,
+    });
+  }
+
   private escapeHtml(value: string): string {
     return value
       .replace(/&/g, '&amp;')

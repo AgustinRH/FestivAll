@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /register
+Disallow: /verificar-email
+Disallow: /perfil
+Disallow: /compras/
+Disallow: /festivall-admin
+
+Sitemap: https://festivall.club/sitemap.xml

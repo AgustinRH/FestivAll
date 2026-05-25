@@ -35,6 +35,12 @@ export class Usuario {
   @Column({ name: 'email_verification_expires', type: 'datetime', nullable: true, select: false })
   emailVerificationExpires: Date | null;
 
+  @Column({ name: 'password_reset_token', type: 'varchar', length: 64, nullable: true, select: false })
+  passwordResetToken: string | null;
+
+  @Column({ name: 'password_reset_expires', type: 'datetime', nullable: true, select: false })
+  passwordResetExpires: Date | null;
+
   @Column({ name: 'fecha_registro', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   fechaRegistro: Date;
 

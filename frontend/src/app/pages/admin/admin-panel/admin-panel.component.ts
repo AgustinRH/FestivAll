@@ -1,9 +1,10 @@
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { EventosService } from '../../../core/services/eventos.service';
+import { ComprasService, CierreCajaReport } from '../../../core/services/compras.service';
 import { CatalogoService } from '../../../core/services/catalogo.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Evento, Categoria } from '../../../core/models';
@@ -16,13 +17,21 @@ type MsgType = 'success' | 'error';
 @Component({
   selector: 'app-admin-panel',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, AdminUsuariosComponent],
+  imports: [
+    CommonModule,
+    CurrencyPipe,
+    ReactiveFormsModule,
+    FormsModule,
+    RouterLink,
+    AdminUsuariosComponent,
+  ],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.scss',
 })
 export class AdminPanelComponent implements OnInit {
   private fb = inject(FormBuilder);
   private eventosService = inject(EventosService);
+  private comprasService = inject(ComprasService);
   private catalogoService = inject(CatalogoService);
   private auth = inject(AuthService);
   private router = inject(Router);
@@ -42,6 +51,9 @@ export class AdminPanelComponent implements OnInit {
   msg = '';
   msgType: MsgType = 'success';
   sidebarOpen = false;
+  cierreEvento: Evento | null = null;
+  cierreLoading = false;
+  cierreData: CierreCajaReport | null = null;
   private msgTimer?: ReturnType<typeof setTimeout>;
 
   form = this.fb.group({
@@ -59,6 +71,7 @@ export class AdminPanelComponent implements OnInit {
     stock: [0, [Validators.required, Validators.min(0)]],
     imagenUrl: [''],
     destacado: [false],
+    soloMayoresEdad: [false],
   });
 
   readonly user = this.auth.currentUser;
@@ -224,12 +237,19 @@ export class AdminPanelComponent implements OnInit {
       stock: evento.stock,
       imagenUrl: img,
       destacado: evento.destacado ?? false,
+      soloMayoresEdad: evento.soloMayoresEdad ?? false,
     });
   }
 
   cancelEdit() {
     this.editingId = null;
-    this.form.reset({ precio: 0, stock: 0, destacado: false, provincia: 'Almería' });
+    this.form.reset({
+      precio: 0,
+      stock: 0,
+      destacado: false,
+      soloMayoresEdad: false,
+      provincia: 'Almería',
+    });
   }
 
   submit() {
@@ -254,6 +274,7 @@ export class AdminPanelComponent implements OnInit {
       stock: +raw.stock!,
       imagenUrl: raw.imagenUrl || undefined,
       destacado: !!raw.destacado,
+      soloMayoresEdad: !!raw.soloMayoresEdad,
     };
 
     this.saving = true;
@@ -319,6 +340,30 @@ export class AdminPanelComponent implements OnInit {
   dismissMsg() {
     this.msg = '';
     if (this.msgTimer) clearTimeout(this.msgTimer);
+  }
+
+  verCierreCaja(evento: Evento, ev?: Event) {
+    ev?.stopPropagation();
+    this.cierreEvento = evento;
+    this.cierreData = null;
+    this.cierreLoading = true;
+    this.comprasService.getCierreCaja(evento.id).subscribe({
+      next: (data) => {
+        this.cierreData = data;
+        this.cierreLoading = false;
+      },
+      error: (err) => {
+        this.cierreLoading = false;
+        this.notify(err.error?.message || 'No se pudo calcular el cierre de caja', 'error');
+        this.cierreEvento = null;
+      },
+    });
+  }
+
+  cerrarCierreCaja() {
+    this.cierreEvento = null;
+    this.cierreData = null;
+    this.cierreLoading = false;
   }
 
   logout() {

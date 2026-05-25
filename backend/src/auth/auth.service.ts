@@ -20,6 +20,7 @@ import { BCRYPT_ROUNDS } from './password.constants';
 import { ConfigService } from '@nestjs/config';
 
 const VERIFICATION_HOURS = 24;
+const PASSWORD_RESET_HOURS = 1;
 
 @Injectable()
 export class AuthService {
@@ -164,6 +165,83 @@ export class AuthService {
     };
   }
 
+  async requestPasswordReset(email: string) {
+    const genericMessage =
+      'Si el email está registrado, recibirás un enlace para restablecer la contraseña en breve.';
+
+    const user = await this.usuarioRepo.findOne({ where: { email: email.trim() } });
+    if (!user) {
+      return { message: genericMessage };
+    }
+
+    if (!this.mailService.isConfigured()) {
+      throw new ServiceUnavailableException('El servidor de correo no está configurado.');
+    }
+
+    const token = randomBytes(32).toString('hex');
+    user.passwordResetToken = token;
+    user.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_HOURS * 60 * 60 * 1000);
+    await this.usuarioRepo.save(user);
+    await this.sendPasswordResetEmail(user, token);
+
+    return { message: genericMessage };
+  }
+
+  async requestPasswordResetForUser(userId: number) {
+    const user = await this.usuarioRepo.findOne({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+
+    if (!this.mailService.isConfigured()) {
+      throw new ServiceUnavailableException('El servidor de correo no está configurado.');
+    }
+
+    const token = randomBytes(32).toString('hex');
+    user.passwordResetToken = token;
+    user.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_HOURS * 60 * 60 * 1000);
+    await this.usuarioRepo.save(user);
+    await this.sendPasswordResetEmail(user, token);
+
+    return {
+      message: `Te hemos enviado un enlace a ${this.maskEmail(user.email)}. Caduca en ${PASSWORD_RESET_HOURS} hora.`,
+    };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    if (!token?.trim()) {
+      throw new BadRequestException('Enlace de restablecimiento inválido');
+    }
+
+    const user = await this.usuarioRepo
+      .createQueryBuilder('u')
+      .addSelect('u.password')
+      .addSelect('u.passwordResetToken')
+      .addSelect('u.passwordResetExpires')
+      .where('u.password_reset_token = :token', { token: token.trim() })
+      .getOne();
+
+    if (!user) {
+      throw new BadRequestException('Enlace inválido o ya utilizado');
+    }
+
+    if (!user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+      throw new BadRequestException(
+        'El enlace ha caducado. Solicita uno nuevo desde «¿Has olvidado la contraseña?».',
+      );
+    }
+
+    const sameAsCurrent = await bcrypt.compare(newPassword, user.password);
+    if (sameAsCurrent) {
+      throw new BadRequestException('La nueva contraseña debe ser distinta a la actual');
+    }
+
+    user.password = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+    await this.usuarioRepo.save(user);
+
+    return { message: 'Contraseña actualizada. Ya puedes iniciar sesión con la nueva contraseña.' };
+  }
+
   async changePassword(userId: number, dto: ChangePasswordDto) {
     const user = await this.usuarioRepo
       .createQueryBuilder('u')
@@ -190,6 +268,12 @@ export class AuthService {
     const base = (this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200').replace(/\/$/, '');
     const verifyUrl = `${base}/verificar-email?token=${token}`;
     await this.mailService.sendVerificationEmail(user.email, user.nombre, verifyUrl);
+  }
+
+  private async sendPasswordResetEmail(user: Usuario, token: string) {
+    const base = (this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200').replace(/\/$/, '');
+    const resetUrl = `${base}/restablecer-contrasena?token=${token}`;
+    await this.mailService.sendPasswordResetEmail(user.email, user.nombre, resetUrl);
   }
 
   private maskEmail(email: string): string {

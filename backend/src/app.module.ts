@@ -7,6 +7,7 @@ import { EventosModule } from './eventos/eventos.module';
 import { ComprasModule } from './compras/compras.module';
 import { CatalogoModule } from './catalogo/catalogo.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
+import { SitemapModule } from './sitemap/sitemap.module';
 import { Categoria } from './entities/categoria.entity';
 import { Ubicacion } from './entities/ubicacion.entity';
 import { Usuario } from './entities/usuario.entity';
@@ -37,6 +38,7 @@ import { Compra } from './entities/compra.entity';
     ComprasModule,
     CatalogoModule,
     UsuariosModule,
+    SitemapModule,
   ],
 })
 export class AppModule {}

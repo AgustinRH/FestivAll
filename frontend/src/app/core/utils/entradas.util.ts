@@ -46,3 +46,36 @@ export function expandirEntradas(compras: Compra[]): EntradaPerfil[] {
 
   return entradas;
 }
+
+export interface GrupoEntradas {
+  key: string;
+  eventoTitulo: string;
+  categoria?: string;
+  localidad?: string;
+  fechaEvento: string;
+  entradas: EntradaPerfil[];
+}
+
+/** Agrupa entradas del mismo evento para listados compactos en perfil. */
+export function agruparEntradas(entradas: EntradaPerfil[]): GrupoEntradas[] {
+  const map = new Map<string, GrupoEntradas>();
+
+  for (const entrada of entradas) {
+    const key = `${entrada.eventoTitulo}|${entrada.fechaEvento}`;
+    const existente = map.get(key);
+    if (existente) {
+      existente.entradas.push(entrada);
+    } else {
+      map.set(key, {
+        key,
+        eventoTitulo: entrada.eventoTitulo,
+        categoria: entrada.categoria,
+        localidad: entrada.localidad,
+        fechaEvento: entrada.fechaEvento,
+        entradas: [entrada],
+      });
+    }
+  }
+
+  return [...map.values()].sort((a, b) => a.fechaEvento.localeCompare(b.fechaEvento));
+}

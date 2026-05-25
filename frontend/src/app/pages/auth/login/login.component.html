@@ -11,6 +11,7 @@
     <form [formGroup]="form" (ngSubmit)="submit()">
       <input type="email" formControlName="email" placeholder="Email" autocomplete="username" />
       <input type="password" formControlName="password" placeholder="Password" autocomplete="current-password" />
+      <p class="link forgot-link"><a routerLink="/olvidar-contrasena">¿Has olvidado la contraseña?</a></p>
       <button type="submit" [disabled]="form.invalid || loading">
         {{ loading ? 'Entrando...' : 'Iniciar Sesión' }}
       </button>
