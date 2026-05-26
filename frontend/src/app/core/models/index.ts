@@ -61,7 +61,7 @@ export interface Evento {
   slug?: string | null;
   descripcion: string;
   fechaInicio: string;
-  fechaFin?: string;
+  fechaFin: string;
   horaInicio?: string;
   horaFin?: string;
   precio: number;
@@ -87,6 +87,95 @@ export interface Compra {
   evento?: Evento;
 }
 
+export interface ValoracionPublica {
+  id: number;
+  puntuacion: number;
+  comentario: string | null;
+  nombreUsuario: string;
+  createdAt: string;
+  verificada: boolean;
+}
+
+export interface ValoracionesEventoResponse {
+  resumen: { media: number; total: number };
+  valoraciones: ValoracionPublica[];
+}
+
+export interface ValoracionElegibilidad {
+  puedeValorar: boolean;
+  eventoFinalizado: boolean;
+  tieneAsistencia: boolean;
+  yaValorado: boolean;
+  omitido: boolean;
+}
+
+export interface EventoPendienteValorar {
+  id: number;
+  titulo: string;
+  slug: string | null;
+  fechaInicio: string;
+  fechaFin: string;
+  localidad: string | null;
+}
+
+export interface EventoConValoraciones {
+  id: number;
+  titulo: string;
+  slug: string | null;
+  fechaInicio: string;
+  fechaFin: string;
+  localidad: string | null;
+  categoria: string | null;
+  imagenUrl: string | null;
+  resumen: { media: number; total: number };
+}
+
+export interface EventoOpinionesDetalle {
+  evento: {
+    id: number;
+    titulo: string;
+    slug: string | null;
+    descripcion: string;
+    fechaInicio: string;
+    fechaFin: string;
+    horaInicio: string | null;
+    horaFin: string | null;
+    localidad: string | null;
+    direccion: string | null;
+    provincia: string | null;
+    categoria: string | null;
+    imagenUrl: string | null;
+  };
+  resumen: { media: number; total: number };
+  valoraciones: ValoracionPublica[];
+}
+
+export interface ValoracionPerfil {
+  id: number;
+  puntuacion: number;
+  comentario: string | null;
+  estadoModeracion: 'pendiente' | 'aprobado' | 'rechazado';
+  verificada: boolean;
+  createdAt: string;
+  evento: EventoPendienteValorar | null;
+}
+
+export interface ValoracionAdmin {
+  id: number;
+  puntuacion: number;
+  comentario: string | null;
+  verificada: boolean;
+  estadoModeracion: string;
+  createdAt: string;
+  usuario: { id: number; nombre: string; apellidos: string; email: string } | null;
+  evento: {
+    id: number;
+    titulo: string;
+    fechaInicio: string;
+    localidad: string | null;
+  } | null;
+}
+
 export interface EntradaAdmin {
   id: number;
   idEvento: number;
@@ -95,6 +184,7 @@ export interface EntradaAdmin {
   totalPago: number;
   fechaCompra: string;
   codigoAcceso: string;
+  estadoEntrada?: 'pendiente' | 'asistida';
   stripeCheckoutSessionId: string | null;
   usuario: {
     id: number;

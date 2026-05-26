@@ -1,0 +1,48 @@
+<section class="valoraciones-publicas">
+  <h2>Valoraciones</h2>
+
+  @if (loading) {
+    <p class="muted">Cargando opiniones…</p>
+  } @else if (error) {
+    <p class="muted">{{ error }}</p>
+  } @else if (data) {
+    <div class="resumen">
+      <div class="media-estrellas" [attr.aria-label]="'Media ' + data.resumen.media + ' de 5'">
+        @for (filled of estrellasMedia(data.resumen.media); track $index) {
+          <span class="star" [class.filled]="filled">★</span>
+        }
+      </div>
+      <p class="media-texto">
+        <strong>{{ data.resumen.media || '—' }}</strong>
+        / 5 · {{ data.resumen.total }}
+        {{ data.resumen.total === 1 ? 'opinión' : 'opiniones' }}
+      </p>
+    </div>
+
+    @if (data.valoraciones.length === 0) {
+      <p class="muted">Aún no hay opiniones publicadas para este evento.</p>
+    } @else {
+      <ul class="lista">
+        @for (v of data.valoraciones; track v.id) {
+          <li class="item">
+            <div class="item-head">
+              <div>
+                <span class="autor">{{ v.nombreUsuario }}</span>
+                <span class="badge-verificado">Asistente verificado</span>
+              </div>
+              <div class="mini-stars" [attr.aria-label]="v.puntuacion + ' estrellas'">
+                @for (filled of estrellas(v.puntuacion); track $index) {
+                  <span class="star sm" [class.filled]="filled">★</span>
+                }
+              </div>
+            </div>
+            @if (v.comentario) {
+              <p class="comentario">{{ v.comentario }}</p>
+            }
+            <time class="fecha">{{ v.createdAt | date:'mediumDate':'':'es' }}</time>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>

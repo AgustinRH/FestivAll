@@ -79,6 +79,13 @@ export class ComprasService {
     return this.http.delete<{ message: string }>(`${this.api}/admin/entradas/${idCompra}`);
   }
 
+  marcarAsistidaAdmin(idCompra: number) {
+    return this.http.patch<{ message: string }>(
+      `${this.api}/admin/entradas/${idCompra}/asistida`,
+      {},
+    );
+  }
+
   reasignarEntradaAdmin(idCompra: number, idUsuario: number) {
     return this.http.patch<{ message: string; entrada: EntradaAdmin }>(
       `${this.api}/admin/entradas/${idCompra}`,

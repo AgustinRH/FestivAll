@@ -455,6 +455,184 @@
     .btn-primary { align-self: flex-start; }
   }
 
+  .card-mis-valoraciones,
+  .card-valoraciones {
+    .valoraciones-intro {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin: 0.35rem 0 1rem;
+      color: var(--text-muted);
+    }
+  }
+
+  .card-mis-valoraciones {
+    .mis-valoraciones-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .mi-valoracion-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    .mi-valoracion-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .mi-valoracion-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 0;
+
+      strong {
+        color: var(--text);
+        font-size: 0.95rem;
+      }
+    }
+
+    .estado-valoracion {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      flex-shrink: 0;
+
+      &.estado-valoracion--pendiente {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+      }
+
+      &.estado-valoracion--aprobado {
+        background: rgba(46, 204, 113, 0.15);
+        color: #86efac;
+      }
+
+      &.estado-valoracion--rechazado {
+        background: rgba(231, 76, 60, 0.12);
+        color: #fca5a5;
+      }
+    }
+
+    .mi-valoracion-stars {
+      display: flex;
+      gap: 0.15rem;
+      margin-bottom: 0.5rem;
+
+      .star {
+        font-size: 1.15rem;
+        color: #444;
+        line-height: 1;
+
+        &.filled {
+          color: #f59e0b;
+        }
+      }
+    }
+
+    .mi-valoracion-comentario {
+      margin: 0 0 0.65rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .mi-valoracion-foot {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .mi-valoracion-fecha {
+      color: var(--text-muted);
+    }
+  }
+
+  .card-valoraciones {
+    .valoraciones-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .valoracion-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.15);
+
+      &.is-open {
+        border-color: rgba(232, 93, 59, 0.35);
+      }
+    }
+
+    .valoracion-item-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+    }
+
+    .valoracion-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 0;
+
+      strong {
+        color: var(--text);
+        font-size: 0.95rem;
+      }
+    }
+
+    .valoracion-meta {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .valoracion-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .link-evento {
+      font-size: 0.85rem;
+      color: var(--accent);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .valoracion-item-body {
+      padding: 0 1rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+  }
+
   .success { color: #2ecc71; margin-bottom: 0.5rem; }
   .error { color: #e74c3c; margin-bottom: 0.5rem; }
 

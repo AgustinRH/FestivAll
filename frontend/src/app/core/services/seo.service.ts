@@ -49,6 +49,11 @@ export class SeoService {
     this.clearJsonLd();
   }
 
+  setStaticPage(pageTitle: string, description: string, canonicalPath: string): void {
+    this.apply(pageTitle, clampMetaDescription(description), canonicalPath);
+    this.clearJsonLd();
+  }
+
   resetToDefaults(): void {
     this.setHome();
   }

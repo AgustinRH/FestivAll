@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
@@ -7,6 +7,10 @@ import { FooterComponent } from '../../shared/footer/footer.component';
 import { TicketQrComponent } from '../../shared/ticket-qr/ticket-qr.component';
 import { AuthService } from '../../core/services/auth.service';
 import { ComprasService } from '../../core/services/compras.service';
+import { ValoracionesService } from '../../core/services/valoraciones.service';
+import { EventoValoracionFormComponent } from '../../shared/evento-valoracion-form/evento-valoracion-form.component';
+import { Evento, EventoPendienteValorar, ValoracionPerfil } from '../../core/models';
+import { getEventoSlugSegment } from '../../core/utils/evento-slug.util';
 import {
   EntradaPerfil,
   GrupoEntradas,
@@ -28,9 +32,11 @@ type EntradasTab = 'activas' | 'historial';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink,
     NavbarComponent,
     FooterComponent,
     TicketQrComponent,
+    EventoValoracionFormComponent,
     CurrencyPipe,
     DatePipe,
   ],
@@ -41,6 +47,7 @@ export class PerfilComponent implements OnInit {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private comprasService = inject(ComprasService);
+  private valoracionesService = inject(ValoracionesService);
   private entradaPdf = inject(EntradaPdfService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -63,6 +70,17 @@ export class PerfilComponent implements OnInit {
   downloadError = '';
   compraVerificando = false;
   compraBanner: { type: 'success' | 'error' | 'pending'; text: string } | null = null;
+  eventosPendientesValorar: EventoPendienteValorar[] = [];
+  loadingValoraciones = true;
+  valoracionesError = '';
+  valoracionExpandida: number | null = null;
+  /** Evita recrear el objeto en cada change detection (rompía el formulario de valoración). */
+  valoracionEventoActivo: Evento | null = null;
+
+  misValoraciones: ValoracionPerfil[] = [];
+  loadingMisValoraciones = true;
+  misValoracionesError = '';
+
   passwordMsg = '';
   passwordError = '';
   resetEmailMsg = '';
@@ -79,6 +97,8 @@ export class PerfilComponent implements OnInit {
   ngOnInit() {
     this.auth.getProfile().subscribe((p) => (this.profile = p));
     this.cargarEntradas();
+    this.cargarValoracionesPendientes();
+    this.cargarMisValoraciones();
 
     const sessionId = this.route.snapshot.queryParamMap.get('session_id');
     if (sessionId) {
@@ -159,6 +179,116 @@ export class PerfilComponent implements OnInit {
 
   indiceEntrada(grupo: GrupoEntradas, entrada: EntradaPerfil): number {
     return grupo.entradas.indexOf(entrada) + 1;
+  }
+
+  eventoParaValorar(item: EventoPendienteValorar): Evento {
+    return {
+      id: item.id,
+      titulo: item.titulo,
+      slug: item.slug ?? undefined,
+      fechaInicio: item.fechaInicio,
+      fechaFin: item.fechaFin,
+      descripcion: '',
+      precio: 0,
+      stock: 0,
+      idCategoria: 0,
+      idUbicacion: 0,
+      idCliente: 0,
+      ubicacion: item.localidad
+        ? {
+            idUbicacion: 0,
+            direccion: '',
+            localidad: item.localidad,
+            provincia: '',
+          }
+        : undefined,
+    };
+  }
+
+  rutaEvento(item: EventoPendienteValorar): string {
+    const segment = getEventoSlugSegment({
+      id: item.id,
+      slug: item.slug,
+      titulo: item.titulo,
+      ubicacion: item.localidad ? { localidad: item.localidad } : null,
+    });
+    return `/eventos/${segment}`;
+  }
+
+  estrellas(puntuacion: number): boolean[] {
+    return [1, 2, 3, 4, 5].map((i) => i <= puntuacion);
+  }
+
+  estadoValoracionLabel(estado: ValoracionPerfil['estadoModeracion']): string {
+    switch (estado) {
+      case 'aprobado':
+        return 'Publicada';
+      case 'rechazado':
+        return 'No publicada';
+      default:
+        return 'En revisión';
+    }
+  }
+
+  estadoValoracionClass(estado: ValoracionPerfil['estadoModeracion']): string {
+    return `estado-valoracion--${estado}`;
+  }
+
+  toggleValoracion(item: EventoPendienteValorar) {
+    if (this.valoracionExpandida === item.id) {
+      this.valoracionExpandida = null;
+      this.valoracionEventoActivo = null;
+      return;
+    }
+    this.valoracionExpandida = item.id;
+    this.valoracionEventoActivo = this.eventoParaValorar(item);
+  }
+
+  onValoracionActualizada(idEvento: number) {
+    this.eventosPendientesValorar = this.eventosPendientesValorar.filter(
+      (e) => e.id !== idEvento,
+    );
+    this.valoracionExpandida = null;
+    this.valoracionEventoActivo = null;
+    this.cargarMisValoraciones();
+  }
+
+  private cargarMisValoraciones() {
+    this.loadingMisValoraciones = true;
+    this.misValoracionesError = '';
+    this.valoracionesService.getMisValoraciones().subscribe({
+      next: (list) => {
+        this.misValoraciones = list;
+        this.loadingMisValoraciones = false;
+      },
+      error: (err) => {
+        this.misValoraciones = [];
+        this.loadingMisValoraciones = false;
+        this.misValoracionesError = getHttpErrorMessage(
+          err,
+          'No se pudieron cargar tus valoraciones.',
+        );
+      },
+    });
+  }
+
+  private cargarValoracionesPendientes() {
+    this.loadingValoraciones = true;
+    this.valoracionesError = '';
+    this.valoracionesService.getMisPendientes().subscribe({
+      next: (list) => {
+        this.eventosPendientesValorar = list;
+        this.loadingValoraciones = false;
+      },
+      error: (err) => {
+        this.eventosPendientesValorar = [];
+        this.loadingValoraciones = false;
+        this.valoracionesError = getHttpErrorMessage(
+          err,
+          'No se pudieron cargar los eventos para valorar.',
+        );
+      },
+    });
   }
 
   private cargarEntradas() {

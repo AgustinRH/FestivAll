@@ -88,6 +88,12 @@ export class ComprasController {
   }
 
   @UseGuards(JwtAuthGuard, AdminGuard)
+  @Patch('admin/entradas/:idCompra/asistida')
+  marcarAsistida(@Param('idCompra', ParseIntPipe) idCompra: number) {
+    return this.comprasService.marcarEntradaAsistidaAdmin(idCompra);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Patch('admin/entradas/:idCompra')
   reasignarEntrada(
     @Param('idCompra', ParseIntPipe) idCompra: number,

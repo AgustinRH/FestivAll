@@ -1,0 +1,86 @@
+<div class="page-wrap">
+  <app-navbar />
+  @if (loading) {
+    <main class="page-content opinion-detail-page container">
+      <p class="empty">Cargando opiniones…</p>
+    </main>
+  } @else if (error || !detalle) {
+    <main class="page-content opinion-detail-page container">
+      <p class="empty error">{{ error || 'Evento no encontrado.' }}</p>
+      <a routerLink="/opiniones" class="btn-back">Volver a opiniones</a>
+    </main>
+  } @else {
+    <main class="page-content opinion-detail-page">
+      <section class="event-hero">
+        <div class="hero-bg" [style.background-image]="'url(' + imagenUrl + ')'"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-text container">
+          <a routerLink="/opiniones" class="back-link">← Todas las opiniones</a>
+          <h1>{{ detalle.evento.titulo }}</h1>
+          <p class="hero-meta">
+            @if (detalle.evento.localidad) {
+              {{ detalle.evento.localidad }}
+              @if (detalle.evento.provincia) { , {{ detalle.evento.provincia }} }
+              ·
+            }
+            {{ detalle.evento.fechaInicio | date:'d MMM y':'':'es' }}
+            @if (detalle.evento.fechaFin !== detalle.evento.fechaInicio) {
+              – {{ detalle.evento.fechaFin | date:'d MMM y':'':'es' }}
+            }
+          </p>
+          @if (detalle.evento.categoria) {
+            <p class="hero-cat">{{ detalle.evento.categoria }}</p>
+          }
+        </div>
+      </section>
+
+      <div class="container content-wrap">
+        @if (detalle.evento.descripcion) {
+          <section class="info-resumen">
+            <h2>Sobre el evento</h2>
+            <p>{{ detalle.evento.descripcion }}</p>
+          </section>
+        }
+
+        <section class="valoraciones-block">
+          <div class="resumen-head">
+            <h2>Opiniones de asistentes</h2>
+            <div class="resumen-stars" [attr.aria-label]="'Media ' + detalle.resumen.media + ' de 5'">
+              @for (filled of estrellasMedia(detalle.resumen.media); track $index) {
+                <span class="star" [class.filled]="filled">★</span>
+              }
+              <p class="media-texto">
+                <strong>{{ detalle.resumen.media }}</strong>/5 ·
+                {{ detalle.resumen.total }}
+                {{ detalle.resumen.total === 1 ? 'opinión verificada' : 'opiniones verificadas' }}
+              </p>
+            </div>
+          </div>
+
+          <ul class="opiniones-lista">
+            @for (v of detalle.valoraciones; track v.id) {
+              <li class="opinion-item">
+                <div class="opinion-item__head">
+                  <div>
+                    <span class="autor">{{ v.nombreUsuario }}</span>
+                    <span class="badge-verificado">Asistente verificado</span>
+                  </div>
+                  <div class="mini-stars" [attr.aria-label]="v.puntuacion + ' estrellas'">
+                    @for (filled of estrellas(v.puntuacion); track $index) {
+                      <span class="star sm" [class.filled]="filled">★</span>
+                    }
+                  </div>
+                </div>
+                @if (v.comentario) {
+                  <p class="comentario">{{ v.comentario }}</p>
+                }
+                <time class="fecha">{{ v.createdAt | date:'d MMM y':'':'es' }}</time>
+              </li>
+            }
+          </ul>
+        </section>
+      </div>
+    </main>
+  }
+  <app-footer />
+</div>

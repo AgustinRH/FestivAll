@@ -1,0 +1,55 @@
+<div class="page-wrap">
+  <app-navbar />
+  <main class="page-content opiniones-page">
+    <section class="hero-mini">
+      <div class="hero-overlay"></div>
+      <h1>Opiniones de asistentes</h1>
+      <p class="hero-lead">Experiencias verificadas en eventos ya celebrados en Almería</p>
+    </section>
+
+    <div class="container">
+      @if (loading) {
+        <p class="empty">Cargando eventos…</p>
+      } @else if (error) {
+        <p class="empty error">{{ error }}</p>
+      } @else if (eventos.length === 0) {
+        <p class="empty">Aún no hay eventos con opiniones publicadas.</p>
+      } @else {
+        <div class="opiniones-grid">
+          @for (evento of eventos; track evento.id) {
+            <article class="opinion-card">
+              <a [routerLink]="opinionLink(evento)" class="opinion-card__image">
+                <img [src]="imagenUrl(evento)" [alt]="evento.titulo" loading="lazy" />
+              </a>
+              <div class="opinion-card__body">
+                <a [routerLink]="opinionLink(evento)" class="opinion-card__title">{{ evento.titulo }}</a>
+                <p class="opinion-card__meta">
+                  @if (evento.localidad) { {{ evento.localidad }} · }
+                  {{ evento.fechaInicio | date:'d MMM y':'':'es' }}
+                  @if (evento.fechaFin !== evento.fechaInicio) {
+                    – {{ evento.fechaFin | date:'d MMM y':'':'es' }}
+                  }
+                </p>
+                @if (evento.categoria) {
+                  <p class="opinion-card__cat">{{ evento.categoria }}</p>
+                }
+                <div class="opinion-card__rating" [attr.aria-label]="'Media ' + evento.resumen.media + ' de 5'">
+                  @for (filled of estrellasMedia(evento.resumen.media); track $index) {
+                    <span class="star" [class.filled]="filled">★</span>
+                  }
+                  <span class="rating-text">
+                    <strong>{{ evento.resumen.media }}</strong>/5 ·
+                    {{ evento.resumen.total }}
+                    {{ evento.resumen.total === 1 ? 'opinión' : 'opiniones' }}
+                  </span>
+                </div>
+                <a [routerLink]="opinionLink(evento)" class="btn-outline">Leer opiniones</a>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </div>
+  </main>
+  <app-footer />
+</div>

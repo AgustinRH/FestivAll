@@ -10,6 +10,7 @@ import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
 import { STOCK_ULTIMAS_ENTRADAS_MAX } from './precio.util';
 import { hoyIso } from './evento-activo.util';
+import { validarFechasEvento } from './evento-fechas.util';
 
 export interface EventoFilters {
   busqueda?: string;
@@ -100,7 +101,7 @@ export class EventosService implements OnModuleInit {
   }
 
   private applySoloActivos(qb: ReturnType<typeof this.baseQuery>) {
-    qb.andWhere('COALESCE(evento.fechaFin, evento.fechaInicio) >= :hoy', { hoy: hoyIso() });
+    qb.andWhere('evento.fechaFin >= :hoy', { hoy: hoyIso() });
   }
 
   private applyFilters(qb: ReturnType<typeof this.baseQuery>, filters?: EventoFilters) {
@@ -216,12 +217,23 @@ export class EventosService implements OnModuleInit {
   }
 
   async create(dto: CreateEventoDto) {
-    const { imagenUrl, direccion, localidad, provincia, idCliente, ...rest } = dto;
+    const {
+      imagenUrl,
+      direccion,
+      localidad,
+      provincia,
+      idCliente,
+      fechaInicio,
+      fechaFin,
+      ...rest
+    } = dto;
     await this.assertCliente(idCliente);
     const idUbicacion = await this.guardarUbicacion({ direccion, localidad, provincia });
+    const fechas = validarFechasEvento(fechaInicio, fechaFin);
 
     const evento = this.eventoRepo.create({
       ...rest,
+      ...fechas,
       idUbicacion,
       idCliente,
       destacado: dto.destacado ?? false,
@@ -243,7 +255,16 @@ export class EventosService implements OnModuleInit {
 
   async update(id: number, dto: UpdateEventoDto) {
     const evento = await this.findOneById(id);
-    const { imagenUrl, direccion, localidad, provincia, idCliente, ...rest } = dto;
+    const {
+      imagenUrl,
+      direccion,
+      localidad,
+      provincia,
+      idCliente,
+      fechaInicio,
+      fechaFin,
+      ...rest
+    } = dto;
 
     if (idCliente !== undefined) {
       await this.assertCliente(idCliente);
@@ -260,7 +281,12 @@ export class EventosService implements OnModuleInit {
       );
     }
 
-    Object.assign(evento, rest);
+    const fechas = validarFechasEvento(
+      fechaInicio ?? evento.fechaInicio,
+      fechaFin ?? evento.fechaFin,
+    );
+
+    Object.assign(evento, rest, fechas);
     await this.eventoRepo.save(evento);
 
     const actualizado = await this.findOneById(id);

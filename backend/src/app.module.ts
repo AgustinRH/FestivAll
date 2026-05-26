@@ -9,6 +9,7 @@ import { CatalogoModule } from './catalogo/catalogo.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { SitemapModule } from './sitemap/sitemap.module';
 import { ClientesModule } from './clientes/clientes.module';
+import { ValoracionesModule } from './valoraciones/valoraciones.module';
 import { Categoria } from './entities/categoria.entity';
 import { Ubicacion } from './entities/ubicacion.entity';
 import { Usuario } from './entities/usuario.entity';
@@ -16,6 +17,8 @@ import { Evento } from './entities/evento.entity';
 import { Imagen } from './entities/imagen.entity';
 import { Compra } from './entities/compra.entity';
 import { Cliente } from './entities/cliente.entity';
+import { Valoracion } from './entities/valoracion.entity';
+import { ValoracionOmitida } from './entities/valoracion-omitida.entity';
 
 @Module({
   imports: [
@@ -30,7 +33,17 @@ import { Cliente } from './entities/cliente.entity';
         username: config.get('DB_USERNAME', 'root'),
         password: config.get('DB_PASSWORD', ''),
         database: config.get('DB_DATABASE', 'FestivAll'),
-        entities: [Categoria, Ubicacion, Usuario, Evento, Imagen, Compra, Cliente],
+        entities: [
+          Categoria,
+          Ubicacion,
+          Usuario,
+          Evento,
+          Imagen,
+          Compra,
+          Cliente,
+          Valoracion,
+          ValoracionOmitida,
+        ],
         synchronize: false,
       }),
     }),
@@ -42,6 +55,7 @@ import { Cliente } from './entities/cliente.entity';
     UsuariosModule,
     SitemapModule,
     ClientesModule,
+    ValoracionesModule,
   ],
 })
 export class AppModule {}

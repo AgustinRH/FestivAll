@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -17,6 +17,8 @@ import {
   parseEventoIdFromSlug,
 } from '../../../core/utils/evento-slug.util';
 import { LegalPrimeraCapaComponent } from '../../../shared/legal-primera-capa/legal-primera-capa.component';
+import { EventoValoracionesComponent } from '../../../shared/evento-valoraciones/evento-valoraciones.component';
+import { EventoValoracionFormComponent } from '../../../shared/evento-valoracion-form/evento-valoracion-form.component';
 
 @Component({
   selector: 'app-evento-detail',
@@ -26,6 +28,8 @@ import { LegalPrimeraCapaComponent } from '../../../shared/legal-primera-capa/le
     NavbarComponent,
     FooterComponent,
     LegalPrimeraCapaComponent,
+    EventoValoracionesComponent,
+    EventoValoracionFormComponent,
     RouterLink,
     CurrencyPipe,
     DatePipe,
@@ -42,6 +46,8 @@ export class EventoDetailComponent implements OnInit {
   private seo = inject(SeoService);
   private comprasService = inject(ComprasService);
   auth = inject(AuthService);
+
+  @ViewChild(EventoValoracionesComponent) valoracionesList?: EventoValoracionesComponent;
 
   evento?: Evento;
   /** Bloquea el detalle hasta confirmar edad (+18). */
@@ -170,6 +176,10 @@ export class EventoDetailComponent implements OnInit {
   get imagenUrl(): string {
     const principal = this.evento?.imagenes?.find((i) => i.esPrincipal);
     return principal?.url || this.evento?.imagenes?.[0]?.url || '';
+  }
+
+  onValoracionEnviada(): void {
+    this.valoracionesList?.load();
   }
 
   get mapUrl(): string {

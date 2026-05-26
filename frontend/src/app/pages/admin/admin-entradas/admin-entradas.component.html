@@ -36,6 +36,7 @@
             <th>Email</th>
             <th>Precio</th>
             <th>Fecha compra</th>
+            <th>Asistencia</th>
             <th></th>
           </tr>
         </thead>
@@ -53,6 +54,15 @@
               <td>{{ row.usuario?.email || '—' }}</td>
               <td>{{ row.totalPago | currency:'EUR' }}</td>
               <td>{{ row.fechaCompra | date:'short':'':'es' }}</td>
+              <td>
+                @if (row.estadoEntrada === 'asistida') {
+                  <span class="pill-asistio">Asistió</span>
+                } @else {
+                  <button type="button" class="btn-sm btn-asistio" (click)="marcarAsistida(row)">
+                    Marcar asistida
+                  </button>
+                }
+              </td>
               <td class="actions">
                 <button type="button" class="btn-sm" (click)="abrirReasignar(row)">Cambiar titular</button>
                 <button type="button" class="btn-sm danger" (click)="eliminar(row)">Eliminar</button>

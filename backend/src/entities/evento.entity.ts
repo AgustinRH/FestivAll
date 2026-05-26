@@ -39,8 +39,8 @@ export class Evento {
   @Column({ name: 'fecha_inicio', type: 'date' })
   fechaInicio: string;
 
-  @Column({ name: 'fecha_fin', type: 'date', nullable: true })
-  fechaFin: string | null;
+  @Column({ name: 'fecha_fin', type: 'date' })
+  fechaFin: string;
 
   @Column({ name: 'hora_inicio', type: 'time', nullable: true })
   horaInicio: string | null;

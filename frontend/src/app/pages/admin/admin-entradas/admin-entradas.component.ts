@@ -88,6 +88,17 @@ export class AdminEntradasComponent implements OnInit {
     });
   }
 
+  marcarAsistida(row: EntradaAdmin) {
+    this.compras.marcarAsistidaAdmin(row.id).subscribe({
+      next: (res: { message: string }) => {
+        this.msg = res.message;
+        this.cargarEntradas();
+      },
+      error: (err: { error?: { message?: string } }) =>
+        alert(err.error?.message || 'Error al marcar asistencia'),
+    });
+  }
+
   eliminar(row: EntradaAdmin) {
     if (!confirm(`¿Eliminar la entrada ${row.codigoAcceso}? Se devolverá 1 al stock del evento.`)) return;
     this.compras.deleteEntradaAdmin(row.id).subscribe({

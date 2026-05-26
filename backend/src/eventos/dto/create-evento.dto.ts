@@ -40,9 +40,8 @@ export class CreateEventoDto {
   @IsDateString()
   fechaInicio: string;
 
-  @IsOptional()
   @IsDateString()
-  fechaFin?: string;
+  fechaFin: string;
 
   @IsOptional()
   @IsString()

@@ -93,6 +93,11 @@
             }
           </div>
         </section>
+
+        <section class="valoraciones-box full-width">
+          <app-evento-valoracion-form [evento]="evento" (enviado)="onValoracionEnviada()" />
+          <app-evento-valoraciones [eventoId]="evento.id" />
+        </section>
       </div>
     </main>
   }

@@ -114,6 +114,18 @@
       border-color: #c0392b;
       color: #e74c3c;
     }
+
+    &.btn-asistio {
+      border-color: #22c55e;
+      color: #86efac;
+    }
+  }
+
+  .pill-asistio {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #86efac;
+    text-transform: uppercase;
   }
 
   .modal-backdrop {

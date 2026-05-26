@@ -147,6 +147,113 @@
         }
       </section>
 
+      <section id="valoraciones" class="card card-valoraciones">
+        <h2>Eventos a los que asististe</h2>
+        <p class="valoraciones-intro">
+          Valora los eventos finalizados en los que validamos tu entrada. Es opcional: si no quieres, no te lo volveremos a pedir.
+        </p>
+
+        @if (valoracionesError) {
+          <p class="error">{{ valoracionesError }}</p>
+        }
+        @if (loadingValoraciones) {
+          <p class="empty">Cargando…</p>
+        } @else if (eventosPendientesValorar.length === 0) {
+          <p class="empty">No tienes eventos pendientes de valorar.</p>
+        } @else {
+          <ul class="valoraciones-list">
+            @for (item of eventosPendientesValorar; track item.id) {
+              <li class="valoracion-item" [class.is-open]="valoracionExpandida === item.id">
+                <div class="valoracion-item-head">
+                  <div class="valoracion-item-info">
+                    <strong>{{ item.titulo }}</strong>
+                    <span class="valoracion-meta">
+                      @if (item.localidad) { {{ item.localidad }} · }
+                      {{ item.fechaInicio | date:'d MMM y':'':'es' }}
+                    </span>
+                  </div>
+                  <div class="valoracion-item-actions">
+                    <a class="link-evento" [routerLink]="rutaEvento(item)">Ver evento</a>
+                    <button
+                      type="button"
+                      class="btn-ver"
+                      (click)="toggleValoracion(item)"
+                    >
+                      {{ valoracionExpandida === item.id ? 'Cerrar' : 'Valorar' }}
+                    </button>
+                  </div>
+                </div>
+                @if (valoracionExpandida === item.id && valoracionEventoActivo) {
+                  <div class="valoracion-item-body">
+                    <app-evento-valoracion-form
+                      [evento]="valoracionEventoActivo"
+                      [compact]="true"
+                      (enviado)="onValoracionActualizada(item.id)"
+                      (omitidoEvento)="onValoracionActualizada(item.id)"
+                    />
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section id="mis-valoraciones" class="card card-mis-valoraciones">
+        <h2>Mis valoraciones</h2>
+        <p class="valoraciones-intro">
+          Opiniones que has enviado. Las publicadas aparecen en la ficha del evento.
+        </p>
+
+        @if (misValoracionesError) {
+          <p class="error">{{ misValoracionesError }}</p>
+        }
+        @if (loadingMisValoraciones) {
+          <p class="empty">Cargando…</p>
+        } @else if (misValoraciones.length === 0) {
+          <p class="empty">Aún no has enviado ninguna valoración.</p>
+        } @else {
+          <ul class="mis-valoraciones-list">
+            @for (v of misValoraciones; track v.id) {
+              <li class="mi-valoracion-item">
+                <div class="mi-valoracion-head">
+                  <div class="mi-valoracion-info">
+                    @if (v.evento) {
+                      <strong>{{ v.evento.titulo }}</strong>
+                      <span class="valoracion-meta">
+                        @if (v.evento.localidad) { {{ v.evento.localidad }} · }
+                        {{ v.evento.fechaFin | date:'d MMM y':'':'es' }}
+                      </span>
+                    } @else {
+                      <strong>Evento</strong>
+                    }
+                  </div>
+                  <span class="estado-valoracion" [class]="estadoValoracionClass(v.estadoModeracion)">
+                    {{ estadoValoracionLabel(v.estadoModeracion) }}
+                  </span>
+                </div>
+                <div class="mi-valoracion-stars" [attr.aria-label]="v.puntuacion + ' de 5 estrellas'">
+                  @for (filled of estrellas(v.puntuacion); track $index) {
+                    <span class="star" [class.filled]="filled">★</span>
+                  }
+                </div>
+                @if (v.comentario) {
+                  <p class="mi-valoracion-comentario">{{ v.comentario }}</p>
+                }
+                <div class="mi-valoracion-foot">
+                  <span class="mi-valoracion-fecha">
+                    Enviada el {{ v.createdAt | date:'d MMM y':'':'es' }}
+                  </span>
+                  @if (v.evento) {
+                    <a class="link-evento" [routerLink]="rutaEvento(v.evento)">Ver evento</a>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
       @if (profile) {
         <details class="card card-collapsible">
           <summary><h2>Mis datos</h2></summary>

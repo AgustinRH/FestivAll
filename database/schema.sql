@@ -51,7 +51,7 @@ CREATE TABLE evento (
     slug VARCHAR(180) NULL UNIQUE,
     descripcion TEXT,
     fecha_inicio DATE NOT NULL,
-    fecha_fin DATE,
+    fecha_fin DATE NOT NULL,
     hora_inicio TIME,
     hora_fin TIME,
     precio DECIMAL(10, 2) NOT NULL,
@@ -84,9 +84,43 @@ CREATE TABLE compra (
     total_pago DECIMAL(10, 2) NOT NULL,
     fecha_compra TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     codigo_acceso VARCHAR(100) NOT NULL UNIQUE,
+    estado_entrada ENUM('pendiente', 'asistida') NOT NULL DEFAULT 'pendiente',
     stripe_checkout_session_id VARCHAR(255) NULL,
     CONSTRAINT fk_compra_usuario FOREIGN KEY (id_usuario)
         REFERENCES usuario (id) ON DELETE CASCADE,
     CONSTRAINT fk_compra_evento FOREIGN KEY (id_evento)
         REFERENCES evento (id) ON DELETE CASCADE
 );
+
+CREATE TABLE valoracion (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_evento INT NOT NULL,
+    puntuacion TINYINT NOT NULL,
+    comentario TEXT NULL,
+    verificada BOOLEAN NOT NULL DEFAULT TRUE,
+    estado_moderacion ENUM('pendiente', 'aprobado', 'rechazado') NOT NULL DEFAULT 'pendiente',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_valoracion_usuario FOREIGN KEY (id_usuario)
+        REFERENCES usuario (id) ON DELETE CASCADE,
+    CONSTRAINT fk_valoracion_evento FOREIGN KEY (id_evento)
+        REFERENCES evento (id) ON DELETE CASCADE,
+    CONSTRAINT uq_valoracion_usuario_evento UNIQUE (id_usuario, id_evento),
+    CONSTRAINT chk_valoracion_puntuacion CHECK (puntuacion >= 1 AND puntuacion <= 5)
+);
+
+CREATE INDEX idx_valoracion_evento_estado ON valoracion (id_evento, estado_moderacion);
+
+CREATE TABLE valoracion_omitida (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_evento INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_valoracion_omitida_usuario FOREIGN KEY (id_usuario)
+        REFERENCES usuario (id) ON DELETE CASCADE,
+    CONSTRAINT fk_valoracion_omitida_evento FOREIGN KEY (id_evento)
+        REFERENCES evento (id) ON DELETE CASCADE,
+    CONSTRAINT uq_valoracion_omitida_usuario_evento UNIQUE (id_usuario, id_evento)
+);
+
+CREATE INDEX idx_valoracion_omitida_usuario ON valoracion_omitida (id_usuario);

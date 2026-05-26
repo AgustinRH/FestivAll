@@ -54,6 +54,18 @@
         <span class="badge">{{ clientesList.length }}</span>
       </button>
 
+      <p class="nav-section-label">Comunidad</p>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="section === 'valoraciones'"
+        (click)="selectValoraciones()"
+      >
+        <span class="nav-icon" aria-hidden="true">⭐</span>
+        Valoraciones
+        <span class="badge">{{ valoracionesPendientesCount }}</span>
+      </button>
+
       <p class="nav-section-label">Usuarios</p>
       <button
         type="button"
@@ -110,6 +122,8 @@
       <app-admin-clientes />
     } @else if (section === 'entradas') {
       <app-admin-entradas />
+    } @else if (section === 'valoraciones') {
+      <app-admin-valoraciones (moderada)="refreshValoracionesPendientesCount()" />
     } @else {
     @if (msg) {
       <div class="toast" [class.error]="msgType === 'error'" role="status">
@@ -297,9 +311,10 @@
                 <span>Fecha inicio <em>*</em></span>
                 <input type="date" formControlName="fechaInicio" />
               </label>
-              <label>
-                <span>Fecha fin</span>
-                <input type="date" formControlName="fechaFin" />
+              <label [class.has-error]="isInvalid('fechaFin')">
+                <span>Fecha fin <em>*</em></span>
+                <input type="date" formControlName="fechaFin" [attr.min]="form.get('fechaInicio')?.value || null" />
+                <span class="field-hint">Un solo día: misma fecha que el inicio.</span>
               </label>
               <label>
                 <span>Hora inicio</span>

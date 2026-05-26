@@ -85,10 +85,7 @@ export function buildEventJsonLd(
     schema['isAccessibleForFree'] = true;
   }
 
-  const endDate = toSchemaDateTime(
-    evento.fechaFin || evento.fechaInicio,
-    evento.horaFin,
-  );
+  const endDate = toSchemaDateTime(evento.fechaFin, evento.horaFin);
   if (endDate) {
     schema['endDate'] = endDate;
   }

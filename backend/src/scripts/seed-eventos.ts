@@ -159,7 +159,7 @@ async function seed() {
     const fechaInicio = addDays(baseDate, diasOffset);
     const esVariosDias = i % 5 !== 0; // ~80% varios días
     const duracion = esVariosDias ? 1 + (i % 4) : 0;
-    const fechaFin = duracion > 0 ? formatDate(addDays(fechaInicio, duracion)) : null;
+    const fechaFin = formatDate(addDays(fechaInicio, duracion));
 
     const horaInicio = `${pad(17 + (i % 6))}:00:00`;
     const horaFin = duracion > 0 ? '04:00:00' : `${pad(22 + (i % 4))}:30:00`;

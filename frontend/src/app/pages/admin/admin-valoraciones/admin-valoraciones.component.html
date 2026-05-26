@@ -1,0 +1,36 @@
+<div class="admin-valoraciones">
+  <p class="hint">Opiniones enviadas por asistentes verificados. Aprueba o rechaza antes de que se publiquen.</p>
+  @if (msg) {
+    <p class="toast-inline">{{ msg }}</p>
+  }
+
+  @if (loading) {
+    <p class="muted">Cargando…</p>
+  } @else if (pendientes.length === 0) {
+    <p class="muted">No hay valoraciones pendientes de moderación.</p>
+  } @else {
+    <div class="cards">
+      @for (v of pendientes; track v.id) {
+        <article class="card">
+          <div class="card-head">
+            <strong>{{ v.evento?.titulo || 'Evento' }}</strong>
+            <span class="stars">{{ '★'.repeat(v.puntuacion) }}</span>
+          </div>
+          <p class="meta">
+            {{ v.usuario?.nombre }} {{ v.usuario?.apellidos }} · {{ v.usuario?.email }}
+          </p>
+          @if (v.comentario) {
+            <p class="comentario">{{ v.comentario }}</p>
+          } @else {
+            <p class="comentario muted">Sin comentario escrito.</p>
+          }
+          <p class="fecha">{{ v.createdAt | date:'medium':'':'es' }}</p>
+          <div class="actions">
+            <button type="button" class="btn-ok" (click)="moderar(v, 'aprobado')">Aprobar</button>
+            <button type="button" class="btn-no" (click)="moderar(v, 'rechazado')">Rechazar</button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>

@@ -712,6 +712,7 @@ export class ComprasService {
       totalPago: Number(c.totalPago),
       fechaCompra: c.fechaCompra,
       codigoAcceso: c.codigoAcceso,
+      estadoEntrada: c.estadoEntrada,
       stripeCheckoutSessionId: c.stripeCheckoutSessionId ?? null,
       usuario: c.usuario
         ? {
@@ -739,6 +740,17 @@ export class ComprasService {
     await this.eventoRepo.increment({ id: compra.idEvento }, 'stock', 1);
     await this.compraRepo.remove(compra);
     return { message: 'Entrada eliminada y stock restaurado (+1)' };
+  }
+
+  async marcarEntradaAsistidaAdmin(idCompra: number) {
+    const compra = await this.compraRepo.findOne({ where: { id: idCompra } });
+    if (!compra) throw new NotFoundException('Entrada no encontrada');
+    if (compra.estadoEntrada === 'asistida') {
+      return { message: 'La entrada ya estaba marcada como asistida.' };
+    }
+    compra.estadoEntrada = 'asistida';
+    await this.compraRepo.save(compra);
+    return { message: 'Entrada marcada como asistida (validada en puerta).' };
   }
 
   async reasignarEntradaAdmin(idCompra: number, nuevoIdUsuario: number) {

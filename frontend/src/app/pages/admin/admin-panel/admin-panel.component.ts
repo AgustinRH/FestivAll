@@ -13,8 +13,10 @@ import { Evento, Categoria, Cliente } from '../../../core/models';
 import { AdminUsuariosComponent } from '../admin-usuarios/admin-usuarios.component';
 import { AdminClientesComponent } from '../admin-clientes/admin-clientes.component';
 import { AdminEntradasComponent } from '../admin-entradas/admin-entradas.component';
+import { AdminValoracionesComponent } from '../admin-valoraciones/admin-valoraciones.component';
+import { ValoracionesService } from '../../../core/services/valoraciones.service';
 
-type AdminSection = 'eventos' | 'usuarios' | 'clientes' | 'entradas';
+type AdminSection = 'eventos' | 'usuarios' | 'clientes' | 'entradas' | 'valoraciones';
 type AdminView = 'list' | 'form';
 type MsgType = 'success' | 'error';
 
@@ -30,6 +32,7 @@ type MsgType = 'success' | 'error';
     AdminUsuariosComponent,
     AdminClientesComponent,
     AdminEntradasComponent,
+    AdminValoracionesComponent,
   ],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.scss',
@@ -41,6 +44,7 @@ export class AdminPanelComponent implements OnInit {
   private catalogoService = inject(CatalogoService);
   private clientesService = inject(ClientesAdminService);
   private usuariosService = inject(UsuariosAdminService);
+  private valoracionesService = inject(ValoracionesService);
   private auth = inject(AuthService);
   private router = inject(Router);
 
@@ -51,6 +55,7 @@ export class AdminPanelComponent implements OnInit {
   categorias: Categoria[] = [];
   clientesList: Cliente[] = [];
   usuariosCount = 0;
+  valoracionesPendientesCount = 0;
   editingId: number | null = null;
   view: AdminView = 'list';
   loading = false;
@@ -74,7 +79,7 @@ export class AdminPanelComponent implements OnInit {
     localidad: ['', [Validators.required, Validators.minLength(2)]],
     provincia: ['Almería', [Validators.required, Validators.minLength(2)]],
     fechaInicio: ['', Validators.required],
-    fechaFin: [''],
+    fechaFin: ['', Validators.required],
     horaInicio: [''],
     horaFin: [''],
     precio: [0, [Validators.required, Validators.min(0)]],
@@ -89,12 +94,27 @@ export class AdminPanelComponent implements OnInit {
 
   ngOnInit() {
     this.load();
+    this.form.get('fechaInicio')?.valueChanges.subscribe((ini) => {
+      if (!ini) return;
+      const fin = this.form.get('fechaFin')?.value;
+      if (!fin || fin < ini) {
+        this.form.patchValue({ fechaFin: ini }, { emitEvent: false });
+      }
+    });
     this.catalogoService.getCategorias().subscribe((c) => (this.categorias = c));
     this.clientesService.getAll().subscribe({
       next: (list) => (this.clientesList = list),
       error: () => {},
     });
     this.refreshUsuariosCount();
+    this.refreshValoracionesPendientesCount();
+  }
+
+  refreshValoracionesPendientesCount() {
+    this.valoracionesService.getPendientesAdmin().subscribe({
+      next: (list) => (this.valoracionesPendientesCount = list.length),
+      error: () => {},
+    });
   }
 
   refreshUsuariosCount() {
@@ -199,6 +219,13 @@ export class AdminPanelComponent implements OnInit {
     this.closeForm();
   }
 
+  selectValoraciones() {
+    this.section = 'valoraciones';
+    this.closeSidebar();
+    this.closeForm();
+    this.refreshValoracionesPendientesCount();
+  }
+
   openNewUsuario() {
     this.section = 'usuarios';
     this.closeSidebar();
@@ -218,6 +245,9 @@ export class AdminPanelComponent implements OnInit {
     }
     if (this.section === 'entradas') {
       return 'Entradas vendidas';
+    }
+    if (this.section === 'valoraciones') {
+      return 'Moderar valoraciones';
     }
     return this.view === 'form'
       ? this.editingId
@@ -239,6 +269,9 @@ export class AdminPanelComponent implements OnInit {
     }
     if (this.section === 'entradas') {
       return 'Consulta titular por entrada, reasigna o elimina (devuelve stock)';
+    }
+    if (this.section === 'valoraciones') {
+      return 'Aprueba o rechaza opiniones de asistentes verificados';
     }
     if (this.view === 'list') {
       return 'Administra festivales, entradas y eventos destacados del inicio';
@@ -277,7 +310,7 @@ export class AdminPanelComponent implements OnInit {
       localidad: evento.ubicacion?.localidad ?? '',
       provincia: evento.ubicacion?.provincia ?? 'Almería',
       fechaInicio: evento.fechaInicio,
-      fechaFin: evento.fechaFin || '',
+      fechaFin: evento.fechaFin || evento.fechaInicio,
       horaInicio: evento.horaInicio || '',
       horaFin: evento.horaFin || '',
       precio: evento.precio,
@@ -308,6 +341,10 @@ export class AdminPanelComponent implements OnInit {
       return;
     }
     const raw = this.form.getRawValue();
+    if (raw.fechaFin! < raw.fechaInicio!) {
+      this.notify('La fecha de fin no puede ser anterior a la de inicio', 'error');
+      return;
+    }
     const data = {
       titulo: raw.titulo!,
       descripcion: raw.descripcion || undefined,
@@ -316,7 +353,7 @@ export class AdminPanelComponent implements OnInit {
       localidad: raw.localidad!.trim(),
       provincia: raw.provincia?.trim() || 'Almería',
       fechaInicio: raw.fechaInicio!,
-      fechaFin: raw.fechaFin || undefined,
+      fechaFin: raw.fechaFin!,
       horaInicio: raw.horaInicio || undefined,
       horaFin: raw.horaFin || undefined,
       precio: +raw.precio!,

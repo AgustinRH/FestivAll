@@ -45,3 +45,13 @@ export function getEventoSlugSegment(
 export function eventoPath(evento: Parameters<typeof getEventoSlugSegment>[0]): string[] {
   return ['/eventos', getEventoSlugSegment(evento)];
 }
+
+export function opinionEventoPath(
+  evento: Pick<Evento, 'id' | 'slug' | 'titulo'> & {
+    localidad?: string | null;
+    ubicacion?: { localidad?: string } | null;
+  },
+): string[] {
+  const loc = evento.localidad ?? evento.ubicacion?.localidad;
+  return ['/opiniones', getEventoSlugSegment({ ...evento, ubicacion: loc ? { localidad: loc } : null })];
+}

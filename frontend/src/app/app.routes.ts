@@ -58,6 +58,20 @@ export const routes: Routes = [
       import('./pages/legal/aviso-legal/aviso-legal.component').then((m) => m.AvisoLegalComponent),
   },
   {
+    path: 'opiniones',
+    loadComponent: () =>
+      import('./pages/opiniones/opiniones-list/opiniones-list.component').then(
+        (m) => m.OpinionesListComponent,
+      ),
+  },
+  {
+    path: 'opiniones/:slug',
+    loadComponent: () =>
+      import('./pages/opiniones/opinion-evento-detail/opinion-evento-detail.component').then(
+        (m) => m.OpinionEventoDetailComponent,
+      ),
+  },
+  {
     path: 'eventos',
     loadComponent: () => import('./pages/eventos/eventos-list/eventos-list.component').then(m => m.EventosListComponent),
   },

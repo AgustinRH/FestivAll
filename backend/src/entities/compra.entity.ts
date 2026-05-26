@@ -32,6 +32,14 @@ export class Compra {
   codigoAcceso: string;
 
   @Column({
+    name: 'estado_entrada',
+    type: 'enum',
+    enum: ['pendiente', 'asistida'],
+    default: 'pendiente',
+  })
+  estadoEntrada: 'pendiente' | 'asistida';
+
+  @Column({
     name: 'stripe_checkout_session_id',
     type: 'varchar',
     length: 255,

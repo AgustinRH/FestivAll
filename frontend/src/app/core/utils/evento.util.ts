@@ -1,18 +1,30 @@
-/** Fecha de referencia: fin del evento o inicio si es de un solo día. */
+/** Normaliza fechas de la API (string o Date) a YYYY-MM-DD. */
+export function toIsoDateOnly(value: string | Date | null | undefined): string {
+  if (value == null) return '';
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+  const s = String(value).trim();
+  return s.length >= 10 ? s.slice(0, 10) : s;
+}
+
+/** Último día del evento (fecha_fin, obligatoria). */
 export function fechaReferenciaEvento(evento: {
-  fechaInicio: string;
-  fechaFin?: string | null;
+  fechaFin: string | Date;
 }): string {
-  return evento.fechaFin || evento.fechaInicio;
+  return toIsoDateOnly(evento.fechaFin);
 }
 
 export function hoyIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export function eventoHaPasado(evento: {
-  fechaInicio: string;
-  fechaFin?: string | null;
+  fechaFin: string | Date;
 }): boolean {
   return fechaReferenciaEvento(evento) < hoyIso();
 }

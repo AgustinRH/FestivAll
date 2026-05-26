@@ -46,7 +46,7 @@ export class SitemapService {
   }
 
   private activosCondition(hoy: string): string {
-    return 'COALESCE(evento.fechaFin, evento.fechaInicio) >= :hoy';
+    return 'evento.fechaFin >= :hoy';
   }
 
   /** ISO date (YYYY-MM-DD); nunca posterior a maxDate (p. ej. hoy). */

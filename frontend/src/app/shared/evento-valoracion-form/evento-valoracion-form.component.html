@@ -1,0 +1,84 @@
+<section class="valoracion-form-section" [class.is-compact]="compact">
+  @if (compact) {
+    <h3 class="form-title">Tu valoración</h3>
+  } @else {
+    <h2 class="form-title">Deja tu opinión</h2>
+  }
+
+  @if (loadingElegibilidad) {
+    <p class="muted">Comprobando si puedes valorar…</p>
+  } @else if (!eventoFinalizado) {
+    <p class="muted">Podrás valorar este evento cuando haya finalizado.</p>
+  } @else if (yaValorado) {
+    <p class="ok">Ya has enviado tu valoración. Gracias por tu opinión.</p>
+  } @else if (omitido) {
+    <p class="muted">Has indicado que no quieres valorar este evento.</p>
+  } @else if (!auth.isLoggedIn()) {
+    <p class="muted">
+      <a routerLink="/login" [queryParams]="{ returnUrl: router.url }">Inicia sesión</a>
+      para valorar si asististe al evento.
+    </p>
+  } @else if (!tieneAsistencia) {
+    <p class="muted">
+      Solo pueden valorar quienes hayan asistido (entrada validada en la puerta del recinto).
+    </p>
+  } @else if (puedeValorar) {
+    @if (msg) {
+      <p class="ok">{{ msg }}</p>
+    }
+    @if (msgError) {
+      <p class="error">{{ msgError }}</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <p class="label">Tu puntuación</p>
+      <div
+        class="stars-input"
+        role="radiogroup"
+        aria-label="Puntuación de 1 a 5 estrellas"
+        (mouseleave)="clearHover()"
+      >
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <button
+            type="button"
+            class="star-btn"
+            [class.filled]="displayStar(i)"
+            [attr.aria-label]="i + ' estrellas'"
+            (click)="setStar(i)"
+            (mouseenter)="setHover(i)"
+            (focus)="setHover(i)"
+            (blur)="clearHover()"
+          >
+            ★
+          </button>
+        }
+      </div>
+
+      <label class="comentario-label">
+        <span>Comentario (opcional)</span>
+        <textarea
+          formControlName="comentario"
+          rows="4"
+          placeholder="Cuéntanos tu experiencia en el evento…"
+        ></textarea>
+      </label>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" [disabled]="saving || !puntuacion">
+          {{ saving ? 'Enviando…' : 'Enviar valoración' }}
+        </button>
+        <button
+          type="button"
+          class="btn-omitir"
+          [disabled]="omitiendo || saving"
+          (click)="omitir()"
+        >
+          {{ omitiendo ? 'Guardando…' : 'No quiero valorar' }}
+        </button>
+      </div>
+      <p class="hint-mod">Tu opinión será revisada por el equipo antes de publicarse.</p>
+    </form>
+  } @else if (msgError) {
+    <p class="error">{{ msgError }}</p>
+  }
+</section>
