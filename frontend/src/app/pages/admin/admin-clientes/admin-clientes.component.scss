@@ -1,0 +1,147 @@
+@use '../admin-shared' as *;
+
+:host {
+  display: block;
+}
+
+.admin-clientes {
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    align-items: center;
+  }
+
+  .search {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.6rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #1a1a24;
+    color: #eee;
+  }
+
+  .muted {
+    color: #888;
+  }
+
+  .toast-inline {
+    padding: 0.5rem 0.75rem;
+    background: rgba(34, 197, 94, 0.15);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  th,
+  td {
+    padding: 0.65rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #333;
+  }
+
+  th {
+    color: #aaa;
+    font-weight: 600;
+  }
+
+  tr.inactive td {
+    opacity: 0.6;
+  }
+
+  .actions {
+    white-space: nowrap;
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .btn-sm {
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: transparent;
+    color: #ddd;
+    cursor: pointer;
+    font-size: 0.8rem;
+
+    &.danger {
+      border-color: #c0392b;
+      color: #e74c3c;
+    }
+  }
+
+  h2 {
+    margin: 0 0 1.25rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--admin-text, #f4f4f6);
+  }
+
+  .form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    max-width: 720px;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      font-size: 0.85rem;
+      color: #ccc;
+
+      &.full {
+        grid-column: 1 / -1;
+      }
+
+      &.check {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      input,
+      textarea {
+        padding: 0.6rem 0.75rem;
+        border-radius: 8px;
+        border: 1px solid var(--admin-border, rgba(255, 255, 255, 0.08));
+        background: var(--admin-surface-2, #1f2430);
+        color: var(--admin-text, #f4f4f6);
+        font-size: 0.9rem;
+
+        &:focus {
+          outline: none;
+          border-color: var(--admin-accent, #e85d3b);
+        }
+      }
+
+      span em {
+        color: var(--admin-accent, #e85d3b);
+        font-style: normal;
+      }
+    }
+
+    .form-footer {
+      grid-column: 1 / -1;
+
+      .btn-secondary,
+      .btn-primary {
+        padding: 0.65rem 1.25rem;
+        font-size: 0.9rem;
+        border-radius: 10px;
+      }
+    }
+  }
+}

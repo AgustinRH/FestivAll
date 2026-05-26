@@ -31,6 +31,29 @@
         Nuevo evento
       </button>
 
+      <p class="nav-section-label">Ventas</p>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="section === 'entradas'"
+        (click)="selectEntradas()"
+      >
+        <span class="nav-icon" aria-hidden="true">🎫</span>
+        Entradas vendidas
+      </button>
+
+      <p class="nav-section-label">Organización</p>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="section === 'clientes'"
+        (click)="selectClientes()"
+      >
+        <span class="nav-icon" aria-hidden="true">🏢</span>
+        Organizadores
+        <span class="badge">{{ clientesList.length }}</span>
+      </button>
+
       <p class="nav-section-label">Usuarios</p>
       <button
         type="button"
@@ -40,7 +63,7 @@
       >
         <span class="nav-icon" aria-hidden="true">👥</span>
         Listado
-        <span class="badge">{{ adminUsuarios?.usuarios?.length ?? 0 }}</span>
+        <span class="badge">{{ usuariosCount }}</span>
       </button>
       <button
         type="button"
@@ -82,7 +105,11 @@
     </header>
 
     @if (section === 'usuarios') {
-      <app-admin-usuarios />
+      <app-admin-usuarios (usuariosCountChange)="usuariosCount = $event" />
+    } @else if (section === 'clientes') {
+      <app-admin-clientes />
+    } @else if (section === 'entradas') {
+      <app-admin-entradas />
     } @else {
     @if (msg) {
       <div class="toast" [class.error]="msgType === 'error'" role="status">
@@ -176,6 +203,9 @@
                   <h3>{{ e.titulo }}</h3>
                   <span class="category-tag">{{ e.categoria?.nombreCategoria || '—' }}</span>
                 </div>
+                @if (e.cliente) {
+                  <p class="card-org">🏢 {{ e.cliente.nombre }}</p>
+                }
                 <p class="card-address" [title]="getUbicacionTexto(e)">📍 {{ getUbicacionTexto(e) }}</p>
                 <div class="card-meta">
                   <span>📅 {{ formatRango(e) }}</span>
@@ -225,6 +255,14 @@
                   <option value="">Elige una categoría</option>
                   @for (c of categorias; track c.id) {
                     <option [value]="c.id">{{ c.nombreCategoria }}</option>
+                  }
+                </select>
+              </label>
+              <label [class.has-error]="isInvalid('idCliente')">
+                <span>Organizador (cliente) <em>*</em></span>
+                <select formControlName="idCliente">
+                  @for (cl of clientesList; track cl.id) {
+                    <option [value]="cl.id">{{ cl.nombre }}</option>
                   }
                 </select>
               </label>

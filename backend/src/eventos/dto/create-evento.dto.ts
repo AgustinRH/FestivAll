@@ -13,6 +13,10 @@ export class CreateEventoDto {
   @IsInt()
   idCategoria: number;
 
+  @IsInt()
+  @Min(1)
+  idCliente: number;
+
   @IsString()
   @MinLength(3)
   direccion: string;

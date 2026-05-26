@@ -15,6 +15,7 @@ import { RolUsuario, Usuario } from '../entities/usuario.entity';
 import { CreateCompraDto } from './dto/create-compra.dto';
 import { StripeService } from './stripe.service';
 import { MailService } from '../mail/mail.service';
+import { buildEventoSlug } from '../common/seo-slug.util';
 import { getPrecioUnitario, aplicaDescuentoUltimasEntradas } from '../eventos/precio.util';
 import { eventoEstaActivo } from '../eventos/evento-activo.util';
 import {
@@ -436,7 +437,9 @@ export class ComprasService {
         localId,
       }),
       success_url: `${frontendUrl}/perfil?session_id={CHECKOUT_SESSION_ID}#entradas`,
-      cancel_url: `${frontendUrl}/eventos/${dto.idEvento}?pago=cancelado`,
+      cancel_url: `${frontendUrl}/eventos/${
+        evento.slug ?? buildEventoSlug(evento.id, evento.titulo, evento.ubicacion?.localidad)
+      }?pago=cancelado`,
     });
 
     if (!session.url) {
@@ -685,5 +688,95 @@ export class ComprasService {
     });
     if (!compra) throw new NotFoundException('Compra no encontrada');
     return compra;
+  }
+
+  /** Listado admin: cada fila es una entrada (compra con cantidad 1). */
+  async findEntradasByEventoAdmin(idEvento: number) {
+    const evento = await this.eventoRepo.findOne({ where: { id: idEvento } });
+    if (!evento) throw new NotFoundException('Evento no encontrado');
+
+    const compras = await this.compraRepo
+      .createQueryBuilder('c')
+      .leftJoin('c.usuario', 'u')
+      .addSelect(['u.id', 'u.nombre', 'u.apellidos', 'u.email', 'u.rol', 'u.emailVerificado'])
+      .where('c.idEvento = :idEvento', { idEvento })
+      .orderBy('c.fechaCompra', 'DESC')
+      .addOrderBy('c.id', 'DESC')
+      .getMany();
+
+    return compras.map((c) => ({
+      id: c.id,
+      idEvento: c.idEvento,
+      idUsuario: c.idUsuario,
+      cantidad: c.cantidad,
+      totalPago: Number(c.totalPago),
+      fechaCompra: c.fechaCompra,
+      codigoAcceso: c.codigoAcceso,
+      stripeCheckoutSessionId: c.stripeCheckoutSessionId ?? null,
+      usuario: c.usuario
+        ? {
+            id: c.usuario.id,
+            nombre: c.usuario.nombre,
+            apellidos: c.usuario.apellidos,
+            email: c.usuario.email,
+          }
+        : null,
+    }));
+  }
+
+  async deleteEntradaAdmin(idCompra: number) {
+    const compra = await this.compraRepo.findOne({
+      where: { id: idCompra },
+      relations: ['evento'],
+    });
+    if (!compra) throw new NotFoundException('Entrada no encontrada');
+    if (compra.cantidad !== 1) {
+      throw new BadRequestException(
+        'Solo se pueden eliminar entradas individuales (cantidad 1). Contacta con soporte si el registro es antiguo.',
+      );
+    }
+
+    await this.eventoRepo.increment({ id: compra.idEvento }, 'stock', 1);
+    await this.compraRepo.remove(compra);
+    return { message: 'Entrada eliminada y stock restaurado (+1)' };
+  }
+
+  async reasignarEntradaAdmin(idCompra: number, nuevoIdUsuario: number) {
+    const compra = await this.compraRepo.findOne({ where: { id: idCompra } });
+    if (!compra) throw new NotFoundException('Entrada no encontrada');
+
+    const usuario = await this.usuarioRepo
+      .createQueryBuilder('u')
+      .select(['u.id', 'u.nombre', 'u.apellidos', 'u.email'])
+      .where('u.id = :id', { id: nuevoIdUsuario })
+      .getOne();
+    if (!usuario) throw new BadRequestException('Usuario destino no encontrado');
+
+    compra.idUsuario = nuevoIdUsuario;
+    await this.compraRepo.save(compra);
+
+    const actualizada = await this.compraRepo
+      .createQueryBuilder('c')
+      .leftJoin('c.usuario', 'u')
+      .addSelect(['u.id', 'u.nombre', 'u.apellidos', 'u.email'])
+      .where('c.id = :id', { id: idCompra })
+      .getOne();
+
+    return {
+      message: 'Entrada reasignada al nuevo titular',
+      entrada: {
+        id: actualizada!.id,
+        idUsuario: actualizada!.idUsuario,
+        codigoAcceso: actualizada!.codigoAcceso,
+        usuario: actualizada!.usuario
+          ? {
+              id: actualizada!.usuario.id,
+              nombre: actualizada!.usuario.nombre,
+              apellidos: actualizada!.usuario.apellidos,
+              email: actualizada!.usuario.email,
+            }
+          : null,
+      },
+    };
   }
 }

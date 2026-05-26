@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +24,8 @@ export class AdminUsuariosComponent implements OnInit {
   private fb = inject(FormBuilder);
   private usuariosService = inject(UsuariosAdminService);
   private auth = inject(AuthService);
+
+  @Output() usuariosCountChange = new EventEmitter<number>();
 
   usuarios: AdminUser[] = [];
   editingId: number | null = null;
@@ -79,6 +81,7 @@ export class AdminUsuariosComponent implements OnInit {
       next: (list) => {
         this.usuarios = list;
         this.loading = false;
+        this.usuariosCountChange.emit(list.length);
       },
       error: () => {
         this.loading = false;

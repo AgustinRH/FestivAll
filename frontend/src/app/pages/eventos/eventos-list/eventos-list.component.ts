@@ -7,6 +7,7 @@ import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 import { FooterComponent } from '../../../shared/footer/footer.component';
 import { EventCardComponent } from '../../../shared/event-card/event-card.component';
 import { EventosService } from '../../../core/services/eventos.service';
+import { SeoService } from '../../../core/services/seo.service';
 import { CatalogoService } from '../../../core/services/catalogo.service';
 import { Evento, Categoria, Ubicacion } from '../../../core/models';
 
@@ -23,6 +24,7 @@ export class EventosListComponent implements OnInit {
   private catalogoService = inject(CatalogoService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private seo = inject(SeoService);
 
   readonly pageSize = 20;
 
@@ -77,6 +79,7 @@ export class EventosListComponent implements OnInit {
   }
 
   private applyRouteState(params: Record<string, string>) {
+    this.seo.setEventosList(this.router.url);
     const seo = this.resolveSeoFilters();
     const ultimas =
       params['ultimasEntradas'] === 'true' || params['ultimasEntradas'] === '1';

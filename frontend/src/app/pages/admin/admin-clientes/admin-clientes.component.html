@@ -1,0 +1,86 @@
+<div class="admin-clientes">
+  @if (msg) {
+    <p class="toast-inline">{{ msg }}</p>
+  }
+
+  @if (view === 'list') {
+    <div class="toolbar">
+      <input type="search" [(ngModel)]="search" placeholder="Buscar organizador…" class="search" />
+      <button type="button" class="btn-primary" (click)="openCreate()">+ Nuevo organizador</button>
+    </div>
+    @if (loading) {
+      <p class="muted">Cargando…</p>
+    } @else if (clientes.length === 0) {
+      <p class="muted">No hay organizadores. Crea el primero.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              <th>Activo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of filtered; track c.id) {
+              <tr [class.inactive]="!c.activo">
+                <td><strong>{{ c.nombre }}</strong></td>
+                <td>{{ c.emailContacto || '—' }}</td>
+                <td>{{ c.telefono || '—' }}</td>
+                <td>{{ c.activo ? 'Sí' : 'No' }}</td>
+                <td class="actions">
+                  <button type="button" class="btn-sm" (click)="openEdit(c)">Editar</button>
+                  @if (c.id !== 1) {
+                    <button type="button" class="btn-sm danger" (click)="remove(c, $event)">Eliminar</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  } @else {
+    <button type="button" class="back-link" (click)="closeForm()">← Volver al listado</button>
+    <h2>{{ editingId ? 'Editar organizador' : 'Nuevo organizador' }}</h2>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <label>
+        <span>Nombre comercial <em>*</em></span>
+        <input formControlName="nombre" placeholder="Ej. Sala Moonlight" />
+      </label>
+      <label>
+        <span>Razón social / nombre fiscal</span>
+        <input formControlName="nombreFiscal" />
+      </label>
+      <label>
+        <span>CIF</span>
+        <input formControlName="cif" />
+      </label>
+      <label>
+        <span>Email de contacto</span>
+        <input type="email" formControlName="emailContacto" />
+      </label>
+      <label>
+        <span>Teléfono</span>
+        <input formControlName="telefono" />
+      </label>
+      <label class="full">
+        <span>Notas internas</span>
+        <textarea formControlName="notas" rows="3"></textarea>
+      </label>
+      <label class="check">
+        <input type="checkbox" formControlName="activo" />
+        <span>Activo (aparece al crear eventos)</span>
+      </label>
+      <div class="form-footer">
+        <button type="button" class="btn-secondary" (click)="closeForm()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="saving || form.invalid">
+          {{ saving ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

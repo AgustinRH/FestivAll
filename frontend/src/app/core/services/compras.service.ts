@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Compra } from '../models';
+import { Compra, EntradaAdmin } from '../models';
 
 export interface CheckoutResponse {
   free: boolean;
@@ -69,5 +69,20 @@ export class ComprasService {
   /** Panel admin: liquidación para transferir al local. */
   getCierreCaja(idEvento: number) {
     return this.http.get<CierreCajaReport>(`${this.api}/admin/eventos/${idEvento}/cierre-caja`);
+  }
+
+  getEntradasAdmin(idEvento: number) {
+    return this.http.get<EntradaAdmin[]>(`${this.api}/admin/eventos/${idEvento}/entradas`);
+  }
+
+  deleteEntradaAdmin(idCompra: number) {
+    return this.http.delete<{ message: string }>(`${this.api}/admin/entradas/${idCompra}`);
+  }
+
+  reasignarEntradaAdmin(idCompra: number, idUsuario: number) {
+    return this.http.patch<{ message: string; entrada: EntradaAdmin }>(
+      `${this.api}/admin/entradas/${idCompra}`,
+      { idUsuario },
+    );
   }
 }

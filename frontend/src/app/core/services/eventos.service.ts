@@ -78,6 +78,11 @@ export class EventosService {
     return this.http.get<Evento>(`${this.api}/${id}`);
   }
 
+  /** Acepta slug SEO (`100-titulo-localidad`) o id numérico. */
+  getBySlugOrId(slugOrId: string) {
+    return this.http.get<Evento>(`${this.api}/${slugOrId}`);
+  }
+
   create(data: Record<string, unknown>) {
     return this.http.post<Evento>(this.api, data);
   }

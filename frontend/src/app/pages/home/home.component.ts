@@ -5,6 +5,7 @@ import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
 import { EventCardComponent } from '../../shared/event-card/event-card.component';
 import { EventosService } from '../../core/services/eventos.service';
+import { SeoService } from '../../core/services/seo.service';
 import { Evento } from '../../core/models';
 
 const HOME_ULTIMAS_ENTRADAS_MAX = 6;
@@ -18,6 +19,7 @@ const HOME_ULTIMAS_ENTRADAS_MAX = 6;
 })
 export class HomeComponent implements OnInit {
   private eventosService = inject(EventosService);
+  private seo = inject(SeoService);
 
   populares: Evento[] = [];
   ultimasEntradas: Evento[] = [];
@@ -30,6 +32,7 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.seo.setHome();
     forkJoin({
       populares: this.eventosService.getPopular(),
       ultimas: this.eventosService.getUltimasEntradas(),

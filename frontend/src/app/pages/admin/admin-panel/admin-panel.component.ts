@@ -6,11 +6,15 @@ import { Router, RouterLink } from '@angular/router';
 import { EventosService } from '../../../core/services/eventos.service';
 import { ComprasService, CierreCajaReport } from '../../../core/services/compras.service';
 import { CatalogoService } from '../../../core/services/catalogo.service';
+import { ClientesAdminService } from '../../../core/services/clientes-admin.service';
+import { UsuariosAdminService } from '../../../core/services/usuarios-admin.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Evento, Categoria } from '../../../core/models';
+import { Evento, Categoria, Cliente } from '../../../core/models';
 import { AdminUsuariosComponent } from '../admin-usuarios/admin-usuarios.component';
+import { AdminClientesComponent } from '../admin-clientes/admin-clientes.component';
+import { AdminEntradasComponent } from '../admin-entradas/admin-entradas.component';
 
-type AdminSection = 'eventos' | 'usuarios';
+type AdminSection = 'eventos' | 'usuarios' | 'clientes' | 'entradas';
 type AdminView = 'list' | 'form';
 type MsgType = 'success' | 'error';
 
@@ -24,6 +28,8 @@ type MsgType = 'success' | 'error';
     FormsModule,
     RouterLink,
     AdminUsuariosComponent,
+    AdminClientesComponent,
+    AdminEntradasComponent,
   ],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.scss',
@@ -33,6 +39,8 @@ export class AdminPanelComponent implements OnInit {
   private eventosService = inject(EventosService);
   private comprasService = inject(ComprasService);
   private catalogoService = inject(CatalogoService);
+  private clientesService = inject(ClientesAdminService);
+  private usuariosService = inject(UsuariosAdminService);
   private auth = inject(AuthService);
   private router = inject(Router);
 
@@ -41,6 +49,8 @@ export class AdminPanelComponent implements OnInit {
   section: AdminSection = 'eventos';
   eventos: Evento[] = [];
   categorias: Categoria[] = [];
+  clientesList: Cliente[] = [];
+  usuariosCount = 0;
   editingId: number | null = null;
   view: AdminView = 'list';
   loading = false;
@@ -72,6 +82,7 @@ export class AdminPanelComponent implements OnInit {
     imagenUrl: [''],
     destacado: [false],
     soloMayoresEdad: [false],
+    idCliente: ['1', Validators.required],
   });
 
   readonly user = this.auth.currentUser;
@@ -79,6 +90,18 @@ export class AdminPanelComponent implements OnInit {
   ngOnInit() {
     this.load();
     this.catalogoService.getCategorias().subscribe((c) => (this.categorias = c));
+    this.clientesService.getAll().subscribe({
+      next: (list) => (this.clientesList = list),
+      error: () => {},
+    });
+    this.refreshUsuariosCount();
+  }
+
+  refreshUsuariosCount() {
+    this.usuariosService.getAll().subscribe({
+      next: (list) => (this.usuariosCount = list.length),
+      error: () => {},
+    });
   }
 
   get filteredEventos(): Evento[] {
@@ -164,6 +187,18 @@ export class AdminPanelComponent implements OnInit {
     this.adminUsuarios?.closeForm();
   }
 
+  selectClientes() {
+    this.section = 'clientes';
+    this.closeSidebar();
+    this.closeForm();
+  }
+
+  selectEntradas() {
+    this.section = 'entradas';
+    this.closeSidebar();
+    this.closeForm();
+  }
+
   openNewUsuario() {
     this.section = 'usuarios';
     this.closeSidebar();
@@ -177,6 +212,12 @@ export class AdminPanelComponent implements OnInit {
         return u.editingId ? 'Editar usuario' : 'Crear usuario';
       }
       return 'Gestión de usuarios';
+    }
+    if (this.section === 'clientes') {
+      return 'Organizadores (clientes)';
+    }
+    if (this.section === 'entradas') {
+      return 'Entradas vendidas';
     }
     return this.view === 'form'
       ? this.editingId
@@ -192,6 +233,12 @@ export class AdminPanelComponent implements OnInit {
         return 'Completa los datos y guarda el usuario en FestivAll';
       }
       return 'Añade, edita o elimina cuentas de clientes y administradores';
+    }
+    if (this.section === 'clientes') {
+      return 'Empresas y locales que organizan eventos; se asignan al crear cada festival';
+    }
+    if (this.section === 'entradas') {
+      return 'Consulta titular por entrada, reasigna o elimina (devuelve stock)';
     }
     if (this.view === 'list') {
       return 'Administra festivales, entradas y eventos destacados del inicio';
@@ -238,6 +285,7 @@ export class AdminPanelComponent implements OnInit {
       imagenUrl: img,
       destacado: evento.destacado ?? false,
       soloMayoresEdad: evento.soloMayoresEdad ?? false,
+      idCliente: String(evento.idCliente ?? 1),
     });
   }
 
@@ -249,6 +297,7 @@ export class AdminPanelComponent implements OnInit {
       destacado: false,
       soloMayoresEdad: false,
       provincia: 'Almería',
+      idCliente: '1',
     });
   }
 
@@ -275,6 +324,7 @@ export class AdminPanelComponent implements OnInit {
       imagenUrl: raw.imagenUrl || undefined,
       destacado: !!raw.destacado,
       soloMayoresEdad: !!raw.soloMayoresEdad,
+      idCliente: +raw.idCliente!,
     };
 
     this.saving = true;

@@ -6,11 +6,16 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NavbarComponent } from '../../../shared/navbar/navbar.component';
 import { FooterComponent } from '../../../shared/footer/footer.component';
 import { EventosService } from '../../../core/services/eventos.service';
+import { SeoService } from '../../../core/services/seo.service';
 import { ComprasService } from '../../../core/services/compras.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { getHttpErrorMessage } from '../../../core/utils/http-error';
 import { getPrecioUnitario, aplicaDescuentoUltimasEntradas } from '../../../core/utils/precio.util';
 import { Evento, Compra } from '../../../core/models';
+import {
+  getEventoSlugSegment,
+  parseEventoIdFromSlug,
+} from '../../../core/utils/evento-slug.util';
 import { LegalPrimeraCapaComponent } from '../../../shared/legal-primera-capa/legal-primera-capa.component';
 
 @Component({
@@ -34,6 +39,7 @@ export class EventoDetailComponent implements OnInit {
   private location = inject(Location);
   private fb = inject(FormBuilder);
   private eventosService = inject(EventosService);
+  private seo = inject(SeoService);
   private comprasService = inject(ComprasService);
   auth = inject(AuthService);
 
@@ -62,24 +68,44 @@ export class EventoDetailComponent implements OnInit {
   });
 
   ngOnInit() {
-    const id = +this.route.snapshot.paramMap.get('id')!;
     if (this.route.snapshot.queryParamMap.get('pago') === 'cancelado') {
       this.error = 'Has cancelado el pago. Puedes volver a intentarlo cuando quieras.';
     }
-    this.eventosService.getById(id).subscribe({
-      next: (e) => {
-        this.evento = e;
-        this.mostrarAvisoEdad = this.requiereConfirmacionEdad(e);
-        if (this.auth.isLoggedIn() && !this.mostrarAvisoEdad) {
-          this.cargarPerfilCompra();
-        }
-      },
-      error: (err) => {
-        if (err.status === 404) {
-          this.error = 'Este evento ya no está disponible (ha finalizado o no existe).';
-        }
-      },
+    this.route.paramMap.subscribe((params) => {
+      const slugParam = params.get('slug') ?? '';
+      const id = parseEventoIdFromSlug(slugParam);
+      if (!id) {
+        this.error = 'Enlace de evento no válido.';
+        return;
+      }
+      this.eventosService.getById(id).subscribe({
+        next: (e) => {
+          this.evento = e;
+          this.redirigirSlugCanonico(slugParam, e);
+          this.seo.setEvento(e);
+          this.mostrarAvisoEdad = this.requiereConfirmacionEdad(e);
+          if (this.auth.isLoggedIn() && !this.mostrarAvisoEdad) {
+            this.cargarPerfilCompra();
+          }
+        },
+        error: (err) => {
+          if (err.status === 404) {
+            this.error = 'Este evento ya no está disponible (ha finalizado o no existe).';
+          }
+        },
+      });
     });
+  }
+
+  /** Redirige a la URL con slug SEO si entraron solo con el ID numérico. */
+  private redirigirSlugCanonico(slugParam: string, evento: Evento) {
+    const canonico = getEventoSlugSegment(evento);
+    if (slugParam !== canonico) {
+      void this.router.navigate(['/eventos', canonico], {
+        replaceUrl: true,
+        queryParamsHandling: 'preserve',
+      });
+    }
   }
 
   private edadStorageKey(eventoId: number): string {

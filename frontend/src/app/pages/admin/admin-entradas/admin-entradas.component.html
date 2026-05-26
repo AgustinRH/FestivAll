@@ -1,0 +1,89 @@
+<div class="admin-entradas">
+  <p class="hint">
+    Cada fila es una entrada vendida (una unidad). Puedes reasignar el titular a otro usuario registrado o eliminar la entrada
+    (el stock del evento aumenta en 1).
+  </p>
+  @if (msg) {
+    <p class="toast-inline">{{ msg }}</p>
+  }
+
+  <div class="toolbar">
+    <label class="event-select">
+      <span>Evento</span>
+      <select [(ngModel)]="eventoId" (ngModelChange)="cargarEntradas()">
+        <option [ngValue]="null">— Elige un evento —</option>
+        @for (e of eventosList; track e.id) {
+          <option [ngValue]="e.id">{{ e.titulo }} (id {{ e.id }})</option>
+        }
+      </select>
+    </label>
+    <button type="button" class="btn-secondary" [disabled]="!eventoId || loadingEntradas" (click)="cargarEntradas()">
+      Actualizar
+    </button>
+  </div>
+
+  @if (loadingEntradas) {
+    <p class="muted">Cargando entradas…</p>
+  } @else if (eventoId && entradas.length === 0) {
+    <p class="muted">No hay entradas vendidas para este evento.</p>
+  } @else if (eventoId) {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Titular</th>
+            <th>Email</th>
+            <th>Precio</th>
+            <th>Fecha compra</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of entradas; track row.id) {
+            <tr>
+              <td><code>{{ row.codigoAcceso }}</code></td>
+              <td>
+                @if (row.usuario) {
+                  {{ row.usuario.nombre }} {{ row.usuario.apellidos }}
+                } @else {
+                  —
+                }
+              </td>
+              <td>{{ row.usuario?.email || '—' }}</td>
+              <td>{{ row.totalPago | currency:'EUR' }}</td>
+              <td>{{ row.fechaCompra | date:'short':'':'es' }}</td>
+              <td class="actions">
+                <button type="button" class="btn-sm" (click)="abrirReasignar(row)">Cambiar titular</button>
+                <button type="button" class="btn-sm danger" (click)="eliminar(row)">Eliminar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (reasignarId) {
+    <div class="modal-backdrop" (click)="cerrarReasignar()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3>Reasignar entrada</h3>
+        <p class="muted">Elige el usuario que verá esta entrada en su perfil.</p>
+        <label>
+          <span>Usuario</span>
+          <select [(ngModel)]="nuevoUsuarioId">
+            @for (u of usuariosList; track u.id) {
+              <option [ngValue]="u.id">{{ u.nombre }} {{ u.apellidos }} — {{ u.email }}</option>
+            }
+          </select>
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="cerrarReasignar()">Cancelar</button>
+          <button type="button" class="btn-primary" [disabled]="!nuevoUsuarioId" (click)="confirmarReasignar()">
+            Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -11,6 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { parseEventoIdFromSlug } from '../common/seo-slug.util';
 import { EventosService } from './eventos.service';
 import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
@@ -75,8 +77,12 @@ export class EventosController {
     return this.eventosService.findUltimasEntradas();
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  @Get(':slugOrId')
+  findOne(@Param('slugOrId') slugOrId: string) {
+    const id = parseEventoIdFromSlug(slugOrId);
+    if (id == null) {
+      throw new BadRequestException('Identificador de evento inválido');
+    }
     return this.eventosService.findOnePublic(id);
   }
 

@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
+import { buildEventoSlug } from '../common/seo-slug.util';
 import { Evento } from '../entities/evento.entity';
 import { Imagen } from '../entities/imagen.entity';
 import { Ubicacion } from '../entities/ubicacion.entity';
+import { Cliente } from '../entities/cliente.entity';
 import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
 import { STOCK_ULTIMAS_ENTRADAS_MAX } from './precio.util';
@@ -32,18 +34,51 @@ export interface EventosPaginatedResult {
 }
 
 @Injectable()
-export class EventosService {
+export class EventosService implements OnModuleInit {
+  private readonly logger = new Logger(EventosService.name);
+
   constructor(
     @InjectRepository(Evento) private eventoRepo: Repository<Evento>,
     @InjectRepository(Imagen) private imagenRepo: Repository<Imagen>,
     @InjectRepository(Ubicacion) private ubicacionRepo: Repository<Ubicacion>,
+    @InjectRepository(Cliente) private clienteRepo: Repository<Cliente>,
   ) {}
+
+  private async assertCliente(idCliente: number) {
+    const c = await this.clienteRepo.findOne({ where: { id: idCliente } });
+    if (!c) throw new BadRequestException('Organizador (cliente) no encontrado');
+  }
+
+  async onModuleInit() {
+    await this.backfillSlugs();
+  }
+
+  private async backfillSlugs() {
+    const pendientes = await this.eventoRepo.find({
+      where: { slug: IsNull() },
+      relations: ['ubicacion'],
+    });
+    if (!pendientes.length) return;
+
+    for (const evento of pendientes) {
+      evento.slug = buildEventoSlug(evento.id, evento.titulo, evento.ubicacion?.localidad);
+      await this.eventoRepo.save(evento);
+    }
+    this.logger.log(`Slugs SEO: ${pendientes.length} evento(s) actualizados`);
+  }
+
+  private async asignarSlug(evento: Evento, localidad?: string | null) {
+    const loc = localidad ?? evento.ubicacion?.localidad;
+    evento.slug = buildEventoSlug(evento.id, evento.titulo, loc);
+    await this.eventoRepo.save(evento);
+  }
 
   private baseQuery() {
     return this.eventoRepo
       .createQueryBuilder('evento')
       .leftJoinAndSelect('evento.categoria', 'categoria')
       .leftJoinAndSelect('evento.ubicacion', 'ubicacion')
+      .leftJoinAndSelect('evento.cliente', 'cliente')
       .leftJoinAndSelect('evento.imagenes', 'imagenes');
   }
 
@@ -114,7 +149,8 @@ export class EventosService {
   private countQuery(filters?: EventoFilters) {
     const qb = this.eventoRepo
       .createQueryBuilder('evento')
-      .leftJoin('evento.ubicacion', 'ubicacion');
+      .leftJoin('evento.ubicacion', 'ubicacion')
+      .leftJoin('evento.cliente', 'cliente');
     this.applyFilters(qb, filters);
     return qb;
   }
@@ -180,16 +216,19 @@ export class EventosService {
   }
 
   async create(dto: CreateEventoDto) {
-    const { imagenUrl, direccion, localidad, provincia, ...rest } = dto;
+    const { imagenUrl, direccion, localidad, provincia, idCliente, ...rest } = dto;
+    await this.assertCliente(idCliente);
     const idUbicacion = await this.guardarUbicacion({ direccion, localidad, provincia });
 
     const evento = this.eventoRepo.create({
       ...rest,
       idUbicacion,
+      idCliente,
       destacado: dto.destacado ?? false,
       soloMayoresEdad: dto.soloMayoresEdad ?? false,
     });
     const saved = await this.eventoRepo.save(evento);
+    await this.asignarSlug(saved, localidad);
 
     if (imagenUrl) {
       await this.imagenRepo.save({
@@ -204,7 +243,11 @@ export class EventosService {
 
   async update(id: number, dto: UpdateEventoDto) {
     const evento = await this.findOneById(id);
-    const { imagenUrl, direccion, localidad, provincia, ...rest } = dto;
+    const { imagenUrl, direccion, localidad, provincia, idCliente, ...rest } = dto;
+
+    if (idCliente !== undefined) {
+      await this.assertCliente(idCliente);
+    }
 
     if (direccion !== undefined || localidad !== undefined || provincia !== undefined) {
       await this.guardarUbicacion(
@@ -219,6 +262,13 @@ export class EventosService {
 
     Object.assign(evento, rest);
     await this.eventoRepo.save(evento);
+
+    const actualizado = await this.findOneById(id);
+    const loc =
+      localidad ??
+      actualizado.ubicacion?.localidad ??
+      evento.ubicacion?.localidad;
+    await this.asignarSlug(actualizado, loc);
 
     if (imagenUrl) {
       const principal = evento.imagenes?.find((i) => i.esPrincipal);

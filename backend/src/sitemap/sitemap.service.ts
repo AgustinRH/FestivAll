@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Evento } from '../entities/evento.entity';
 import { hoyIso } from '../eventos/evento-activo.util';
-import { slugify } from '../common/seo-slug.util';
+import { buildEventoSlug, slugify } from '../common/seo-slug.util';
 
 type SitemapUrl = {
   loc: string;
@@ -49,11 +49,19 @@ export class SitemapService {
     return 'COALESCE(evento.fechaFin, evento.fechaInicio) >= :hoy';
   }
 
-  private toLastmodIso(value: unknown, fallback: string): string {
-    if (value == null) return fallback;
-    if (value instanceof Date) return value.toISOString().slice(0, 10);
-    const s = String(value);
-    return s.length >= 10 ? s.slice(0, 10) : fallback;
+  /** ISO date (YYYY-MM-DD); nunca posterior a maxDate (p. ej. hoy). */
+  private toLastmodIso(value: unknown, fallback: string, maxDate?: string): string {
+    let iso = fallback;
+    if (value != null) {
+      if (value instanceof Date) {
+        iso = value.toISOString().slice(0, 10);
+      } else {
+        const s = String(value);
+        if (s.length >= 10) iso = s.slice(0, 10);
+      }
+    }
+    if (maxDate && iso > maxDate) return maxDate;
+    return iso;
   }
 
   async buildXml(): Promise<string> {
@@ -86,18 +94,17 @@ export class SitemapService {
       .createQueryBuilder('evento')
       .innerJoin('evento.ubicacion', 'ubicacion')
       .select('ubicacion.localidad', 'localidad')
-      .addSelect('MAX(COALESCE(evento.fechaFin, evento.fechaInicio))', 'lastmod')
       .where(this.activosCondition(hoy), { hoy })
       .groupBy('ubicacion.localidad')
       .orderBy('ubicacion.localidad', 'ASC')
-      .getRawMany<{ localidad: string; lastmod: string }>();
+      .getRawMany<{ localidad: string }>();
 
     for (const row of localidades) {
       const slug = slugify(row.localidad);
       if (!slug) continue;
       push({
         loc: `${origin}/eventos/localidad/${slug}`,
-        lastmod: this.toLastmodIso(row.lastmod, hoy),
+        lastmod: hoy,
         changefreq: 'weekly',
         priority: '0.7',
       });
@@ -109,19 +116,18 @@ export class SitemapService {
       .innerJoin('evento.categoria', 'categoria')
       .select('categoria.id', 'id')
       .addSelect('categoria.nombreCategoria', 'nombre')
-      .addSelect('MAX(COALESCE(evento.fechaFin, evento.fechaInicio))', 'lastmod')
       .where(this.activosCondition(hoy), { hoy })
       .groupBy('categoria.id')
       .addGroupBy('categoria.nombreCategoria')
       .orderBy('categoria.nombreCategoria', 'ASC')
-      .getRawMany<{ id: number; nombre: string; lastmod: string }>();
+      .getRawMany<{ id: number; nombre: string }>();
 
     for (const row of categorias) {
       const slug = slugify(row.nombre);
       if (!slug) continue;
       push({
         loc: `${origin}/eventos/categoria/${slug}`,
-        lastmod: this.toLastmodIso(row.lastmod, hoy),
+        lastmod: hoy,
         changefreq: 'weekly',
         priority: '0.7',
       });
@@ -130,15 +136,17 @@ export class SitemapService {
     // —— Landing de cada evento activo ——
     const eventos = await this.eventoRepo
       .createQueryBuilder('evento')
+      .leftJoinAndSelect('evento.ubicacion', 'ubicacion')
       .where(this.activosCondition(hoy), { hoy })
       .orderBy('evento.id', 'ASC')
       .getMany();
 
     for (const e of eventos) {
-      const ref = e.fechaFin || e.fechaInicio;
+      const slug =
+        e.slug ?? buildEventoSlug(e.id, e.titulo, e.ubicacion?.localidad);
       push({
-        loc: `${origin}/eventos/${e.id}`,
-        lastmod: ref,
+        loc: `${origin}/eventos/${slug}`,
+        lastmod: this.toLastmodIso(e.updatedAt, hoy, hoy),
         changefreq: 'weekly',
         priority: '0.8',
       });

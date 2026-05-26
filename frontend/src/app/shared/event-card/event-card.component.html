@@ -1,5 +1,5 @@
 <article class="fest-card">
-  <a [routerLink]="['/eventos', evento.id]" class="card-image">
+  <a [routerLink]="eventoLink" class="card-image">
     <img [src]="imagenUrl" [alt]="evento.titulo" />
   </a>
   <div class="card-body">
@@ -22,7 +22,7 @@
           <p class="stock-hint stock-hint--spacer" aria-hidden="true">Quedan 0 entradas</p>
         }
       </div>
-      <a [routerLink]="['/eventos', evento.id]" class="btn-outline card-btn">VER DETALLES</a>
+      <a [routerLink]="eventoLink" class="btn-outline card-btn">VER DETALLES</a>
     </div>
   </div>
 </article>

@@ -70,7 +70,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/eventos/eventos-list/eventos-list.component').then(m => m.EventosListComponent),
   },
   {
-    path: 'eventos/:id',
+    path: 'eventos/:slug',
     loadComponent: () => import('./pages/eventos/evento-detail/evento-detail.component').then(m => m.EventoDetailComponent),
   },
   {

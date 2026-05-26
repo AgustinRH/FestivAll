@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -15,6 +17,7 @@ import type { RawBodyRequest } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { ComprasService } from './compras.service';
 import { CreateCompraDto } from './dto/create-compra.dto';
+import { ReasignarEntradaDto } from './dto/reasignar-entrada.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 
@@ -70,6 +73,27 @@ export class ComprasController {
   @Get('admin/eventos/:idEvento/cierre-caja')
   cierreCaja(@Param('idEvento', ParseIntPipe) idEvento: number) {
     return this.comprasService.calcularCierreCaja(idEvento);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Get('admin/eventos/:idEvento/entradas')
+  listEntradasEvento(@Param('idEvento', ParseIntPipe) idEvento: number) {
+    return this.comprasService.findEntradasByEventoAdmin(idEvento);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Delete('admin/entradas/:idCompra')
+  deleteEntrada(@Param('idCompra', ParseIntPipe) idCompra: number) {
+    return this.comprasService.deleteEntradaAdmin(idCompra);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Patch('admin/entradas/:idCompra')
+  reasignarEntrada(
+    @Param('idCompra', ParseIntPipe) idCompra: number,
+    @Body() dto: ReasignarEntradaDto,
+  ) {
+    return this.comprasService.reasignarEntradaAdmin(idCompra, dto.idUsuario);
   }
 
   @UseGuards(JwtAuthGuard)

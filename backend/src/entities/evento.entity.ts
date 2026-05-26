@@ -5,11 +5,13 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Categoria } from './categoria.entity';
 import { Ubicacion } from './ubicacion.entity';
 import { Imagen } from './imagen.entity';
 import { Compra } from './compra.entity';
+import { Cliente } from './cliente.entity';
 
 @Entity('evento')
 export class Evento {
@@ -22,8 +24,14 @@ export class Evento {
   @Column({ name: 'id_ubicacion' })
   idUbicacion: number;
 
+  @Column({ name: 'id_cliente' })
+  idCliente: number;
+
   @Column({ length: 150 })
   titulo: string;
+
+  @Column({ type: 'varchar', length: 180, unique: true, nullable: true })
+  slug: string | null;
 
   @Column({ type: 'text', nullable: true })
   descripcion: string;
@@ -52,6 +60,9 @@ export class Evento {
   @Column({ name: 'solo_mayores_edad', default: false })
   soloMayoresEdad: boolean;
 
+  @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
+  updatedAt: Date;
+
   @ManyToOne(() => Categoria, (categoria) => categoria.eventos)
   @JoinColumn({ name: 'id_categoria' })
   categoria: Categoria;
@@ -59,6 +70,10 @@ export class Evento {
   @ManyToOne(() => Ubicacion, (ubicacion) => ubicacion.eventos)
   @JoinColumn({ name: 'id_ubicacion' })
   ubicacion: Ubicacion;
+
+  @ManyToOne(() => Cliente, (c) => c.eventos)
+  @JoinColumn({ name: 'id_cliente' })
+  cliente: Cliente;
 
   @OneToMany(() => Imagen, (imagen) => imagen.evento)
   imagenes: Imagen[];

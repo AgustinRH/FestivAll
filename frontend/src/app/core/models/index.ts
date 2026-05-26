@@ -35,6 +35,18 @@ export interface Imagen {
   esPrincipal: boolean;
 }
 
+export interface Cliente {
+  id: number;
+  nombre: string;
+  nombreFiscal?: string | null;
+  cif?: string | null;
+  emailContacto?: string | null;
+  telefono?: string | null;
+  notas?: string | null;
+  activo: boolean;
+  createdAt?: string;
+}
+
 export interface EventosPaginatedResponse {
   items: Evento[];
   total: number;
@@ -46,6 +58,7 @@ export interface EventosPaginatedResponse {
 export interface Evento {
   id: number;
   titulo: string;
+  slug?: string | null;
   descripcion: string;
   fechaInicio: string;
   fechaFin?: string;
@@ -55,10 +68,13 @@ export interface Evento {
   stock: number;
   destacado?: boolean;
   soloMayoresEdad?: boolean;
+  updatedAt?: string;
   idCategoria: number;
   idUbicacion: number;
+  idCliente: number;
   categoria?: Categoria;
   ubicacion?: Ubicacion;
+  cliente?: Cliente;
   imagenes?: Imagen[];
 }
 
@@ -69,4 +85,21 @@ export interface Compra {
   fechaCompra: string;
   codigoAcceso: string;
   evento?: Evento;
+}
+
+export interface EntradaAdmin {
+  id: number;
+  idEvento: number;
+  idUsuario: number;
+  cantidad: number;
+  totalPago: number;
+  fechaCompra: string;
+  codigoAcceso: string;
+  stripeCheckoutSessionId: string | null;
+  usuario: {
+    id: number;
+    nombre: string;
+    apellidos: string;
+    email: string;
+  } | null;
 }
