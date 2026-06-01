@@ -1,0 +1,74 @@
+<div class="ubicacion-picker" [formGroup]="form()">
+  <label class="span-2 search-field">
+    <span>Buscar dirección</span>
+    <div class="search-wrap">
+      <input
+        type="text"
+        [value]="searchQuery"
+        (input)="onSearchInput($any($event.target).value)"
+        (focus)="onSearchFocus()"
+        (blur)="closeDropdown()"
+        placeholder="Escribe calle, número y localidad (mín. 3 caracteres)…"
+        autocomplete="off"
+      />
+      @if (searchLoading) {
+        <span class="search-status">Buscando…</span>
+      }
+      @if (showDropdown && suggestions.length) {
+        <ul class="suggestions" role="listbox">
+          @for (item of suggestions; track item.id) {
+            <li>
+              <button type="button" (mousedown)="selectSuggestion(item)">
+                {{ item.label }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+    <span class="field-hint">Elige una sugerencia para rellenar dirección y coordenadas.</span>
+  </label>
+
+  <label class="span-2" [class.has-error]="isInvalid('direccion')">
+    <span>Dirección <em>*</em></span>
+    <input formControlName="direccion" placeholder="Calle, número, recinto, etc." />
+  </label>
+  <label [class.has-error]="isInvalid('localidad')">
+    <span>Localidad <em>*</em></span>
+    <input formControlName="localidad" placeholder="Ej. Almería, Roquetas de Mar" />
+  </label>
+  <label [class.has-error]="isInvalid('provincia')">
+    <span>Provincia <em>*</em></span>
+    <input formControlName="provincia" placeholder="Ej. Almería" />
+  </label>
+
+  <div class="span-2 coords-row">
+    <label>
+      <span>Latitud</span>
+      <input type="number" step="any" formControlName="latitud" placeholder="36.834047" />
+    </label>
+    <label>
+      <span>Longitud</span>
+      <input type="number" step="any" formControlName="longitud" placeholder="-2.463713" />
+    </label>
+  </div>
+
+  <div class="span-2 map-block">
+    @if (hasCoords) {
+      <p class="map-hint">Arrastra el marcador para afinar la ubicación exacta del evento.</p>
+    } @else {
+      <p class="map-hint muted">
+        Selecciona una sugerencia arriba o
+        <button
+          type="button"
+          class="link-btn"
+          (click)="geocodificarDesdeCampos()"
+          [disabled]="geocodeFallbackLoading"
+        >
+          {{ geocodeFallbackLoading ? 'buscando…' : 'obtén coordenadas desde los campos' }}
+        </button>
+      </p>
+    }
+    <div #mapEl class="picker-map" [class.is-ready]="mapReady" [class.is-hidden]="!hasCoords"></div>
+  </div>
+</div>

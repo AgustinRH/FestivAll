@@ -33,6 +33,7 @@
     </div>
     <select [(ngModel)]="filterRol" class="filter-select" aria-label="Filtrar por rol">
       <option value="">Todos los roles</option>
+      <option value="owner">Propietario</option>
       <option value="admin">Administradores</option>
       <option value="cliente">Clientes</option>
     </select>
@@ -70,15 +71,19 @@
     </p>
     <div class="user-grid">
       @for (u of filteredUsuarios; track u.id) {
-        <article class="user-card" [class.is-self]="isSelf(u)">
+        <article class="user-card" [class.is-self]="isSelf(u)" [class.is-owner]="isOwnerAccount(u)">
           <div class="user-avatar" aria-hidden="true">
             {{ u.nombre.charAt(0) }}{{ u.apellidos.charAt(0) }}
           </div>
           <div class="card-body">
             <div class="card-head">
               <h3>{{ u.nombre }} {{ u.apellidos }}</h3>
-              <span class="role-tag" [class.admin]="u.rol === 'admin'">
-                {{ u.rol === 'admin' ? 'Admin' : 'Cliente' }}
+              <span
+                class="role-tag"
+                [class.admin]="u.rol === 'admin'"
+                [class.owner]="u.rol === 'owner'"
+              >
+                {{ rolLabel(u.rol) }}
               </span>
             </div>
             <p class="card-email">{{ u.email }}</p>
@@ -90,16 +95,20 @@
                 <span class="pill pending">Pendiente verificación</span>
               }
             </div>
-            @if (isSelf(u)) {
+            @if (isOwnerAccount(u)) {
+              <p class="self-hint protected-hint">Cuenta propietaria: solo el propietario puede editarla; no se puede eliminar.</p>
+            } @else if (isSelf(u)) {
               <p class="self-hint">Tu cuenta (no puedes eliminarla)</p>
             }
           </div>
           <div class="card-actions">
-            <button type="button" class="btn-secondary" (click)="openEdit(u)">Editar</button>
+            <button type="button" class="btn-secondary" [disabled]="!canEditUser(u)" (click)="openEdit(u)">
+              Editar
+            </button>
             <button
               type="button"
               class="btn-danger"
-              [disabled]="isSelf(u)"
+              [disabled]="!canDeleteUser(u)"
               (click)="delete(u, $event)"
             >
               Eliminar

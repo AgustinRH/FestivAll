@@ -23,6 +23,7 @@ export class StripeService {
     if (key) {
       this.stripe = new Stripe(key);
       this.logger.log(`Stripe inicializado (STRIPE_MODE=${this.mode})`);
+      this.validateTaxRateConfig();
     }
   }
 
@@ -85,6 +86,29 @@ export class StripeService {
       percent: Number.isFinite(percent) && percent >= 0 ? percent : 1.5,
       fixedEur: Number.isFinite(fixedEur) && fixedEur >= 0 ? fixedEur : 0.25,
     };
+  }
+
+  private validateTaxRateConfig(): void {
+    const testId = this.config.get<string>('STRIPE_TAX_RATE_ID_TEST')?.trim();
+    const liveId = this.config.get<string>('STRIPE_TAX_RATE_ID_LIVE')?.trim();
+    if (testId && liveId && testId === liveId) {
+      this.logger.warn(
+        'STRIPE_TAX_RATE_ID_TEST y STRIPE_TAX_RATE_ID_LIVE son iguales: el de test debe crearse con "Test mode" en el Dashboard de Stripe.',
+      );
+    }
+
+    const testWh = this.config.get<string>('STRIPE_WEBHOOK_SECRET_TEST')?.trim();
+    const liveWh = this.config.get<string>('STRIPE_WEBHOOK_SECRET_LIVE')?.trim();
+    if (testWh && liveWh && testWh === liveWh) {
+      this.logger.warn(
+        'STRIPE_WEBHOOK_SECRET_TEST y STRIPE_WEBHOOK_SECRET_LIVE son iguales: cada endpoint de webhook en Stripe tiene su propio whsec_ (test ≠ live).',
+      );
+    }
+    if (this.mode === 'test' && !testWh) {
+      this.logger.warn(
+        'STRIPE_WEBHOOK_SECRET_TEST no configurado: los webhooks fallarán en modo test (las entradas solo se confirmarán al volver del checkout).',
+      );
+    }
   }
 
   private resolveMode(): StripeMode {

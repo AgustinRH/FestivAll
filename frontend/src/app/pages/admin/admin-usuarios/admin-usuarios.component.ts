@@ -33,7 +33,7 @@ export class AdminUsuariosComponent implements OnInit {
   loading = false;
   saving = false;
   search = '';
-  filterRol: '' | 'admin' | 'cliente' = '';
+  filterRol: '' | 'owner' | 'admin' | 'cliente' = '';
   filterVerificado: 'all' | 'si' | 'no' = 'all';
   msg = '';
   msgType: MsgType = 'success';
@@ -47,7 +47,7 @@ export class AdminUsuariosComponent implements OnInit {
     apellidos: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     password: [''],
-    rol: ['cliente' as 'admin' | 'cliente', Validators.required],
+    rol: ['cliente' as 'owner' | 'admin' | 'cliente', Validators.required],
     emailVerificado: [false],
   });
 
@@ -68,7 +68,7 @@ export class AdminUsuariosComponent implements OnInit {
   }
 
   get adminCount(): number {
-    return this.usuarios.filter((u) => u.rol === 'admin').length;
+    return this.usuarios.filter((u) => u.rol === 'admin' || u.rol === 'owner').length;
   }
 
   get unverifiedCount(): number {
@@ -104,6 +104,10 @@ export class AdminUsuariosComponent implements OnInit {
   }
 
   openEdit(user: AdminUser) {
+    if (!this.canEditUser(user)) {
+      this.notify('No tienes permiso para modificar a este usuario', 'error');
+      return;
+    }
     this.editingId = user.id;
     this.form.patchValue({
       nombre: user.nombre,
@@ -116,6 +120,11 @@ export class AdminUsuariosComponent implements OnInit {
     this.form.get('password')?.clearValidators();
     this.form.get('password')?.setValidators([strongPasswordValidator()]);
     this.form.get('password')?.updateValueAndValidity();
+    if (user.rol === 'owner') {
+      this.form.get('rol')?.disable();
+    } else {
+      this.form.get('rol')?.enable();
+    }
     this.view = 'form';
   }
 
@@ -127,6 +136,7 @@ export class AdminUsuariosComponent implements OnInit {
   cancelEdit() {
     this.editingId = null;
     this.form.reset({ rol: 'cliente', emailVerificado: false });
+    this.form.get('rol')?.enable();
     this.form.get('password')?.clearValidators();
     this.form.get('password')?.updateValueAndValidity();
   }
@@ -145,7 +155,7 @@ export class AdminUsuariosComponent implements OnInit {
         nombre: raw.nombre!,
         apellidos: raw.apellidos!,
         email: raw.email!,
-        rol: raw.rol!,
+        rol: (this.form.get('rol')?.disabled ? 'owner' : raw.rol)!,
         emailVerificado: !!raw.emailVerificado,
       };
       if (raw.password?.trim()) {
@@ -188,6 +198,10 @@ export class AdminUsuariosComponent implements OnInit {
 
   delete(user: AdminUser, ev?: Event) {
     ev?.stopPropagation();
+    if (!this.canDeleteUser(user)) {
+      this.notify('No tienes permiso para eliminar a este usuario', 'error');
+      return;
+    }
     const label = `${user.nombre} ${user.apellidos}`;
     if (!confirm(`¿Eliminar a «${label}»? Esta acción no se puede deshacer.`)) return;
     this.usuariosService.delete(user.id).subscribe({
@@ -208,6 +222,31 @@ export class AdminUsuariosComponent implements OnInit {
 
   isSelf(user: AdminUser): boolean {
     return user.id === this.currentUserId();
+  }
+
+  isOwnerAccount(user: AdminUser): boolean {
+    return user.rol === 'owner';
+  }
+
+  canEditUser(user: AdminUser): boolean {
+    if (!this.isOwnerAccount(user)) return true;
+    return this.auth.isOwner() && this.isSelf(user);
+  }
+
+  canDeleteUser(user: AdminUser): boolean {
+    if (this.isOwnerAccount(user)) return false;
+    return !this.isSelf(user);
+  }
+
+  rolLabel(rol: AdminUser['rol']): string {
+    switch (rol) {
+      case 'owner':
+        return 'Propietario';
+      case 'admin':
+        return 'Admin';
+      default:
+        return 'Cliente';
+    }
   }
 
   notify(text: string, type: MsgType = 'success') {

@@ -10,7 +10,7 @@ import { ComprasService } from '../../core/services/compras.service';
 import { ValoracionesService } from '../../core/services/valoraciones.service';
 import { EventoValoracionFormComponent } from '../../shared/evento-valoracion-form/evento-valoracion-form.component';
 import { Evento, EventoPendienteValorar, ValoracionPerfil } from '../../core/models';
-import { getEventoSlugSegment } from '../../core/utils/evento-slug.util';
+import { getEventoSlugSegment, opinionEventoPath } from '../../core/utils/evento-slug.util';
 import {
   EntradaPerfil,
   GrupoEntradas,
@@ -213,6 +213,15 @@ export class PerfilComponent implements OnInit {
       ubicacion: item.localidad ? { localidad: item.localidad } : null,
     });
     return `/eventos/${segment}`;
+  }
+
+  rutaOpinionesEvento(item: { id: number; slug?: string | null; titulo: string; localidad?: string | null }): string[] {
+    return opinionEventoPath({
+      id: item.id,
+      slug: item.slug ?? null,
+      titulo: item.titulo,
+      localidad: item.localidad ?? null,
+    });
   }
 
   estrellas(puntuacion: number): boolean[] {

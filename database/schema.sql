@@ -10,8 +10,12 @@ CREATE TABLE ubicacion (
     id_ubicacion INT AUTO_INCREMENT PRIMARY KEY,
     direccion VARCHAR(255) NOT NULL,
     localidad VARCHAR(100) NOT NULL,
-    provincia VARCHAR(100) NOT NULL DEFAULT 'Almería'
+    provincia VARCHAR(100) NOT NULL DEFAULT 'Almería',
+    latitud DECIMAL(10, 8) NULL,
+    longitud DECIMAL(11, 8) NULL
 );
+
+CREATE INDEX idx_ubicacion_coords ON ubicacion (latitud, longitud);
 
 CREATE TABLE cliente (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -33,7 +37,7 @@ CREATE TABLE usuario (
     apellidos VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    rol ENUM('admin', 'cliente') DEFAULT 'cliente',
+    rol ENUM('owner', 'admin', 'cliente') DEFAULT 'cliente',
     email_verificado BOOLEAN NOT NULL DEFAULT FALSE,
     email_verification_token VARCHAR(64) NULL,
     email_verification_expires DATETIME NULL,

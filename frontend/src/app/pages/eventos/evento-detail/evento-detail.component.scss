@@ -247,22 +247,6 @@
     object-fit: cover;
   }
 
-  .map-placeholder {
-    background: #1e2a3a;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-card);
-    padding: 2rem 1rem;
-    text-align: center;
-    min-height: 180px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    .map-label { font-weight: 700; font-size: 1.1rem; }
-    .map-addr { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem; }
-  }
-
   .buy-row {
     display: flex;
     align-items: center;
@@ -271,11 +255,14 @@
 
     .btn-comprar {
       flex: 1;
+      width: 100%;
+      min-height: 3rem;
+      box-sizing: border-box;
       background: var(--accent);
       color: #fff;
       border: none;
       border-radius: var(--radius-pill);
-      padding: 0.85rem;
+      padding: 0.85rem 1rem;
       font-weight: 800;
       font-size: 1rem;
       letter-spacing: 0.05em;

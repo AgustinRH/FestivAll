@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -8,6 +8,12 @@ import { Usuario } from '../entities/usuario.entity';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
+
+function jwtExpiresIn(config: ConfigService): JwtSignOptions['expiresIn'] {
+  const raw = config.get<string>('JWT_EXPIRES_IN')?.trim() || '7d';
+  const value = /^\d+$/.test(raw) ? `${raw}d` : raw;
+  return value as JwtSignOptions['expiresIn'];
+}
 
 @Module({
   imports: [
@@ -19,7 +25,7 @@ import { JwtStrategy } from './jwt.strategy';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET') || 'festivall_secret',
-        signOptions: { expiresIn: config.get('JWT_EXPIRES_IN') || '7d' },
+        signOptions: { expiresIn: jwtExpiresIn(config) },
       }),
     }),
   ],

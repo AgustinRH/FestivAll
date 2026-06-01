@@ -95,15 +95,34 @@
 
   <div class="main">
     <header class="topbar">
-      <button
-        type="button"
-        class="sidebar-toggle"
-        (click)="toggleSidebar()"
-        [attr.aria-expanded]="sidebarOpen"
-        aria-label="Abrir menú de administración"
-      >
-        ☰
-      </button>
+      <div class="topbar-leading">
+        @if (compactNav) {
+          <button
+            type="button"
+            class="sidebar-toggle"
+            (click)="toggleSidebar()"
+            [attr.aria-expanded]="sidebarOpen"
+            aria-label="Abrir menú de administración"
+          >
+            ☰
+          </button>
+          <label class="section-select-wrap">
+            <span class="sr-only">Sección de administración</span>
+            <select
+              class="section-select"
+              [ngModel]="section"
+              (ngModelChange)="switchSection($event)"
+              aria-label="Sección de administración"
+            >
+              <option value="eventos">Eventos</option>
+              <option value="entradas">Entradas vendidas</option>
+              <option value="clientes">Organizadores</option>
+              <option value="valoraciones">Valoraciones</option>
+              <option value="usuarios">Usuarios</option>
+            </select>
+          </label>
+        }
+      </div>
       <div class="topbar-title">
         <h1>{{ pageTitle }}</h1>
         <p class="subtitle">{{ pageSubtitle }}</p>
@@ -285,23 +304,7 @@
 
           <fieldset class="form-block">
             <legend>Ubicación</legend>
-            <div class="form-grid">
-              <label class="span-2" [class.has-error]="isInvalid('direccion')">
-                <span>Dirección <em>*</em></span>
-                <input
-                  formControlName="direccion"
-                  placeholder="Calle, número, recinto, etc."
-                />
-              </label>
-              <label [class.has-error]="isInvalid('localidad')">
-                <span>Localidad <em>*</em></span>
-                <input formControlName="localidad" placeholder="Ej. Almería, Roquetas de Mar" />
-              </label>
-              <label [class.has-error]="isInvalid('provincia')">
-                <span>Provincia <em>*</em></span>
-                <input formControlName="provincia" placeholder="Ej. Almería" />
-              </label>
-            </div>
+            <app-admin-ubicacion-picker [form]="form" />
           </fieldset>
 
           <fieldset class="form-block">

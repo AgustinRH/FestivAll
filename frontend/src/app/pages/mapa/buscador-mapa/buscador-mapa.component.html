@@ -1,0 +1,51 @@
+<div class="page-wrap">
+  <app-navbar />
+  <main class="page-content mapa-page">
+    <section class="mapa-header">
+      <div class="mapa-header__text">
+        <h1>Mapa de festivales</h1>
+        <p>Eventos activos en Almería con ubicación en el mapa</p>
+      </div>
+      <div class="mapa-controls">
+        @if (ubicacionUsuario) {
+          <label class="cercania-toggle">
+            <input type="checkbox" [checked]="usarCercania" (change)="toggleCercania()" />
+            Cerca de mí
+          </label>
+          @if (usarCercania) {
+            <label class="radio-control">
+              Radio {{ radioKm }} km
+              <input
+                type="range"
+                min="5"
+                max="100"
+                step="5"
+                [(ngModel)]="radioKm"
+                (change)="onRadioChange()"
+              />
+            </label>
+          }
+          <button type="button" class="btn-outline-sm" (click)="centrarEnMi()">Mi ubicación</button>
+        }
+        <button type="button" class="btn-outline-sm" (click)="recargar()" [disabled]="loading">
+          Actualizar
+        </button>
+      </div>
+    </section>
+
+    @if (error) {
+      <p class="mapa-error">{{ error }}</p>
+    }
+  @if (!loading && !error) {
+      <p class="mapa-count">{{ totalEventos }} evento(s) en el mapa</p>
+    }
+
+    <div class="map-wrapper">
+      <div #mapContainer class="map-container" role="application" aria-label="Mapa de eventos"></div>
+      @if (loading) {
+        <div class="map-loading">Cargando mapa…</div>
+      }
+    </div>
+  </main>
+  <app-footer />
+</div>

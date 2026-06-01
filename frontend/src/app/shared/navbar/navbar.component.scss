@@ -225,6 +225,10 @@
     font-weight: 600;
     width: 100%;
 
+    .sep {
+      display: none;
+    }
+
     a {
       display: block;
       padding: 0.85rem 0.5rem;

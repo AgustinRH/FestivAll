@@ -47,6 +47,10 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .brand {
@@ -162,6 +166,8 @@
   min-width: 0;
   padding: 1.5rem 2rem 2.5rem;
   max-width: 1200px;
+  position: relative;
+  z-index: 1;
 }
 
 .topbar {
@@ -171,6 +177,41 @@
   align-items: flex-start;
   gap: 1rem;
   margin-bottom: 1.5rem;
+
+  .topbar-leading {
+    display: none;
+    align-items: center;
+    gap: 0.65rem;
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .section-select-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .section-select {
+    width: 100%;
+    padding: 0.65rem 2rem 0.65rem 0.85rem;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+    color: var(--admin-text);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: var(--admin-accent);
+    }
+  }
+}
+
+.topbar-title {
+  flex: 1;
+  min-width: 0;
 
   h1 {
     font-size: 1.5rem;
@@ -630,6 +671,8 @@
   gap: 0.5rem;
   padding: 0.75rem 1rem 1rem;
   border-top: 1px solid var(--admin-border);
+  position: relative;
+  z-index: 2;
 }
 
 .btn-cierre {
@@ -692,6 +735,14 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-top: 1rem;
+
+  .geocode-row {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
 
   label {
     display: flex;
@@ -972,9 +1023,13 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .admin-shell {
     flex-direction: column;
+  }
+
+  .topbar .topbar-leading {
+    display: flex;
   }
 
   .sidebar-toggle {
@@ -1017,9 +1072,13 @@
     transform: translateX(-100%);
     transition: transform 0.2s ease;
     border-right: 1px solid var(--admin-border);
+    pointer-events: none;
+    visibility: hidden;
 
     &.open {
       transform: translateX(0);
+      pointer-events: auto;
+      visibility: visible;
     }
   }
 
@@ -1037,6 +1096,24 @@
 
   .filter-select {
     width: 100%;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
+
+    .btn-icon {
+      align-self: flex-start;
+    }
+
+    .btn-cierre,
+    .btn-secondary,
+    .btn-danger {
+      width: 100%;
+      min-height: 44px;
+      padding: 0.65rem 1rem;
+      font-size: 0.9rem;
+    }
   }
 }
 
@@ -1193,39 +1270,3 @@
   justify-content: flex-end;
 }
 
-@media (min-width: 769px) and (max-width: 900px) {
-  .admin-shell {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    gap: 0.5rem;
-  }
-
-  .brand {
-    padding: 0;
-    margin-right: auto;
-  }
-
-  .sidebar-nav {
-    flex-direction: row;
-    padding: 0;
-    flex: none;
-  }
-
-  .nav-item {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-  }
-
-  .sidebar-footer {
-    display: none;
-  }
-}

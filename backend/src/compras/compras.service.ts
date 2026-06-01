@@ -11,7 +11,8 @@ import { randomBytes } from 'crypto';
 import Stripe from 'stripe';
 import { Compra } from '../entities/compra.entity';
 import { Evento } from '../entities/evento.entity';
-import { RolUsuario, Usuario } from '../entities/usuario.entity';
+import { Usuario } from '../entities/usuario.entity';
+import { tieneAccesoAdmin } from '../auth/roles.util';
 import { CreateCompraDto } from './dto/create-compra.dto';
 import { StripeService } from './stripe.service';
 import { MailService } from '../mail/mail.service';
@@ -70,7 +71,7 @@ export class ComprasService {
   private async assertEmailVerified(userId: number): Promise<Usuario> {
     const user = await this.usuarioRepo.findOne({ where: { id: userId } });
     if (!user) throw new ForbiddenException('Usuario no encontrado');
-    if (user.rol !== RolUsuario.ADMIN && !user.emailVerificado) {
+    if (!tieneAccesoAdmin(user.rol) && !user.emailVerificado) {
       throw new ForbiddenException(
         'Debes verificar tu email antes de comprar entradas. Revisa tu bandeja de entrada o solicita un nuevo enlace de verificación.',
       );
@@ -468,7 +469,10 @@ export class ComprasService {
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(rawBody, signature, secret);
-    } catch {
+    } catch (err) {
+      this.logger.warn(
+        `Webhook Stripe: firma inválida (modo ${this.stripeService.getMode()}). ¿STRIPE_WEBHOOK_SECRET_${this.stripeService.getMode().toUpperCase()} del endpoint correcto?`,
+      );
       throw new BadRequestException('Firma de webhook inválida');
     }
 

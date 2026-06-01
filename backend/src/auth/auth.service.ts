@@ -13,6 +13,7 @@ import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
 import { MailService } from '../mail/mail.service';
 import { Usuario, RolUsuario } from '../entities/usuario.entity';
+import { tieneAccesoAdmin } from './roles.util';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -105,7 +106,7 @@ export class AuthService {
       .where('u.email = :email', { email })
       .getOne();
 
-    if (!user || user.emailVerificado || user.rol === RolUsuario.ADMIN) {
+    if (!user || user.emailVerificado || tieneAccesoAdmin(user.rol)) {
       return {
         message: 'Si el email existe y no está verificado, recibirás un nuevo enlace en breve.',
       };
@@ -138,11 +139,11 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Credenciales incorrectas');
 
-    if (adminOnly && user.rol !== RolUsuario.ADMIN) {
+    if (adminOnly && !tieneAccesoAdmin(user.rol)) {
       throw new UnauthorizedException('No tienes permisos de administrador');
     }
 
-    if (!adminOnly && user.rol !== RolUsuario.ADMIN && !user.emailVerificado) {
+    if (!adminOnly && !tieneAccesoAdmin(user.rol) && !user.emailVerificado) {
       throw new ForbiddenException(
         'Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada o solicita un nuevo enlace.',
       );
@@ -252,7 +253,9 @@ export class AuthService {
     if (!user) throw new UnauthorizedException();
 
     const valid = await bcrypt.compare(dto.currentPassword, user.password);
-    if (!valid) throw new UnauthorizedException('Contraseña actual incorrecta');
+    if (!valid) {
+      throw new ForbiddenException('Contraseña actual incorrecta');
+    }
 
     const sameAsCurrent = await bcrypt.compare(dto.newPassword, user.password);
     if (sameAsCurrent) {

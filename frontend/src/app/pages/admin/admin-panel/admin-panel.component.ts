@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, ViewChild, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -14,6 +15,7 @@ import { AdminUsuariosComponent } from '../admin-usuarios/admin-usuarios.compone
 import { AdminClientesComponent } from '../admin-clientes/admin-clientes.component';
 import { AdminEntradasComponent } from '../admin-entradas/admin-entradas.component';
 import { AdminValoracionesComponent } from '../admin-valoraciones/admin-valoraciones.component';
+import { AdminUbicacionPickerComponent } from '../admin-ubicacion-picker/admin-ubicacion-picker.component';
 import { ValoracionesService } from '../../../core/services/valoraciones.service';
 
 type AdminSection = 'eventos' | 'usuarios' | 'clientes' | 'entradas' | 'valoraciones';
@@ -33,12 +35,14 @@ type MsgType = 'success' | 'error';
     AdminClientesComponent,
     AdminEntradasComponent,
     AdminValoracionesComponent,
+    AdminUbicacionPickerComponent,
   ],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.scss',
 })
-export class AdminPanelComponent implements OnInit {
+export class AdminPanelComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
+  private platformId = inject(PLATFORM_ID);
   private eventosService = inject(EventosService);
   private comprasService = inject(ComprasService);
   private catalogoService = inject(CatalogoService);
@@ -66,7 +70,9 @@ export class AdminPanelComponent implements OnInit {
   msg = '';
   msgType: MsgType = 'success';
   sidebarOpen = false;
+  compactNav = false;
   cierreEvento: Evento | null = null;
+  private readonly onResize = () => this.updateCompactNav();
   cierreLoading = false;
   cierreData: CierreCajaReport | null = null;
   private msgTimer?: ReturnType<typeof setTimeout>;
@@ -78,6 +84,8 @@ export class AdminPanelComponent implements OnInit {
     direccion: ['', [Validators.required, Validators.minLength(3)]],
     localidad: ['', [Validators.required, Validators.minLength(2)]],
     provincia: ['Almería', [Validators.required, Validators.minLength(2)]],
+    latitud: ['' as string | number],
+    longitud: ['' as string | number],
     fechaInicio: ['', Validators.required],
     fechaFin: ['', Validators.required],
     horaInicio: [''],
@@ -93,6 +101,10 @@ export class AdminPanelComponent implements OnInit {
   readonly user = this.auth.currentUser;
 
   ngOnInit() {
+    this.updateCompactNav();
+    if (isPlatformBrowser(this.platformId)) {
+      window.addEventListener('resize', this.onResize);
+    }
     this.load();
     this.form.get('fechaInicio')?.valueChanges.subscribe((ini) => {
       if (!ini) return;
@@ -187,12 +199,46 @@ export class AdminPanelComponent implements OnInit {
     return ini;
   }
 
+  ngOnDestroy() {
+    if (isPlatformBrowser(this.platformId)) {
+      window.removeEventListener('resize', this.onResize);
+    }
+  }
+
   toggleSidebar() {
     this.sidebarOpen = !this.sidebarOpen;
   }
 
   closeSidebar() {
     this.sidebarOpen = false;
+  }
+
+  switchSection(section: AdminSection) {
+    switch (section) {
+      case 'eventos':
+        this.selectEventos();
+        break;
+      case 'entradas':
+        this.selectEntradas();
+        break;
+      case 'clientes':
+        this.selectClientes();
+        break;
+      case 'valoraciones':
+        this.selectValoraciones();
+        break;
+      case 'usuarios':
+        this.selectUsuarios();
+        break;
+    }
+  }
+
+  private updateCompactNav() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.compactNav = window.innerWidth <= 1024;
+    if (!this.compactNav) {
+      this.sidebarOpen = false;
+    }
   }
 
   selectEventos() {
@@ -309,6 +355,8 @@ export class AdminPanelComponent implements OnInit {
       direccion: evento.ubicacion?.direccion ?? '',
       localidad: evento.ubicacion?.localidad ?? '',
       provincia: evento.ubicacion?.provincia ?? 'Almería',
+      latitud: evento.ubicacion?.latitud ?? '',
+      longitud: evento.ubicacion?.longitud ?? '',
       fechaInicio: evento.fechaInicio,
       fechaFin: evento.fechaFin || evento.fechaInicio,
       horaInicio: evento.horaInicio || '',
@@ -334,6 +382,12 @@ export class AdminPanelComponent implements OnInit {
     });
   }
 
+  private parseCoord(v: string | number | null | undefined): number | undefined {
+    if (v === '' || v == null) return undefined;
+    const n = typeof v === 'number' ? v : parseFloat(String(v));
+    return Number.isFinite(n) ? n : undefined;
+  }
+
   submit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -352,6 +406,8 @@ export class AdminPanelComponent implements OnInit {
       direccion: raw.direccion!.trim(),
       localidad: raw.localidad!.trim(),
       provincia: raw.provincia?.trim() || 'Almería',
+      latitud: this.parseCoord(raw.latitud),
+      longitud: this.parseCoord(raw.longitud),
       fechaInicio: raw.fechaInicio!,
       fechaFin: raw.fechaFin!,
       horaInicio: raw.horaInicio || undefined,

@@ -107,10 +107,15 @@ stripe listen --forward-to localhost:4200/api/compras/webhook/stripe
 
 ### Producción (Docker / EC2)
 
-1. En Stripe Dashboard → **Developers → Webhooks → Add endpoint**.
-2. URL: `https://tu-dominio.com/api/compras/webhook/stripe`
-3. Evento: `checkout.session.completed`
-4. Copia el **Signing secret** en `STRIPE_WEBHOOK_SECRET` del servidor.
+Crea **un endpoint por modo** (test y live tienen webhooks y `whsec_` distintos):
+
+1. Activa **Test mode** en Stripe → **Developers → Webhooks → Add endpoint**.
+2. URL: `https://festivall.club/api/compras/webhook/stripe`
+3. Eventos: al menos `checkout.session.completed`
+4. Copia el **Signing secret** (`whsec_...`) en `STRIPE_WEBHOOK_SECRET_TEST` (no uses el de live).
+5. Repite en **modo live** con `STRIPE_WEBHOOK_SECRET_LIVE` cuando publiques pagos reales.
+
+Si test y live comparten el mismo `whsec_`, Stripe marcará entregas **fallidas** aunque el usuario reciba la entrada al volver del checkout (`/perfil?session_id=...`).
 
 ## 5. Probar un pago
 

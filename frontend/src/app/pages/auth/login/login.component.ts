@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { getHttpErrorMessage } from '../../../core/utils/http-error';
+import { sanitizePostLoginReturnUrl } from '../../../core/utils/safe-return-url';
 
 @Component({
   selector: 'app-login',
@@ -11,11 +12,24 @@ import { getHttpErrorMessage } from '../../../core/utils/http-error';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+
+  ngOnInit() {
+    const raw = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (!raw) return;
+    const cleaned = sanitizePostLoginReturnUrl(raw);
+    if (cleaned === '/' && raw !== '/' && raw.length > 1) {
+      const sesion = this.route.snapshot.queryParamMap.get('sesion');
+      void this.router.navigate(['/login'], {
+        queryParams: sesion === 'expirada' ? { sesion: 'expirada' } : {},
+        replaceUrl: true,
+      });
+    }
+  }
 
   error = '';
   loading = false;
@@ -37,8 +51,10 @@ export class LoginComponent {
     const { email, password } = this.form.getRawValue();
     this.auth.login(email!, password!).subscribe({
       next: () => {
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-        this.router.navigateByUrl(returnUrl);
+        this.loading = false;
+        const raw = this.route.snapshot.queryParamMap.get('returnUrl');
+        const returnUrl = sanitizePostLoginReturnUrl(raw) || '/';
+        void this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {
         this.error = getHttpErrorMessage(err, 'Error al iniciar sesión');

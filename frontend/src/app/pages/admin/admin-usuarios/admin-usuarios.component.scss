@@ -22,6 +22,10 @@
   &.is-self {
     border-color: rgba(232, 93, 59, 0.4);
   }
+
+  &.is-owner {
+    border-color: rgba(234, 179, 8, 0.45);
+  }
 }
 
 .user-avatar {
@@ -58,6 +62,15 @@
     background: rgba(232, 93, 59, 0.2);
     color: var(--admin-accent, #e85d3b);
   }
+
+  &.owner {
+    background: rgba(234, 179, 8, 0.2);
+    color: #eab308;
+  }
+}
+
+.protected-hint {
+  color: #eab308;
 }
 
 .pill {

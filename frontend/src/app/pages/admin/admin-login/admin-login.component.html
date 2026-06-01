@@ -8,6 +8,9 @@
       </div>
     </div>
 
+    @if (sessionInfo) {
+      <div class="alert-info" role="status">{{ sessionInfo }}</div>
+    }
     @if (error) {
       <div class="alert-error" role="alert">{{ error }}</div>
     }

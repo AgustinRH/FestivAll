@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, User } from '../models';
+import { sanitizeSessionExpiredReturnUrl } from '../utils/safe-return-url';
 
 export interface RegisterResponse {
   message: string;
@@ -71,6 +72,30 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
+  /** Limpia sesión y lleva al login si el API responde 401 (token caducado, secreto distinto, BD reiniciada, etc.). */
+  handleSessionExpiredFromApi(): void {
+    const hadToken = !!localStorage.getItem('token');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    this.currentUser.set(null);
+    if (!hadToken) return;
+    const path = this.router.url.split('?')[0];
+    if (path.startsWith('/festivall-admin')) {
+      void this.router.navigate(['/festivall-admin'], {
+        queryParams: { sesion: 'expirada' },
+        replaceUrl: true,
+      });
+    } else {
+      const returnUrl = sanitizeSessionExpiredReturnUrl(this.router.url);
+      const queryParams: Record<string, string> = { sesion: 'expirada' };
+      if (returnUrl) queryParams['returnUrl'] = returnUrl;
+      void this.router.navigate(['/login'], {
+        queryParams,
+        replaceUrl: true,
+      });
+    }
+  }
+
   get token(): string | null {
     return localStorage.getItem('token');
   }
@@ -80,11 +105,20 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    return this.currentUser()?.rol === 'admin';
+    const rol = this.currentUser()?.rol;
+    return rol === 'admin' || rol === 'owner';
+  }
+
+  isOwner(): boolean {
+    return this.currentUser()?.rol === 'owner';
   }
 
   private setSession(res: AuthResponse) {
-    localStorage.setItem('token', res.access_token);
+    const token = res?.access_token?.trim();
+    if (!token || !res?.user) {
+      throw new Error('Respuesta de login inválida: falta token o usuario');
+    }
+    localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(res.user));
     this.currentUser.set(res.user);
   }

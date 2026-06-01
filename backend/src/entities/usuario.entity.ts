@@ -2,6 +2,7 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Compra } from './compra.entity';
 
 export enum RolUsuario {
+  OWNER = 'owner',
   ADMIN = 'admin',
   CLIENTE = 'cliente',
 }

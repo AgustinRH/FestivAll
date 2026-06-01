@@ -58,6 +58,13 @@ export const routes: Routes = [
       import('./pages/legal/aviso-legal/aviso-legal.component').then((m) => m.AvisoLegalComponent),
   },
   {
+    path: 'mapa',
+    loadComponent: () =>
+      import('./pages/mapa/buscador-mapa/buscador-mapa.component').then(
+        (m) => m.BuscadorMapaComponent,
+      ),
+  },
+  {
     path: 'opiniones',
     loadComponent: () =>
       import('./pages/opiniones/opiniones-list/opiniones-list.component').then(

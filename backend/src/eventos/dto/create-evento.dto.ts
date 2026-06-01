@@ -30,6 +30,14 @@ export class CreateEventoDto {
   @MinLength(2)
   provincia?: string;
 
+  @IsOptional()
+  @IsNumber()
+  latitud?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitud?: number;
+
   @IsString()
   titulo: string;
 

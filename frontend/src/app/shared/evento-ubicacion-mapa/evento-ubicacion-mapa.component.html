@@ -1,0 +1,23 @@
+<div class="ubicacion-mapa-block">
+  <p class="map-label">{{ localidad || 'Almería' }}{{ provincia && provincia !== 'Almería' ? ', ' + provincia : '' }}</p>
+  <p class="map-addr">{{ direccion }}</p>
+
+  @if (coords) {
+    <button
+      type="button"
+      class="map-clickable"
+      (click)="abrirGoogleMaps()"
+      [attr.aria-label]="'Abrir ruta en Google Maps hacia ' + direccionCompleta"
+    >
+      <div #mapEl class="mini-map" role="presentation"></div>
+      <span class="map-hint">Pulsa para ir con Google Maps</span>
+    </button>
+  } @else {
+    <div class="map-fallback">
+      <p class="map-fallback-text">Mapa no disponible (faltan coordenadas del recinto).</p>
+      <button type="button" class="btn-maps-link" (click)="abrirGoogleMaps()">
+        Buscar dirección en Google Maps
+      </button>
+    </div>
+  }
+</div>

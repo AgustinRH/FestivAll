@@ -8,7 +8,7 @@ export interface CreateUsuarioAdminPayload {
   apellidos: string;
   email: string;
   password: string;
-  rol: 'admin' | 'cliente';
+  rol: 'owner' | 'admin' | 'cliente';
   emailVerificado?: boolean;
 }
 

@@ -14,22 +14,26 @@ type GtagWindow = Window & {
   standalone: true,
   imports: [RouterOutlet, DevDisclaimerComponent],
   template: `
-    <app-dev-disclaimer />
+    @if (showDevDisclaimer) {
+      <app-dev-disclaimer />
+    }
     <router-outlet />
   `,
 })
 export class AppComponent implements OnInit {
   private router = inject(Router);
-  private gaInitialized = false;
+  showDevDisclaimer = true;
 
   ngOnInit(): void {
-    this.initGoogleAnalyticsIfConfigured();
+    // GA: snippet en index.html (recogida inmediata); aquí solo SPA + page_path.
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event) => {
+        this.showDevDisclaimer = !event.urlAfterRedirects.includes('/festivall-admin');
         this.scrollToTopUnlessHash(event.urlAfterRedirects);
         this.trackPageView(event.urlAfterRedirects);
       });
+    this.showDevDisclaimer = !this.router.url.includes('/festivall-admin');
   }
 
   /** SPA: al cambiar de ruta, mostrar el inicio de la página (móvil y escritorio). */
@@ -44,17 +48,6 @@ export class AppComponent implements OnInit {
     };
     scroll();
     requestAnimationFrame(scroll);
-  }
-
-  private initGoogleAnalyticsIfConfigured(): void {
-    const measurementId = environment.gaMeasurementId;
-    if (!measurementId || this.gaInitialized) {
-      return;
-    }
-    const gtag = this.bootstrapGtag();
-    gtag('js', new Date());
-    gtag('config', measurementId);
-    this.gaInitialized = true;
   }
 
   private trackPageView(url: string): void {

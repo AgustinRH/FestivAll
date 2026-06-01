@@ -74,10 +74,16 @@
 
         <section class="map-box">
           <h2>📍 Ubicación</h2>
-          <div class="map-placeholder">
-            <p class="map-label">{{ evento.ubicacion?.localidad }}, Almería</p>
-            <p class="map-addr">{{ evento.ubicacion?.direccion }}</p>
-          </div>
+          @if (evento.ubicacion) {
+            <app-evento-ubicacion-mapa
+              [latitud]="evento.ubicacion.latitud"
+              [longitud]="evento.ubicacion.longitud"
+              [direccion]="evento.ubicacion.direccion"
+              [localidad]="evento.ubicacion.localidad"
+              [provincia]="evento.ubicacion.provincia"
+              [etiqueta]="evento.titulo"
+            />
+          }
           <div class="buy-row">
             @if (comprasExitosas.length > 0) {
               <div class="success-inline">

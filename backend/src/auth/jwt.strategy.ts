@@ -26,7 +26,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload) {
     const user = await this.usuarioRepo.findOne({ where: { id: payload.sub } });
-    if (!user) throw new UnauthorizedException();
+    if (!user) {
+      throw new UnauthorizedException(
+        'Sesión inválida: el usuario ya no existe o la base de datos se reinició. Cierra sesión y vuelve a entrar.',
+      );
+    }
     return { id: user.id, email: user.email, rol: user.rol, nombre: user.nombre, apellidos: user.apellidos };
   }
 }

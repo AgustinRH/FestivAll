@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Evento, EventosPaginatedResponse } from '../models';
+import { AddressSuggestion, Evento, EventoMapa, EventosPaginatedResponse } from '../models';
 
 const PAGE_SIZE = 20;
 
@@ -72,6 +72,31 @@ export class EventosService {
 
   getUltimasEntradas() {
     return this.http.get<Evento[]>(`${this.api}/ultimas-entradas`);
+  }
+
+  buscarUbicaciones(q: string) {
+    return this.http.get<AddressSuggestion[]>(`${this.api}/ubicaciones/buscar`, {
+      params: new HttpParams().set('q', q),
+    });
+  }
+
+  geocodificar(direccion: string, localidad: string, provincia?: string) {
+    let params = new HttpParams()
+      .set('direccion', direccion)
+      .set('localidad', localidad);
+    if (provincia) params = params.set('provincia', provincia);
+    return this.http.get<{ lat: number; lng: number; displayName: string }>(
+      `${this.api}/geocodificar`,
+      { params },
+    );
+  }
+
+  getMapa(filters?: { lat?: number; lng?: number; radio?: number }) {
+    let params = new HttpParams();
+    if (filters?.lat != null) params = params.set('lat', filters.lat);
+    if (filters?.lng != null) params = params.set('lng', filters.lng);
+    if (filters?.radio != null) params = params.set('radio', filters.radio);
+    return this.http.get<EventoMapa[]>(`${this.api}/mapa`, { params });
   }
 
   getById(id: number) {

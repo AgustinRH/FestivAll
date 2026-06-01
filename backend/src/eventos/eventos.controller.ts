@@ -77,6 +77,51 @@ export class EventosController {
     return this.eventosService.findUltimasEntradas();
   }
 
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Get('ubicaciones/buscar')
+  buscarUbicaciones(@Query('q') q?: string) {
+    const query = q?.trim() ?? '';
+    if (query.length < 3) {
+      return [];
+    }
+    return this.eventosService.buscarUbicaciones(query);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Get('geocodificar')
+  geocodificar(
+    @Query('direccion') direccion: string,
+    @Query('localidad') localidad: string,
+    @Query('provincia') provincia?: string,
+  ) {
+    if (!direccion?.trim() || !localidad?.trim()) {
+      throw new BadRequestException('Indica dirección y localidad');
+    }
+    return this.eventosService.geocodificarDireccion({
+      direccion: direccion.trim(),
+      localidad: localidad.trim(),
+      provincia: provincia?.trim(),
+    });
+  }
+
+  @Get('mapa')
+  findForMapa(
+    @Query('lat') lat?: string,
+    @Query('lng') lng?: string,
+    @Query('radio') radio?: string,
+  ) {
+    const parse = (v?: string) => {
+      if (v === undefined || v === '') return undefined;
+      const n = +v;
+      return Number.isFinite(n) ? n : undefined;
+    };
+    return this.eventosService.findForMapa({
+      lat: parse(lat),
+      lng: parse(lng),
+      radio: parse(radio),
+    });
+  }
+
   @Get(':slugOrId')
   findOne(@Param('slugOrId') slugOrId: string) {
     const id = parseEventoIdFromSlug(slugOrId);

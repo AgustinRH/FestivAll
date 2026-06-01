@@ -14,6 +14,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-7X12TZHBRY"></script>
+  <script>
+    (function () {
+      var h = location.hostname;
+      if (h !== 'festivall.club' && h !== 'www.festivall.club') return;
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', 'G-7X12TZHBRY');
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

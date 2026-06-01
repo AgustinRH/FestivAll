@@ -13,6 +13,8 @@
       <span class="sep">|</span>
       <a routerLink="/eventos" routerLinkActive="active" (click)="closeMenu()">Explorar Festivales</a>
       <span class="sep">|</span>
+      <a routerLink="/mapa" routerLinkActive="active" (click)="closeMenu()">Mapa</a>
+      <span class="sep">|</span>
       <a routerLink="/opiniones" routerLinkActive="active" (click)="closeMenu()">Opiniones</a>
       @if (auth.isLoggedIn()) {
         <span class="sep">|</span>
@@ -53,8 +55,8 @@
       <nav class="main-nav-mobile">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
         <a routerLink="/eventos" routerLinkActive="active" (click)="closeMenu()">Explorar Festivales</a>
-      <span class="sep">|</span>
-      <a routerLink="/opiniones" routerLinkActive="active" (click)="closeMenu()">Opiniones</a>
+        <a routerLink="/mapa" routerLinkActive="active" (click)="closeMenu()">Mapa</a>
+        <a routerLink="/opiniones" routerLinkActive="active" (click)="closeMenu()">Opiniones</a>
         @if (auth.isLoggedIn()) {
           <a routerLink="/perfil" routerLinkActive="active" class="nav-user" (click)="closeMenu()">{{ saludoPerfil }}</a>
         }

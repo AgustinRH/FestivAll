@@ -3,7 +3,7 @@ export interface User {
   nombre: string;
   apellidos: string;
   email: string;
-  rol: 'admin' | 'cliente';
+  rol: 'owner' | 'admin' | 'cliente';
   emailVerificado?: boolean;
 }
 
@@ -27,6 +27,19 @@ export interface Ubicacion {
   direccion: string;
   localidad: string;
   provincia: string;
+  latitud?: number | null;
+  longitud?: number | null;
+}
+
+export interface AddressSuggestion {
+  id: string;
+  label: string;
+  direccion: string;
+  localidad: string;
+  provincia: string;
+  codigoPostal?: string;
+  lat: number;
+  lng: number;
 }
 
 export interface Imagen {
@@ -53,6 +66,17 @@ export interface EventosPaginatedResponse {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface EventoMapa {
+  id: number;
+  titulo: string;
+  slug: string | null;
+  latitud: number;
+  longitud: number;
+  imagenCartel: string | null;
+  precioDesde: number;
+  localidad: string;
 }
 
 export interface Evento {

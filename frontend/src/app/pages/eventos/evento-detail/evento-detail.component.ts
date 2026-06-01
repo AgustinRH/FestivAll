@@ -19,6 +19,7 @@ import {
 import { LegalPrimeraCapaComponent } from '../../../shared/legal-primera-capa/legal-primera-capa.component';
 import { EventoValoracionesComponent } from '../../../shared/evento-valoraciones/evento-valoraciones.component';
 import { EventoValoracionFormComponent } from '../../../shared/evento-valoracion-form/evento-valoracion-form.component';
+import { EventoUbicacionMapaComponent } from '../../../shared/evento-ubicacion-mapa/evento-ubicacion-mapa.component';
 
 @Component({
   selector: 'app-evento-detail',
@@ -30,6 +31,7 @@ import { EventoValoracionFormComponent } from '../../../shared/evento-valoracion
     LegalPrimeraCapaComponent,
     EventoValoracionesComponent,
     EventoValoracionFormComponent,
+    EventoUbicacionMapaComponent,
     RouterLink,
     CurrencyPipe,
     DatePipe,
@@ -180,13 +182,6 @@ export class EventoDetailComponent implements OnInit {
 
   onValoracionEnviada(): void {
     this.valoracionesList?.load();
-  }
-
-  get mapUrl(): string {
-    const u = this.evento?.ubicacion;
-    if (!u) return '';
-    const q = encodeURIComponent(`${u.direccion}, ${u.localidad}, ${u.provincia}`);
-    return `https://www.openstreetmap.org/export/embed.html?bbox=-2.5,36.8,-2.4,36.9&layer=mapnik&marker=${q}`;
   }
 
   get puedeComprar(): boolean {

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
+import { AddressSuggestion, GeocodingService } from '../common/geocoding.service';
 import { buildEventoSlug } from '../common/seo-slug.util';
 import { Evento } from '../entities/evento.entity';
 import { Imagen } from '../entities/imagen.entity';
@@ -11,6 +12,18 @@ import { UpdateEventoDto } from './dto/update-evento.dto';
 import { STOCK_ULTIMAS_ENTRADAS_MAX } from './precio.util';
 import { hoyIso } from './evento-activo.util';
 import { validarFechasEvento } from './evento-fechas.util';
+import { getPrecioUnitario } from './precio.util';
+
+export type EventoMapaItem = {
+  id: number;
+  titulo: string;
+  slug: string | null;
+  latitud: number;
+  longitud: number;
+  imagenCartel: string | null;
+  precioDesde: number;
+  localidad: string;
+};
 
 export interface EventoFilters {
   busqueda?: string;
@@ -43,7 +56,26 @@ export class EventosService implements OnModuleInit {
     @InjectRepository(Imagen) private imagenRepo: Repository<Imagen>,
     @InjectRepository(Ubicacion) private ubicacionRepo: Repository<Ubicacion>,
     @InjectRepository(Cliente) private clienteRepo: Repository<Cliente>,
+    private geocoding: GeocodingService,
   ) {}
+
+  buscarUbicaciones(q: string): Promise<AddressSuggestion[]> {
+    return this.geocoding.searchAddresses(q);
+  }
+
+  async geocodificarDireccion(data: {
+    direccion: string;
+    localidad: string;
+    provincia?: string;
+  }) {
+    const result = await this.geocoding.geocodeAddress(data);
+    if (!result) {
+      throw new BadRequestException(
+        'No se encontraron coordenadas para esa dirección. Prueba a ser más específico o introdúcelas a mano.',
+      );
+    }
+    return result;
+  }
 
   private async assertCliente(idCliente: number) {
     const c = await this.clienteRepo.findOne({ where: { id: idCliente } });
@@ -84,14 +116,41 @@ export class EventosService implements OnModuleInit {
   }
 
   private async guardarUbicacion(
-    data: { direccion: string; localidad: string; provincia?: string },
+    data: {
+      direccion: string;
+      localidad: string;
+      provincia?: string;
+      latitud?: number | null;
+      longitud?: number | null;
+    },
     idUbicacion?: number,
   ): Promise<number> {
-    const payload = {
+    const payload: Partial<Ubicacion> = {
       direccion: data.direccion.trim(),
       localidad: data.localidad.trim(),
       provincia: (data.provincia?.trim() || 'Almería').trim(),
     };
+
+    let lat = data.latitud ?? null;
+    let lng = data.longitud ?? null;
+    if (lat == null || lng == null) {
+      const geo = await this.geocoding.geocodeAddress({
+        direccion: payload.direccion!,
+        localidad: payload.localidad!,
+        provincia: payload.provincia,
+      });
+      if (geo) {
+        lat = geo.lat;
+        lng = geo.lng;
+        this.logger.log(
+          `Coordenadas obtenidas para «${payload.direccion}, ${payload.localidad}»: ${lat}, ${lng}`,
+        );
+      }
+    }
+    if (lat != null && lng != null) {
+      payload.latitud = lat;
+      payload.longitud = lng;
+    }
     if (idUbicacion) {
       await this.ubicacionRepo.update(idUbicacion, payload);
       return idUbicacion;
@@ -207,6 +266,60 @@ export class EventosService implements OnModuleInit {
     return evento;
   }
 
+  /** Eventos activos con coordenadas para el mapa (respuesta ligera). */
+  async findForMapa(filters?: {
+    lat?: number;
+    lng?: number;
+    radio?: number;
+  }): Promise<EventoMapaItem[]> {
+    const hoy = hoyIso();
+    const qb = this.eventoRepo
+      .createQueryBuilder('evento')
+      .innerJoinAndSelect('evento.ubicacion', 'ubicacion')
+      .leftJoinAndSelect('evento.imagenes', 'imagenes')
+      .where('evento.fechaFin >= :hoy', { hoy })
+      .andWhere('ubicacion.latitud IS NOT NULL')
+      .andWhere('ubicacion.longitud IS NOT NULL');
+
+    const lat = filters?.lat;
+    const lng = filters?.lng;
+    const radio = filters?.radio;
+    if (
+      lat != null &&
+      lng != null &&
+      radio != null &&
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      radio > 0
+    ) {
+      qb.andWhere(
+        `(6371 * acos(LEAST(1, GREATEST(-1,
+          cos(radians(:lat)) * cos(radians(ubicacion.latitud))
+          * cos(radians(ubicacion.longitud) - radians(:lng))
+          + sin(radians(:lat)) * sin(radians(ubicacion.latitud))
+        )))) <= :radio`,
+        { lat, lng, radio },
+      );
+    }
+
+    const eventos = await qb.orderBy('evento.fechaInicio', 'ASC').getMany();
+
+    return eventos.map((e) => {
+      const principal = e.imagenes?.find((i) => i.esPrincipal);
+      const img = principal?.url ?? e.imagenes?.[0]?.url ?? null;
+      return {
+        id: e.id,
+        titulo: e.titulo,
+        slug: e.slug ?? null,
+        latitud: Number(e.ubicacion.latitud),
+        longitud: Number(e.ubicacion.longitud),
+        imagenCartel: img,
+        precioDesde: getPrecioUnitario(e),
+        localidad: e.ubicacion.localidad,
+      };
+    });
+  }
+
   /** Detalle público: oculta eventos ya finalizados. */
   async findOnePublic(id: number) {
     const qb = this.baseQuery().where('evento.id = :id', { id });
@@ -222,13 +335,21 @@ export class EventosService implements OnModuleInit {
       direccion,
       localidad,
       provincia,
+      latitud,
+      longitud,
       idCliente,
       fechaInicio,
       fechaFin,
       ...rest
     } = dto;
     await this.assertCliente(idCliente);
-    const idUbicacion = await this.guardarUbicacion({ direccion, localidad, provincia });
+    const idUbicacion = await this.guardarUbicacion({
+      direccion,
+      localidad,
+      provincia,
+      latitud,
+      longitud,
+    });
     const fechas = validarFechasEvento(fechaInicio, fechaFin);
 
     const evento = this.eventoRepo.create({
@@ -260,6 +381,8 @@ export class EventosService implements OnModuleInit {
       direccion,
       localidad,
       provincia,
+      latitud,
+      longitud,
       idCliente,
       fechaInicio,
       fechaFin,
@@ -270,12 +393,20 @@ export class EventosService implements OnModuleInit {
       await this.assertCliente(idCliente);
     }
 
-    if (direccion !== undefined || localidad !== undefined || provincia !== undefined) {
+    if (
+      direccion !== undefined ||
+      localidad !== undefined ||
+      provincia !== undefined ||
+      latitud !== undefined ||
+      longitud !== undefined
+    ) {
       await this.guardarUbicacion(
         {
           direccion: direccion ?? evento.ubicacion?.direccion ?? '',
           localidad: localidad ?? evento.ubicacion?.localidad ?? '',
           provincia: provincia ?? evento.ubicacion?.provincia,
+          latitud: latitud ?? evento.ubicacion?.latitud ?? null,
+          longitud: longitud ?? evento.ubicacion?.longitud ?? null,
         },
         evento.idUbicacion,
       );

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -32,9 +33,12 @@ export class ComprasController {
     @Headers('stripe-signature') signature: string,
   ) {
     if (!signature) {
-      return { received: false };
+      throw new BadRequestException('Falta cabecera stripe-signature');
     }
-    return this.comprasService.handleStripeWebhook(req.rawBody as Buffer, signature);
+    if (!req.rawBody?.length) {
+      throw new BadRequestException('Cuerpo del webhook vacío (se requiere raw body)');
+    }
+    return this.comprasService.handleStripeWebhook(req.rawBody, signature);
   }
 
   @UseGuards(JwtAuthGuard)

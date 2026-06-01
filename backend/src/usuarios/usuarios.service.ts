@@ -7,7 +7,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { esPropietario, tieneAccesoAdmin } from '../auth/roles.util';
 import { BCRYPT_ROUNDS } from '../auth/password.constants';
 import { RolUsuario, Usuario } from '../entities/usuario.entity';
 import { CreateUsuarioAdminDto } from './dto/create-usuario-admin.dto';
@@ -34,6 +35,8 @@ export class UsuariosService {
   }
 
   async create(dto: CreateUsuarioAdminDto) {
+    this.assertNoAssignOwner(dto.rol);
+
     const exists = await this.usuarioRepo.findOne({ where: { email: dto.email } });
     if (exists) throw new ConflictException('El email ya está registrado');
 
@@ -44,7 +47,7 @@ export class UsuariosService {
       email: dto.email.trim().toLowerCase(),
       password: hash,
       rol: dto.rol,
-      emailVerificado: dto.emailVerificado ?? dto.rol === RolUsuario.ADMIN,
+      emailVerificado: dto.emailVerificado ?? tieneAccesoAdmin(dto.rol),
       emailVerificationToken: null,
       emailVerificationExpires: null,
     });
@@ -53,12 +56,20 @@ export class UsuariosService {
   }
 
   async update(id: number, dto: UpdateUsuarioAdminDto, currentUserId: number) {
+    const actor = await this.usuarioRepo.findOne({ where: { id: currentUserId } });
+    if (!actor) throw new ForbiddenException('Sesión no válida');
+
     const user = await this.usuarioRepo
       .createQueryBuilder('u')
       .addSelect('u.password')
       .where('u.id = :id', { id })
       .getOne();
     if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    if (dto.rol !== undefined) {
+      this.assertNoAssignOwner(dto.rol);
+    }
+    this.assertCanModifyProtectedUser(user, actor, dto);
 
     if (dto.email && dto.email !== user.email) {
       const exists = await this.usuarioRepo.findOne({ where: { email: dto.email } });
@@ -73,7 +84,7 @@ export class UsuariosService {
         throw new BadRequestException('No puedes quitarte el rol de administrador a ti mismo');
       }
       if (user.rol === RolUsuario.ADMIN && dto.rol === RolUsuario.CLIENTE) {
-        await this.ensureAnotherAdmin(id);
+        await this.ensureAnotherPrivilegiado(id);
       }
       user.rol = dto.rol;
     }
@@ -92,20 +103,53 @@ export class UsuariosService {
     }
     const user = await this.usuarioRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    if (esPropietario(user.rol)) {
+      throw new ForbiddenException('No se puede eliminar al usuario propietario del sistema');
+    }
+
     if (user.rol === RolUsuario.ADMIN) {
-      await this.ensureAnotherAdmin(id);
+      await this.ensureAnotherPrivilegiado(id);
     }
     await this.usuarioRepo.delete(id);
     return { message: 'Usuario eliminado correctamente' };
   }
 
-  private async ensureAnotherAdmin(excludeId: number) {
+  private assertNoAssignOwner(rol?: RolUsuario) {
+    if (rol === RolUsuario.OWNER) {
+      throw new ForbiddenException('El rol propietario no se puede asignar desde el panel');
+    }
+  }
+
+  private assertCanModifyProtectedUser(
+    target: Usuario,
+    actor: Usuario,
+    dto: UpdateUsuarioAdminDto,
+  ) {
+    if (!esPropietario(target.rol)) return;
+
+    if (!esPropietario(actor.rol)) {
+      throw new ForbiddenException(
+        'No tienes permiso para modificar al usuario propietario del sistema',
+      );
+    }
+
+    if (target.id !== actor.id) {
+      throw new ForbiddenException('Solo el propietario puede gestionar su propia cuenta');
+    }
+
+    if (dto.rol !== undefined && dto.rol !== RolUsuario.OWNER) {
+      throw new BadRequestException('No puedes cambiar tu rol de propietario');
+    }
+  }
+
+  private async ensureAnotherPrivilegiado(excludeId: number) {
     const count = await this.usuarioRepo.count({
-      where: { rol: RolUsuario.ADMIN },
+      where: { rol: In([RolUsuario.ADMIN, RolUsuario.OWNER]) },
     });
     const target = await this.usuarioRepo.findOne({ where: { id: excludeId } });
     if (target?.rol === RolUsuario.ADMIN && count <= 1) {
-      throw new ForbiddenException('Debe quedar al menos un administrador en el sistema');
+      throw new ForbiddenException('Debe quedar al menos un administrador o propietario en el sistema');
     }
   }
 }

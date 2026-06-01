@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CommonModule } from './common/common.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
@@ -22,6 +23,7 @@ import { ValoracionOmitida } from './entities/valoracion-omitida.entity';
 
 @Module({
   imports: [
+    CommonModule,
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

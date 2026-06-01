@@ -15,6 +15,12 @@ export class Ubicacion {
   @Column({ length: 100, default: 'Almería' })
   provincia: string;
 
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  latitud: number | null;
+
+  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  longitud: number | null;
+
   @OneToMany(() => Evento, (evento) => evento.ubicacion)
   eventos: Evento[];
 }
