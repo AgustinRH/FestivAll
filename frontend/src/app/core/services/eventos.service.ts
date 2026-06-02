@@ -123,4 +123,23 @@ export class EventosService {
   delete(id: number) {
     return this.http.delete(`${this.api}/${id}`);
   }
+
+  uploadImagen(
+    id: number,
+    tipo: 'principal' | 'cartelera' | 'galeria',
+    file: File,
+    slot?: number,
+  ) {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    let url = `${this.api}/${id}/imagen/${tipo}`;
+    if (tipo === 'galeria' && slot !== undefined) {
+      url += `?slot=${slot}`;
+    }
+    return this.http.post<{ url: string; tipo: string; orden: number | null }>(url, form);
+  }
+
+  deleteImagen(eventoId: number, imagenId: number) {
+    return this.http.delete(`${this.api}/${eventoId}/imagen/${imagenId}`);
+  }
 }

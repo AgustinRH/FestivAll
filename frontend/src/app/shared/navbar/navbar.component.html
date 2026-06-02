@@ -11,11 +11,37 @@
     <nav class="main-nav">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
       <span class="sep">|</span>
-      <a routerLink="/eventos" routerLinkActive="active" (click)="closeMenu()">Explorar Festivales</a>
-      <span class="sep">|</span>
-      <a routerLink="/mapa" routerLinkActive="active" (click)="closeMenu()">Mapa</a>
+
+      <div
+        class="nav-dropdown"
+        [class.open]="explorarOpen"
+        [class.active]="explorarMenuActive"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="nav-dropdown-trigger"
+          (click)="toggleExplorarDesktop($event)"
+          [attr.aria-expanded]="explorarOpen"
+          aria-haspopup="true"
+        >
+          Explorar Festivales
+          <span class="caret" aria-hidden="true">▾</span>
+        </button>
+        <div class="nav-dropdown-panel" role="menu">
+          <a routerLink="/eventos" routerLinkActive="active" role="menuitem" (click)="closeMenu()">
+            Ver festivales
+          </a>
+          <a routerLink="/mapa" routerLinkActive="active" role="menuitem" (click)="closeMenu()">
+            Mapa
+          </a>
+        </div>
+      </div>
+
       <span class="sep">|</span>
       <a routerLink="/opiniones" routerLinkActive="active" (click)="closeMenu()">Opiniones</a>
+      <span class="sep">|</span>
+      <a routerLink="/contacto" routerLinkActive="active" (click)="closeMenu()">Contacto</a>
       @if (auth.isLoggedIn()) {
         <span class="sep">|</span>
         <a routerLink="/perfil" routerLinkActive="active" class="nav-user" (click)="closeMenu()">{{ saludoPerfil }}</a>
@@ -54,9 +80,25 @@
     <div id="mobile-nav-panel" class="mobile-nav" [class.open]="menuOpen">
       <nav class="main-nav-mobile">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a>
-        <a routerLink="/eventos" routerLinkActive="active" (click)="closeMenu()">Explorar Festivales</a>
-        <a routerLink="/mapa" routerLinkActive="active" (click)="closeMenu()">Mapa</a>
+
+        <div class="nav-group" [class.open]="explorarMobileOpen" [class.active]="explorarMenuActive">
+          <button
+            type="button"
+            class="nav-group-trigger"
+            (click)="toggleExplorarMobile()"
+            [attr.aria-expanded]="explorarMobileOpen"
+          >
+            Explorar Festivales
+            <span class="caret" aria-hidden="true">▾</span>
+          </button>
+          <div class="nav-group-panel">
+            <a routerLink="/eventos" routerLinkActive="active" (click)="closeMenu()">Ver festivales</a>
+            <a routerLink="/mapa" routerLinkActive="active" (click)="closeMenu()">Mapa</a>
+          </div>
+        </div>
+
         <a routerLink="/opiniones" routerLinkActive="active" (click)="closeMenu()">Opiniones</a>
+        <a routerLink="/contacto" routerLinkActive="active" (click)="closeMenu()">Contacto</a>
         @if (auth.isLoggedIn()) {
           <a routerLink="/perfil" routerLinkActive="active" class="nav-user" (click)="closeMenu()">{{ saludoPerfil }}</a>
         }

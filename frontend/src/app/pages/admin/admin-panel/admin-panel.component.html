@@ -277,6 +277,7 @@
               <label class="span-2" [class.has-error]="isInvalid('titulo')">
                 <span>Título <em>*</em></span>
                 <input formControlName="titulo" placeholder="Nombre del festival o evento" />
+                <app-form-field-error [control]="form.get('titulo')" label="título" />
               </label>
               <label class="span-2">
                 <span>Descripción</span>
@@ -290,6 +291,7 @@
                     <option [value]="c.id">{{ c.nombreCategoria }}</option>
                   }
                 </select>
+                <app-form-field-error [control]="form.get('idCategoria')" label="categoría" />
               </label>
               <label [class.has-error]="isInvalid('idCliente')">
                 <span>Organizador (cliente) <em>*</em></span>
@@ -298,6 +300,7 @@
                     <option [value]="cl.id">{{ cl.nombre }}</option>
                   }
                 </select>
+                <app-form-field-error [control]="form.get('idCliente')" label="organizador" />
               </label>
             </div>
           </fieldset>
@@ -313,11 +316,13 @@
               <label [class.has-error]="isInvalid('fechaInicio')">
                 <span>Fecha inicio <em>*</em></span>
                 <input type="date" formControlName="fechaInicio" />
+                <app-form-field-error [control]="form.get('fechaInicio')" label="fecha de inicio" />
               </label>
               <label [class.has-error]="isInvalid('fechaFin')">
                 <span>Fecha fin <em>*</em></span>
                 <input type="date" formControlName="fechaFin" [attr.min]="form.get('fechaInicio')?.value || null" />
                 <span class="field-hint">Un solo día: misma fecha que el inicio.</span>
+                <app-form-field-error [control]="form.get('fechaFin')" label="fecha de fin" />
               </label>
               <label>
                 <span>Hora inicio</span>
@@ -336,24 +341,103 @@
               <label [class.has-error]="isInvalid('precio')">
                 <span>Precio (€) <em>*</em></span>
                 <input type="number" formControlName="precio" step="0.01" min="0" />
+                <app-form-field-error [control]="form.get('precio')" label="precio" />
               </label>
               <label [class.has-error]="isInvalid('stock')">
                 <span>Entradas disponibles <em>*</em></span>
                 <input type="number" formControlName="stock" min="0" />
+                <app-form-field-error [control]="form.get('stock')" label="stock" />
               </label>
             </div>
           </fieldset>
 
           <fieldset class="form-block">
-            <legend>Imagen</legend>
+            <legend>Imágenes del evento</legend>
+            <p class="field-hint block-hint">
+              Hasta 30 MB por archivo (4K). Al guardar se optimizan a WebP. La imagen principal es obligatoria;
+              la cartelera y la galería (máx. 5) son opcionales.
+            </p>
+
             <div class="image-row">
-              <label class="flex-1">
-                <span>URL de la imagen</span>
-                <input formControlName="imagenUrl" placeholder="https://ejemplo.com/imagen.jpg" />
+              <label class="flex-1 cartel-upload">
+                <span>Imagen principal <em>*</em></span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  (change)="onImagenSelected('principal', $event)"
+                />
+                <p class="field-hint">Cabecera de la ficha y miniaturas en listados.</p>
               </label>
-              @if (previewImage) {
+              @if (hasPreview('principal')) {
                 <div class="image-preview">
-                  <img [src]="previewImage" alt="Vista previa" (error)="$any($event.target).style.display='none'" />
+                  <img [src]="getPreview('principal')" alt="Vista previa principal" />
+                  @if (isPendingNew('principal')) {
+                    <button type="button" class="btn-clear-cartel" (click)="clearImagenSelection('principal')">
+                      Quitar imagen nueva
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="image-row">
+              <label class="flex-1 cartel-upload">
+                <span>Cartelera</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  (change)="onImagenSelected('cartelera', $event)"
+                />
+                <p class="field-hint">Cartel en la columna lateral de la ficha del evento.</p>
+              </label>
+              @if (hasPreview('cartelera')) {
+                <div class="image-preview">
+                  <img [src]="getPreview('cartelera')" alt="Vista previa cartelera" />
+                  @if (isPendingNew('cartelera')) {
+                    <button type="button" class="btn-clear-cartel" (click)="clearImagenSelection('cartelera')">
+                      Quitar imagen nueva
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="galeria-block">
+              <p class="galeria-label"><strong>Galería</strong> (hasta 5 imágenes, opcional)</p>
+              <label class="cartel-upload galeria-batch-upload">
+                <span>Seleccionar imágenes de galería</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  multiple
+                  (change)="onGaleriaBatchSelected($event)"
+                />
+                <p class="field-hint">
+                  Elige de 1 a 5 fotos en un solo paso. Al guardar se asignan en orden (foto 1, 2…).
+                  @if (galeriaPendingCount) {
+                    <span class="galeria-count">{{ galeriaPendingCount }} nueva(s) pendiente(s) de subir.</span>
+                  }
+                </p>
+              </label>
+              @if (hasAnyGaleriaPreview) {
+                <div class="galeria-preview-grid">
+                  @for (slot of galeriaSlots; track slot) {
+                    @if (hasPreview('galeria', slot)) {
+                      <div class="galeria-preview-item">
+                        <img [src]="getPreview('galeria', slot)" [alt]="'Galería ' + (slot + 1)" />
+                        <span class="galeria-preview-item__label">Foto {{ slot + 1 }}</span>
+                        @if (isPendingNew('galeria', slot)) {
+                          <button
+                            type="button"
+                            class="btn-clear-cartel"
+                            (click)="clearImagenSelection('galeria', slot)"
+                          >
+                            Quitar
+                          </button>
+                        }
+                      </div>
+                    }
+                  }
                 </div>
               }
             </div>

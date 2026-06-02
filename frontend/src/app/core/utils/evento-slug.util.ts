@@ -12,6 +12,9 @@ function slugify(text: string): string {
 
 const MAX_SUFFIX = 120;
 
+/**
+ * Slug SEO público: `{id}-{titulo-localidad}` sin acentos ni caracteres especiales.
+ */
 export function buildEventoSlug(
   id: number,
   titulo: string,
@@ -26,6 +29,7 @@ export function buildEventoSlug(
   return `${id}-${suffix}`;
 }
 
+/** Extrae el id numérico del prefijo de un slug o parámetro de ruta. */
 export function parseEventoIdFromSlug(param: string | number): number | null {
   const m = String(param ?? '')
     .trim()

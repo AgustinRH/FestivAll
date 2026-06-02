@@ -32,6 +32,10 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
+  /**
+   * Alta de cliente con hash bcrypt y token de verificación por email (24 h).
+   * No devuelve JWT hasta que el email esté verificado.
+   */
   async register(dto: RegisterDto) {
     const exists = await this.usuarioRepo.findOne({ where: { email: dto.email } });
     if (exists) throw new ConflictException('El email ya está registrado');
@@ -66,6 +70,7 @@ export class AuthService {
     };
   }
 
+  /** Activa la cuenta si el token de verificación es válido y no ha expirado. */
   async verifyEmail(token: string) {
     if (!token?.trim()) {
       throw new BadRequestException('Token de verificación inválido');

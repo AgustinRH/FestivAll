@@ -12,9 +12,12 @@
       <h1>¿Has olvidado la contraseña?</h1>
       <p class="hint">Introduce tu email y te enviaremos un enlace para elegir una nueva contraseña.</p>
       @if (error) { <p class="error">{{ error }}</p> }
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <input type="email" formControlName="email" placeholder="Email" autocomplete="email" />
-        <button type="submit" [disabled]="form.invalid || loading">
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field" [class.has-error]="isInvalid('email')">
+          <input type="email" formControlName="email" placeholder="Email" autocomplete="email" />
+          <app-form-field-error [control]="form.get('email')" label="correo electrónico" />
+        </div>
+        <button type="submit" [disabled]="loading">
           {{ loading ? 'Enviando…' : 'Enviar enlace' }}
         </button>
       </form>

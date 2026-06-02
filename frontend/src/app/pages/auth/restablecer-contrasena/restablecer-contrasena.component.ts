@@ -4,14 +4,20 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { getHttpErrorMessage } from '../../../core/utils/http-error';
 import {
+  isFieldInvalid,
+  markFormGroupTouched,
+} from '../../../core/utils/form-validation.util';
+import {
+  matchOtherFieldValidator,
   PASSWORD_REQUIREMENTS_HINT,
   strongPasswordValidator,
 } from '../../../core/validators/password.validators';
+import { FormFieldErrorComponent } from '../../../shared/form-field-error/form-field-error.component';
 
 @Component({
   selector: 'app-restablecer-contrasena',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, FormFieldErrorComponent],
   templateUrl: './restablecer-contrasena.component.html',
   styleUrl: '../login/login.component.scss',
 })
@@ -29,7 +35,7 @@ export class RestablecerContrasenaComponent implements OnInit {
 
   form = this.fb.group({
     newPassword: ['', [Validators.required, strongPasswordValidator()]],
-    confirmPassword: ['', Validators.required],
+    confirmPassword: ['', [Validators.required, matchOtherFieldValidator('newPassword')]],
   });
 
   ngOnInit() {
@@ -37,17 +43,21 @@ export class RestablecerContrasenaComponent implements OnInit {
     if (!this.token) {
       this.error = 'Enlace de restablecimiento inválido.';
     }
+    this.form.get('newPassword')?.valueChanges.subscribe(() => {
+      this.form.get('confirmPassword')?.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
+  isInvalid(name: string): boolean {
+    return isFieldInvalid(this.form.get(name));
   }
 
   submit() {
+    markFormGroupTouched(this.form);
     if (this.form.invalid || !this.token) return;
-    const { newPassword, confirmPassword } = this.form.getRawValue();
-    if (newPassword !== confirmPassword) {
-      this.error = 'Las contraseñas no coinciden';
-      return;
-    }
     this.loading = true;
     this.error = '';
+    const { newPassword } = this.form.getRawValue();
     this.auth.resetPassword(this.token, newPassword!).subscribe({
       next: (res) => {
         this.success = res.message;

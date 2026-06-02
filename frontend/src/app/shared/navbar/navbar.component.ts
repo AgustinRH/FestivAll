@@ -1,12 +1,13 @@
 import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
+  HostListener,
   inject,
   OnDestroy,
   OnInit,
   PLATFORM_ID,
 } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 const MOBILE_MAX_WIDTH = '(max-width: 768px)';
@@ -21,9 +22,12 @@ const SCROLL_DELTA = 8;
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);
+  private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
 
   menuOpen = false;
+  explorarOpen = false;
+  explorarMobileOpen = false;
   navVisible = true;
 
   private lastScrollY = 0;
@@ -52,6 +56,27 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   closeMenu() {
     this.menuOpen = false;
+    this.explorarOpen = false;
+    this.explorarMobileOpen = false;
+  }
+
+  get explorarMenuActive(): boolean {
+    const url = this.router.url.split('?')[0];
+    return url === '/eventos' || url.startsWith('/eventos/') || url === '/mapa';
+  }
+
+  toggleExplorarDesktop(event: Event) {
+    event.stopPropagation();
+    this.explorarOpen = !this.explorarOpen;
+  }
+
+  toggleExplorarMobile() {
+    this.explorarMobileOpen = !this.explorarMobileOpen;
+  }
+
+  @HostListener('document:click')
+  closeExplorarDropdown() {
+    this.explorarOpen = false;
   }
 
   logout() {

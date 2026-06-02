@@ -1,5 +1,7 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges, inject, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { markFormGroupTouched } from '../../core/utils/form-validation.util';
+import { FormFieldErrorComponent } from '../form-field-error/form-field-error.component';
 import { CommonModule } from '@angular/common';
 import { ValoracionesService } from '../../core/services/valoraciones.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,7 +12,7 @@ import { Evento } from '../../core/models';
 @Component({
   selector: 'app-evento-valoracion-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, FormFieldErrorComponent],
   templateUrl: './evento-valoracion-form.component.html',
   styleUrl: './evento-valoracion-form.component.scss',
 })
@@ -121,6 +123,11 @@ export class EventoValoracionFormComponent implements OnInit, OnChanges {
     });
   }
 
+  isInvalid(name: string): boolean {
+    const c = this.form.get(name);
+    return !!(c && c.invalid && (c.dirty || c.touched));
+  }
+
   submit(): void {
     if (!this.auth.isLoggedIn()) {
       void this.router.navigate(['/login'], {
@@ -128,10 +135,12 @@ export class EventoValoracionFormComponent implements OnInit, OnChanges {
       });
       return;
     }
+    markFormGroupTouched(this.form);
     if (!this.puntuacion) {
       this.msgError = 'Selecciona una puntuación de 1 a 5 estrellas.';
       return;
     }
+    if (this.form.invalid) return;
     this.saving = true;
     this.msgError = '';
     this.msg = '';

@@ -32,14 +32,17 @@
   <label class="span-2" [class.has-error]="isInvalid('direccion')">
     <span>Dirección <em>*</em></span>
     <input formControlName="direccion" placeholder="Calle, número, recinto, etc." />
+    <app-form-field-error [control]="form().get('direccion')" label="dirección" />
   </label>
   <label [class.has-error]="isInvalid('localidad')">
     <span>Localidad <em>*</em></span>
     <input formControlName="localidad" placeholder="Ej. Almería, Roquetas de Mar" />
+    <app-form-field-error [control]="form().get('localidad')" label="localidad" />
   </label>
   <label [class.has-error]="isInvalid('provincia')">
     <span>Provincia <em>*</em></span>
     <input formControlName="provincia" placeholder="Ej. Almería" />
+    <app-form-field-error [control]="form().get('provincia')" label="provincia" />
   </label>
 
   <div class="span-2 coords-row">

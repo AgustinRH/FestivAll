@@ -3,11 +3,16 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { getHttpErrorMessage } from '../../../core/utils/http-error';
+import {
+  isFieldInvalid,
+  markFormGroupTouched,
+} from '../../../core/utils/form-validation.util';
+import { FormFieldErrorComponent } from '../../../shared/form-field-error/form-field-error.component';
 
 @Component({
   selector: 'app-olvidar-contrasena',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, FormFieldErrorComponent],
   templateUrl: './olvidar-contrasena.component.html',
   styleUrl: '../login/login.component.scss',
 })
@@ -24,7 +29,12 @@ export class OlvidarContrasenaComponent {
     email: ['', [Validators.required, Validators.email]],
   });
 
+  isInvalid(name: string): boolean {
+    return isFieldInvalid(this.form.get(name));
+  }
+
   submit() {
+    markFormGroupTouched(this.form);
     if (this.form.invalid) return;
     this.loading = true;
     this.error = '';

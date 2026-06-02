@@ -1,0 +1,57 @@
+@if (totalSlides) {
+<div
+  class="image-carousel"
+  [class.image-carousel--single]="!hasMultiple"
+  role="region"
+  [attr.aria-label]="ariaLabel"
+  [attr.aria-roledescription]="hasMultiple ? 'carrusel' : null"
+  (touchstart)="onTouchStart($event)"
+  (touchend)="onTouchEnd($event)"
+>
+  <div class="image-carousel__viewport">
+    <div
+      class="image-carousel__track"
+      [style.transform]="hasMultiple ? 'translateX(-' + activeIndex * 100 + '%)' : 'none'"
+    >
+      @for (src of slides; track $index; let i = $index) {
+        <div class="image-carousel__slide" [attr.aria-hidden]="hasMultiple && i !== activeIndex">
+          <img [src]="src" [alt]="altPrefix + ' — foto ' + (i + 1)" loading="lazy" />
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (hasMultiple) {
+    <button
+      type="button"
+      class="image-carousel__nav image-carousel__nav--prev"
+      (click)="prev()"
+      aria-label="Imagen anterior"
+    >
+      ‹
+    </button>
+    <button
+      type="button"
+      class="image-carousel__nav image-carousel__nav--next"
+      (click)="next()"
+      aria-label="Imagen siguiente"
+    >
+      ›
+    </button>
+    <span class="image-carousel__counter" aria-live="polite">{{ slideLabel }}</span>
+    <div class="image-carousel__dots" role="tablist" [attr.aria-label]="'Miniaturas de ' + ariaLabel">
+      @for (_ of slides; track $index; let i = $index) {
+        <button
+          type="button"
+          class="image-carousel__dot"
+          role="tab"
+          [class.is-active]="i === activeIndex"
+          [attr.aria-selected]="i === activeIndex"
+          [attr.aria-label]="'Ir a la foto ' + (i + 1)"
+          (click)="goTo(i)"
+        ></button>
+      }
+    </div>
+  }
+</div>
+}

@@ -89,6 +89,11 @@ form {
       font-weight: 500;
       color: #9ca3af;
     }
+
+    &.has-error input {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35);
+    }
   }
 
   input {

@@ -16,7 +16,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN apk add --no-cache netcat-openbsd
+RUN apk add --no-cache netcat-openbsd vips-cpp
 
 COPY package.json package-lock.json ./
 RUN npm install --no-audit --no-fund --omit=dev && npm cache clean --force

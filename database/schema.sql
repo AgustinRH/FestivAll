@@ -75,6 +75,8 @@ CREATE TABLE imagen (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_evento INT NOT NULL,
     url VARCHAR(255) NOT NULL,
+    tipo ENUM('principal', 'cartelera', 'galeria') NOT NULL DEFAULT 'galeria',
+    orden TINYINT UNSIGNED NULL,
     es_principal BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_imagen_evento FOREIGN KEY (id_evento)
         REFERENCES evento (id) ON DELETE CASCADE

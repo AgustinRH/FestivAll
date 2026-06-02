@@ -17,6 +17,17 @@ import { AdminEntradasComponent } from '../admin-entradas/admin-entradas.compone
 import { AdminValoracionesComponent } from '../admin-valoraciones/admin-valoraciones.component';
 import { AdminUbicacionPickerComponent } from '../admin-ubicacion-picker/admin-ubicacion-picker.component';
 import { ValoracionesService } from '../../../core/services/valoraciones.service';
+import { isFieldInvalid } from '../../../core/utils/form-validation.util';
+import { resolveEventoImageUrl } from '../../../core/utils/evento-image.util';
+import {
+  EventoImagenTipo,
+  MAX_GALERIA_IMAGES,
+  listGaleria,
+  urlImagenListado,
+  urlImagenPorTipo,
+} from '../../../core/utils/evento-imagenes.util';
+import { FormFieldErrorComponent } from '../../../shared/form-field-error/form-field-error.component';
+import { forkJoin, of, switchMap } from 'rxjs';
 
 type AdminSection = 'eventos' | 'usuarios' | 'clientes' | 'entradas' | 'valoraciones';
 type AdminView = 'list' | 'form';
@@ -36,6 +47,7 @@ type MsgType = 'success' | 'error';
     AdminEntradasComponent,
     AdminValoracionesComponent,
     AdminUbicacionPickerComponent,
+    FormFieldErrorComponent,
   ],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.scss',
@@ -76,6 +88,10 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
   cierreLoading = false;
   cierreData: CierreCajaReport | null = null;
   private msgTimer?: ReturnType<typeof setTimeout>;
+  readonly galeriaSlots = Array.from({ length: MAX_GALERIA_IMAGES }, (_, i) => i);
+  private pendingFiles: Partial<Record<'principal' | 'cartelera', File>> = {};
+  private pendingGaleria: (File | null)[] = Array(MAX_GALERIA_IMAGES).fill(null);
+  private previewUrls = new Map<string, string>();
 
   form = this.fb.group({
     titulo: ['', Validators.required],
@@ -92,7 +108,6 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
     horaFin: [''],
     precio: [0, [Validators.required, Validators.min(0)]],
     stock: [0, [Validators.required, Validators.min(0)]],
-    imagenUrl: [''],
     destacado: [false],
     soloMayoresEdad: [false],
     idCliente: ['1', Validators.required],
@@ -156,8 +171,45 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
     return this.eventos.filter((e) => e.stock <= 10).length;
   }
 
-  get previewImage(): string {
-    return this.form.get('imagenUrl')?.value?.trim() || '';
+  get editingEvento(): Evento | undefined {
+    return this.editingId ? this.eventos.find((e) => e.id === this.editingId) : undefined;
+  }
+
+  get hasPrincipal(): boolean {
+    if (this.pendingFiles.principal) return true;
+    return !!urlImagenPorTipo(this.editingEvento?.imagenes, 'principal');
+  }
+
+  previewKey(tipo: EventoImagenTipo, slot?: number): string {
+    return tipo === 'galeria' ? `galeria-${slot}` : tipo;
+  }
+
+  getPreview(tipo: EventoImagenTipo, slot?: number): string {
+    const key = this.previewKey(tipo, slot);
+    const pending = this.previewUrls.get(key);
+    if (pending) return pending;
+    const ev = this.editingEvento;
+    if (!ev?.imagenes) return '';
+    if (tipo === 'galeria') {
+      const img = listGaleria(ev.imagenes).find((i) => i.orden === slot);
+      return img?.url ? resolveEventoImageUrl(img.url) : '';
+    }
+    const raw = urlImagenPorTipo(ev.imagenes, tipo);
+    return raw ? resolveEventoImageUrl(raw) : '';
+  }
+
+  hasPreview(tipo: EventoImagenTipo, slot?: number): boolean {
+    return !!this.getPreview(tipo, slot);
+  }
+
+  isPendingNew(tipo: EventoImagenTipo, slot?: number): boolean {
+    if (tipo === 'galeria' && slot !== undefined) {
+      return !!this.pendingGaleria[slot];
+    }
+    if (tipo === 'principal' || tipo === 'cartelera') {
+      return !!this.pendingFiles[tipo];
+    }
+    return false;
   }
 
   load() {
@@ -182,7 +234,103 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
   }
 
   getImageUrl(evento: Evento): string | null {
-    return evento.imagenes?.find((i) => i.esPrincipal)?.url || evento.imagenes?.[0]?.url || null;
+    const raw = urlImagenListado(evento.imagenes);
+    return raw ? resolveEventoImageUrl(raw) : null;
+  }
+
+  get galeriaPendingCount(): number {
+    return this.pendingGaleria.filter(Boolean).length;
+  }
+
+  get hasAnyGaleriaPreview(): boolean {
+    return this.galeriaSlots.some((slot) => this.hasPreview('galeria', slot));
+  }
+
+  onImagenSelected(tipo: EventoImagenTipo, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || !this.validateImageFile(file)) return;
+
+    const key = this.previewKey(tipo);
+    this.revokePreview(key);
+    this.previewUrls.set(key, URL.createObjectURL(file));
+    if (tipo === 'principal' || tipo === 'cartelera') {
+      this.pendingFiles[tipo] = file;
+    }
+  }
+
+  onGaleriaBatchSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const picked = input.files ? Array.from(input.files) : [];
+    input.value = '';
+    if (!picked.length) return;
+
+    if (picked.length > MAX_GALERIA_IMAGES) {
+      this.notify(
+        `Solo puedes seleccionar hasta ${MAX_GALERIA_IMAGES} imágenes; se usarán las primeras ${MAX_GALERIA_IMAGES}`,
+        'error',
+      );
+    }
+
+    const valid: File[] = [];
+    for (const file of picked.slice(0, MAX_GALERIA_IMAGES)) {
+      if (this.validateImageFile(file, file.name)) {
+        valid.push(file);
+      }
+    }
+    if (!valid.length) return;
+
+    for (let slot = 0; slot < MAX_GALERIA_IMAGES; slot++) {
+      const key = this.previewKey('galeria', slot);
+      if (slot < valid.length) {
+        this.revokePreview(key);
+        this.previewUrls.set(key, URL.createObjectURL(valid[slot]));
+        this.pendingGaleria[slot] = valid[slot];
+      } else if (this.pendingGaleria[slot]) {
+        this.revokePreview(key);
+        this.pendingGaleria[slot] = null;
+      }
+    }
+  }
+
+  private validateImageFile(file: File, label?: string): boolean {
+    const name = label ?? 'La imagen';
+    if (!file.type.startsWith('image/')) {
+      this.notify(`${name}: formato no válido (JPG, PNG, WebP o GIF)`, 'error');
+      return false;
+    }
+    if (file.size > 30 * 1024 * 1024) {
+      this.notify(`${name}: no puede superar 30 MB`, 'error');
+      return false;
+    }
+    return true;
+  }
+
+  clearImagenSelection(tipo: EventoImagenTipo, slot?: number) {
+    const key = this.previewKey(tipo, slot);
+    this.revokePreview(key);
+    if (tipo === 'galeria' && slot !== undefined) {
+      this.pendingGaleria[slot] = null;
+    } else if (tipo === 'principal' || tipo === 'cartelera') {
+      delete this.pendingFiles[tipo];
+    }
+  }
+
+  private revokePreview(key: string) {
+    const prev = this.previewUrls.get(key);
+    if (prev) {
+      URL.revokeObjectURL(prev);
+      this.previewUrls.delete(key);
+    }
+  }
+
+  private clearAllPendingImages() {
+    for (const key of [...this.previewUrls.keys()]) {
+      this.revokePreview(key);
+    }
+    this.pendingFiles = {};
+    this.pendingGaleria = Array(MAX_GALERIA_IMAGES).fill(null);
   }
 
   formatFecha(fecha: string): string {
@@ -200,6 +348,7 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.clearAllPendingImages();
     if (isPlatformBrowser(this.platformId)) {
       window.removeEventListener('resize', this.onResize);
     }
@@ -347,7 +496,7 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
 
   edit(evento: Evento) {
     this.editingId = evento.id;
-    const img = this.getImageUrl(evento) || '';
+    this.clearAllPendingImages();
     this.form.patchValue({
       titulo: evento.titulo,
       descripcion: evento.descripcion,
@@ -363,7 +512,6 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
       horaFin: evento.horaFin || '',
       precio: evento.precio,
       stock: evento.stock,
-      imagenUrl: img,
       destacado: evento.destacado ?? false,
       soloMayoresEdad: evento.soloMayoresEdad ?? false,
       idCliente: String(evento.idCliente ?? 1),
@@ -372,6 +520,7 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
 
   cancelEdit() {
     this.editingId = null;
+    this.clearAllPendingImages();
     this.form.reset({
       precio: 0,
       stock: 0,
@@ -399,6 +548,11 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
       this.notify('La fecha de fin no puede ser anterior a la de inicio', 'error');
       return;
     }
+    if (!this.hasPrincipal) {
+      this.notify('Sube la imagen principal del evento (cabecera y listados)', 'error');
+      return;
+    }
+
     const data = {
       titulo: raw.titulo!,
       descripcion: raw.descripcion || undefined,
@@ -414,29 +568,54 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
       horaFin: raw.horaFin || undefined,
       precio: +raw.precio!,
       stock: +raw.stock!,
-      imagenUrl: raw.imagenUrl || undefined,
       destacado: !!raw.destacado,
       soloMayoresEdad: !!raw.soloMayoresEdad,
       idCliente: +raw.idCliente!,
     };
 
     this.saving = true;
-    const req = this.editingId
+    const save$ = this.editingId
       ? this.eventosService.update(this.editingId, data)
       : this.eventosService.create(data);
 
-    req.subscribe({
-      next: () => {
-        this.saving = false;
-        this.notify(this.editingId ? 'Evento actualizado correctamente' : 'Evento creado correctamente');
-        this.closeForm();
-        this.load();
-      },
-      error: (err) => {
-        this.saving = false;
-        this.notify(err.error?.message || 'Error al guardar el evento', 'error');
-      },
+    save$
+      .pipe(
+        switchMap((ev) => {
+          const id = this.editingId ?? ev.id;
+          return this.uploadPendingImages(id);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.saving = false;
+          this.clearAllPendingImages();
+          this.notify(
+            this.editingId ? 'Evento actualizado correctamente' : 'Evento creado correctamente',
+          );
+          this.closeForm();
+          this.load();
+        },
+        error: (err) => {
+          this.saving = false;
+          this.notify(err.error?.message || 'Error al guardar el evento', 'error');
+        },
+      });
+  }
+
+  private uploadPendingImages(id: number) {
+    const tasks = [];
+    if (this.pendingFiles.principal) {
+      tasks.push(this.eventosService.uploadImagen(id, 'principal', this.pendingFiles.principal));
+    }
+    if (this.pendingFiles.cartelera) {
+      tasks.push(this.eventosService.uploadImagen(id, 'cartelera', this.pendingFiles.cartelera));
+    }
+    this.pendingGaleria.forEach((file, slot) => {
+      if (file) {
+        tasks.push(this.eventosService.uploadImagen(id, 'galeria', file, slot));
+      }
     });
+    return tasks.length ? forkJoin(tasks) : of(null);
   }
 
   toggleDestacado(evento: Evento, ev?: Event) {
@@ -515,7 +694,6 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
   }
 
   isInvalid(name: string): boolean {
-    const c = this.form.get(name);
-    return !!(c && c.invalid && (c.dirty || c.touched));
+    return isFieldInvalid(this.form.get(name));
   }
 }

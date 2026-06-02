@@ -11,6 +11,10 @@ export interface RegisterResponse {
   email: string;
 }
 
+/**
+ * Sesión de usuario en el cliente: JWT en `localStorage`, signal `currentUser`
+ * y redirección tras login/logout. Las peticiones autenticadas usan `authInterceptor`.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly api = `${environment.apiUrl}/auth`;

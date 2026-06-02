@@ -4,13 +4,18 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClientesAdminService } from '../../../core/services/clientes-admin.service';
 import { Cliente } from '../../../core/models';
+import {
+  isFieldInvalid,
+  markFormGroupTouched,
+} from '../../../core/utils/form-validation.util';
+import { FormFieldErrorComponent } from '../../../shared/form-field-error/form-field-error.component';
 
 type View = 'list' | 'form';
 
 @Component({
   selector: 'app-admin-clientes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, FormFieldErrorComponent],
   templateUrl: './admin-clientes.component.html',
   styleUrl: './admin-clientes.component.scss',
 })
@@ -30,7 +35,7 @@ export class AdminClientesComponent implements OnInit {
     nombre: ['', [Validators.required, Validators.minLength(2)]],
     nombreFiscal: [''],
     cif: [''],
-    emailContacto: [''],
+    emailContacto: ['', Validators.email],
     telefono: [''],
     notas: [''],
     activo: [true],
@@ -92,11 +97,13 @@ export class AdminClientesComponent implements OnInit {
     this.editingId = null;
   }
 
+  isInvalid(name: string): boolean {
+    return isFieldInvalid(this.form.get(name));
+  }
+
   submit() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    markFormGroupTouched(this.form);
+    if (this.form.invalid) return;
     const v = this.form.getRawValue();
     const body = {
       nombre: v.nombre!.trim(),

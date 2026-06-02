@@ -1,6 +1,6 @@
 <div class="auth-page">
   <div class="auth-card">
-    <h1>Login</h1>
+    <h1>Iniciar sesión</h1>
     @if (error) { <p class="error">{{ error }}</p> }
   @if (showResend) {
     <button type="button" class="btn-resend" (click)="resendVerification()" [disabled]="resendLoading">
@@ -8,12 +8,18 @@
     </button>
     @if (resendMsg) { <p class="resend-msg">{{ resendMsg }}</p> }
   }
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <input type="email" formControlName="email" placeholder="Email" autocomplete="username" />
-      <input type="password" formControlName="password" placeholder="Password" autocomplete="current-password" />
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field" [class.has-error]="isInvalid('email')">
+        <input type="email" formControlName="email" placeholder="Email" autocomplete="username" />
+        <app-form-field-error [control]="form.get('email')" label="correo electrónico" />
+      </div>
+      <div class="field" [class.has-error]="isInvalid('password')">
+        <input type="password" formControlName="password" placeholder="Contraseña" autocomplete="current-password" />
+        <app-form-field-error [control]="form.get('password')" label="contraseña" />
+      </div>
       <p class="link forgot-link"><a routerLink="/olvidar-contrasena">¿Has olvidado la contraseña?</a></p>
-      <button type="submit" [disabled]="form.invalid || loading">
-        {{ loading ? 'Entrando...' : 'Iniciar Sesión' }}
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Entrando...' : 'Iniciar sesión' }}
       </button>
     </form>
     <p class="link">¿No tienes cuenta? <a routerLink="/register">Regístrate</a></p>

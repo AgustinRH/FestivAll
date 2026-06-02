@@ -4,11 +4,16 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import {
+  isFieldInvalid,
+  markFormGroupTouched,
+} from '../../../core/utils/form-validation.util';
+import { FormFieldErrorComponent } from '../../../shared/form-field-error/form-field-error.component';
 
 @Component({
   selector: 'app-admin-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, FormFieldErrorComponent],
   templateUrl: './admin-login.component.html',
   styleUrl: './admin-login.component.scss',
 })
@@ -37,7 +42,12 @@ export class AdminLoginComponent implements OnInit {
     password: ['', Validators.required],
   });
 
+  isInvalid(name: string): boolean {
+    return isFieldInvalid(this.form.get(name));
+  }
+
   submit() {
+    markFormGroupTouched(this.form);
     if (this.form.invalid) return;
     this.loading = true;
     const { email, password } = this.form.getRawValue();

@@ -1,6 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import { toIsoDateOnly } from './evento-activo.util';
 
+/**
+ * Normaliza y valida el rango de fechas de un evento (ISO date `YYYY-MM-DD`).
+ * @throws BadRequestException si faltan fechas o la fecha fin es anterior al inicio
+ */
 export function validarFechasEvento(
   fechaInicio: string | Date,
   fechaFin: string | Date,

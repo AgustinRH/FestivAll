@@ -14,6 +14,7 @@ import { FooterComponent } from '../../../shared/footer/footer.component';
 import { EventosService } from '../../../core/services/eventos.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { EventoMapa } from '../../../core/models';
+import { resolveEventoImageUrl } from '../../../core/utils/evento-image.util';
 import { getEventoSlugSegment } from '../../../core/utils/evento-slug.util';
 
 /** Centro provincia de Almería */
@@ -218,9 +219,7 @@ export class BuscadorMapaComponent implements AfterViewInit, OnDestroy {
       titulo: ev.titulo,
       ubicacion: { localidad: ev.localidad },
     });
-    const img =
-      ev.imagenCartel ||
-      'https://via.placeholder.com/240x140?text=Evento';
+    const img = resolveEventoImageUrl(ev.imagenCartel);
     const precio =
       ev.precioDesde <= 0
         ? 'Gratis'

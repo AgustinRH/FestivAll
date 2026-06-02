@@ -7,6 +7,7 @@ import { ValoracionesService } from '../../../core/services/valoraciones.service
 import { SeoService } from '../../../core/services/seo.service';
 import { EventoOpinionesDetalle } from '../../../core/models';
 import { parseEventoIdFromSlug } from '../../../core/utils/evento-slug.util';
+import { resolveEventoImageUrl } from '../../../core/utils/evento-image.util';
 import { opinionEventoPath } from '../../../core/utils/evento-slug.util';
 
 @Component({
@@ -38,10 +39,7 @@ export class OpinionEventoDetailComponent implements OnInit {
   }
 
   get imagenUrl(): string {
-    return (
-      this.detalle?.evento.imagenUrl ||
-      'https://via.placeholder.com/1200x400?text=Evento'
-    );
+    return resolveEventoImageUrl(this.detalle?.evento.imagenUrl);
   }
 
   private cargar(idEvento: number): void {

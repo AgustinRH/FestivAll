@@ -10,16 +10,28 @@ import { SeoService } from '../../../core/services/seo.service';
 import { ComprasService } from '../../../core/services/compras.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { getHttpErrorMessage } from '../../../core/utils/http-error';
+import { resolveEventoImageUrl } from '../../../core/utils/evento-image.util';
+import {
+  listGaleria,
+  urlImagenListado,
+  urlImagenPorTipo,
+} from '../../../core/utils/evento-imagenes.util';
 import { getPrecioUnitario, aplicaDescuentoUltimasEntradas } from '../../../core/utils/precio.util';
 import { Evento, Compra } from '../../../core/models';
 import {
   getEventoSlugSegment,
   parseEventoIdFromSlug,
 } from '../../../core/utils/evento-slug.util';
+import {
+  isFieldInvalid,
+  markFormGroupTouched,
+} from '../../../core/utils/form-validation.util';
 import { LegalPrimeraCapaComponent } from '../../../shared/legal-primera-capa/legal-primera-capa.component';
+import { FormFieldErrorComponent } from '../../../shared/form-field-error/form-field-error.component';
 import { EventoValoracionesComponent } from '../../../shared/evento-valoraciones/evento-valoraciones.component';
 import { EventoValoracionFormComponent } from '../../../shared/evento-valoracion-form/evento-valoracion-form.component';
 import { EventoUbicacionMapaComponent } from '../../../shared/evento-ubicacion-mapa/evento-ubicacion-mapa.component';
+import { ImageCarouselComponent } from '../../../shared/image-carousel/image-carousel.component';
 
 @Component({
   selector: 'app-evento-detail',
@@ -32,6 +44,8 @@ import { EventoUbicacionMapaComponent } from '../../../shared/evento-ubicacion-m
     EventoValoracionesComponent,
     EventoValoracionFormComponent,
     EventoUbicacionMapaComponent,
+    ImageCarouselComponent,
+    FormFieldErrorComponent,
     RouterLink,
     CurrencyPipe,
     DatePipe,
@@ -65,11 +79,11 @@ export class EventoDetailComponent implements OnInit {
   compraForm = this.fb.group({
     nombre: ['', Validators.required],
     apellidos: ['', Validators.required],
-    direccion: [''],
-    codPostal: [''],
-    ciudad: [''],
+    direccion: ['', Validators.required],
+    codPostal: ['', Validators.required],
+    ciudad: ['', Validators.required],
     pais: ['España'],
-    telefono: [''],
+    telefono: ['', Validators.required],
     codigoDescuento: [''],
     cantidad: [1, [Validators.required, Validators.min(1)]],
     aceptoTerminos: [false, Validators.requiredTrue],
@@ -175,9 +189,22 @@ export class EventoDetailComponent implements OnInit {
     return this.esGratis ? 'Confirmar entrada gratuita' : 'Pagar con tarjeta';
   }
 
-  get imagenUrl(): string {
-    const principal = this.evento?.imagenes?.find((i) => i.esPrincipal);
-    return principal?.url || this.evento?.imagenes?.[0]?.url || '';
+  get imagenPrincipalUrl(): string {
+    const raw =
+      urlImagenPorTipo(this.evento?.imagenes, 'principal') ??
+      urlImagenListado(this.evento?.imagenes);
+    return resolveEventoImageUrl(raw);
+  }
+
+  get imagenCarteleraUrl(): string | null {
+    const raw = urlImagenPorTipo(this.evento?.imagenes, 'cartelera');
+    return raw ? resolveEventoImageUrl(raw) : null;
+  }
+
+  get galeriaUrls(): string[] {
+    return listGaleria(this.evento?.imagenes).map((i) =>
+      resolveEventoImageUrl(i.url),
+    );
   }
 
   onValoracionEnviada(): void {
@@ -243,14 +270,22 @@ export class EventoDetailComponent implements OnInit {
     return this.precioUnitario * (this.compraForm.get('cantidad')?.value || 1);
   }
 
+  isCompraInvalid(name: string): boolean {
+    return isFieldInvalid(this.compraForm.get(name));
+  }
+
   confirmarCompra() {
     if (!this.puedeComprar) return;
-    if (!this.evento || this.compraForm.invalid) return;
+    if (!this.evento) return;
+    markFormGroupTouched(this.compraForm);
     const cantidad = this.compraForm.get('cantidad')!.value!;
     if (cantidad > this.evento.stock) {
-      this.error = 'No hay suficiente stock';
+      this.compraForm.get('cantidad')?.setErrors({
+        max: { max: this.evento.stock, actual: cantidad },
+      });
       return;
     }
+    if (this.compraForm.invalid) return;
     this.loading = true;
     this.error = '';
     const aceptoTerminos = this.compraForm.get('aceptoTerminos')!.value === true;

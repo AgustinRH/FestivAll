@@ -1,20 +1,40 @@
 <div class="page-wrap">
   <app-navbar />
   <main class="page-content home-page">
+    <section class="home-welcome" aria-labelledby="home-welcome-headline">
+      <div class="home-welcome__media" aria-hidden="true">
+        <img
+          class="home-welcome__img"
+          src="/home-welcome-bg.png"
+          alt=""
+          fetchpriority="high"
+          decoding="async"
+        />
+        <div class="home-welcome__overlay"></div>
+      </div>
+      <div class="home-welcome__inner container">
+        <p class="home-welcome__eyebrow">Bienvenido a FestivAll</p>
+        <h1 id="home-welcome-headline" class="home-welcome__headline">
+          Encuentra tu próximo evento en menos de 3 clicks
+        </h1>
+        <h2 class="home-welcome__title">
+          La plataforma para descubrir y vivir la cultura en Almería
+        </h2>
+        <p class="home-welcome__text">
+          <strong>FestivAll</strong> reúne en un solo sitio conciertos, festivales y eventos de toda la provincia.
+          Explora el calendario, localiza planes en el mapa y compra tus entradas de forma rápida y segura.
+        </p>
+        <p class="home-welcome__text home-welcome__text--secondary">
+          Nacimos para acercar la escena cultural almeriense a todo el mundo: información clara, precios transparentes
+          y entradas digitales listas para el recinto.
+        </p>
+        <a routerLink="/eventos" class="home-welcome__btn btn-explorar">Explorar festivales</a>
+      </div>
+    </section>
+
     <section class="home-showcase">
       <div class="home-showcase__bg" aria-hidden="true"></div>
       <div class="home-showcase__overlay" aria-hidden="true"></div>
-
-      <div class="hero">
-        <div class="hero-glow" aria-hidden="true">
-          <span class="hero-glow__orb hero-glow__orb--magenta"></span>
-          <span class="hero-glow__orb hero-glow__orb--cyan"></span>
-        </div>
-        <div class="hero-inner">
-          <h1>Encuentra tu próximo evento en menos de 3 clicks</h1>
-          <a routerLink="/eventos" class="btn-explorar">Explorar festivales</a>
-        </div>
-      </div>
 
       <div class="home-sections">
         <section class="destacados container">
@@ -66,6 +86,12 @@
         ¿Tienes dudas? Consulta las
         <a routerLink="/contacto">preguntas frecuentes y cómo contactarnos</a>
         o escríbenos a <a href="mailto:info&#64;festivall.club">info&#64;festivall.club</a>.
+        También estamos en
+        <a
+          href="https://www.instagram.com/festivall.club/"
+          target="_blank"
+          rel="me noopener noreferrer"
+        >Instagram &#64;festivall.club</a>.
       </p>
     </section>
   </main>

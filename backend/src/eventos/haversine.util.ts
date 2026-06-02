@@ -1,4 +1,7 @@
-/** Distancia en km entre dos puntos (fórmula de Haversine). */
+/**
+ * Distancia en kilómetros entre dos coordenadas WGS84 (fórmula de Haversine).
+ * Usado en el filtro de mapa por radio.
+ */
 export function distanciaKm(
   lat1: number,
   lng1: number,

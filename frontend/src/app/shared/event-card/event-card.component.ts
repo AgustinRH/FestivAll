@@ -3,6 +3,8 @@ import { RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { Evento } from '../../core/models';
 import { eventoPath } from '../../core/utils/evento-slug.util';
+import { resolveEventoImageUrl } from '../../core/utils/evento-image.util';
+import { urlImagenListado } from '../../core/utils/evento-imagenes.util';
 import { aplicaDescuentoUltimasEntradas, getPrecioUnitario } from '../../core/utils/precio.util';
 
 @Component({
@@ -16,8 +18,7 @@ export class EventCardComponent {
   @Input({ required: true }) evento!: Evento;
 
   get imagenUrl(): string {
-    const principal = this.evento.imagenes?.find((i) => i.esPrincipal);
-    return principal?.url || this.evento.imagenes?.[0]?.url || 'https://via.placeholder.com/400x250?text=Evento';
+    return resolveEventoImageUrl(urlImagenListado(this.evento.imagenes));
   }
 
   get precioFinal(): number {

@@ -3,8 +3,6 @@
   <nav class="links">
     <a routerLink="/sobre-nosotros">Sobre nosotros</a>
     <span>|</span>
-    <a routerLink="/contacto">Contacto</a>
-    <span>|</span>
     <a routerLink="/terminos-y-condiciones">Términos</a>
     <span>|</span>
     <a routerLink="/privacidad">Privacidad</a>
@@ -12,9 +10,14 @@
     <a routerLink="/aviso-legal">Aviso legal</a>
   </nav>
   <div class="social">
-    <a href="#" aria-label="Facebook">f</a>
-    <a href="#" aria-label="TikTok">♪</a>
-    <a href="#" aria-label="Instagram">◎</a>
-    <a href="#" aria-label="WhatsApp">✆</a>
+    <a
+      [href]="instagramUrl"
+      target="_blank"
+      [attr.rel]="instagramLinkRel"
+      class="social-instagram"
+      [attr.aria-label]="'Instagram de FestivAll (@' + instagramHandle + ')'"
+    >
+      {{ '@' + instagramHandle }}
+    </a>
   </div>
 </footer>

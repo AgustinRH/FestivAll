@@ -42,9 +42,13 @@ export interface AddressSuggestion {
   lng: number;
 }
 
+export type ImagenTipo = 'principal' | 'cartelera' | 'galeria';
+
 export interface Imagen {
   id: number;
   url: string;
+  tipo?: ImagenTipo;
+  orden?: number | null;
   esPrincipal: boolean;
 }
 

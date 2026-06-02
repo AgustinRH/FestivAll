@@ -5,10 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { UsuariosAdminService } from '../../../core/services/usuarios-admin.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AdminUser } from '../../../core/models';
+import { isFieldInvalid } from '../../../core/utils/form-validation.util';
 import {
   PASSWORD_REQUIREMENTS_HINT,
   strongPasswordValidator,
 } from '../../../core/validators/password.validators';
+import { FormFieldErrorComponent } from '../../../shared/form-field-error/form-field-error.component';
 
 type UserView = 'list' | 'form';
 type MsgType = 'success' | 'error';
@@ -16,7 +18,7 @@ type MsgType = 'success' | 'error';
 @Component({
   selector: 'app-admin-usuarios',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, FormFieldErrorComponent],
   templateUrl: './admin-usuarios.component.html',
   styleUrl: './admin-usuarios.component.scss',
 })
@@ -262,7 +264,6 @@ export class AdminUsuariosComponent implements OnInit {
   }
 
   isInvalid(name: string): boolean {
-    const c = this.form.get(name);
-    return !!(c && c.invalid && (c.dirty || c.touched));
+    return isFieldInvalid(this.form.get(name));
   }
 }

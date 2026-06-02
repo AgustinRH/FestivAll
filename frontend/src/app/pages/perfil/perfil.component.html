@@ -286,11 +286,20 @@
           <h3 class="subsection-title">Cambiar con la contraseña actual</h3>
           @if (passwordMsg) { <p class="success">{{ passwordMsg }}</p> }
           @if (passwordError) { <p class="error">{{ passwordError }}</p> }
-          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
-            <input type="password" placeholder="Contraseña actual" formControlName="currentPassword" />
-            <input type="password" placeholder="Nueva contraseña" formControlName="newPassword" autocomplete="new-password" />
-            <p class="password-hint">{{ passwordHint }}</p>
-            <input type="password" placeholder="Confirmar nueva contraseña" formControlName="confirmPassword" autocomplete="new-password" />
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" novalidate>
+            <div class="pw-field" [class.has-error]="isPasswordInvalid('currentPassword')">
+              <input type="password" placeholder="Contraseña actual" formControlName="currentPassword" autocomplete="current-password" />
+              <app-form-field-error [control]="passwordForm.get('currentPassword')" label="contraseña actual" />
+            </div>
+            <div class="pw-field" [class.has-error]="isPasswordInvalid('newPassword')">
+              <input type="password" placeholder="Nueva contraseña" formControlName="newPassword" autocomplete="new-password" />
+              <p class="password-hint">{{ passwordHint }}</p>
+              <app-form-field-error [control]="passwordForm.get('newPassword')" label="nueva contraseña" />
+            </div>
+            <div class="pw-field" [class.has-error]="isPasswordInvalid('confirmPassword')">
+              <input type="password" placeholder="Confirmar nueva contraseña" formControlName="confirmPassword" autocomplete="new-password" />
+              <app-form-field-error [control]="passwordForm.get('confirmPassword')" label="confirmación" />
+            </div>
             <button type="submit" class="btn-primary" [disabled]="passwordForm.invalid">Actualizar contraseña</button>
           </form>
         </div>

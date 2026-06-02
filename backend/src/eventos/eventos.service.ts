@@ -13,6 +13,16 @@ import { STOCK_ULTIMAS_ENTRADAS_MAX } from './precio.util';
 import { hoyIso } from './evento-activo.util';
 import { validarFechasEvento } from './evento-fechas.util';
 import { getPrecioUnitario } from './precio.util';
+import { EventImageService } from '../uploads/event-image.service';
+import {
+  EventImageTipo,
+  MAX_GALERIA_IMAGES,
+} from '../uploads/event-image.types';
+import {
+  findImagenPorTipo,
+  listGaleria,
+  urlImagenPrincipal,
+} from './imagen-evento.util';
 
 export type EventoMapaItem = {
   id: number;
@@ -57,6 +67,7 @@ export class EventosService implements OnModuleInit {
     @InjectRepository(Ubicacion) private ubicacionRepo: Repository<Ubicacion>,
     @InjectRepository(Cliente) private clienteRepo: Repository<Cliente>,
     private geocoding: GeocodingService,
+    private eventImages: EventImageService,
   ) {}
 
   buscarUbicaciones(q: string): Promise<AddressSuggestion[]> {
@@ -305,8 +316,7 @@ export class EventosService implements OnModuleInit {
     const eventos = await qb.orderBy('evento.fechaInicio', 'ASC').getMany();
 
     return eventos.map((e) => {
-      const principal = e.imagenes?.find((i) => i.esPrincipal);
-      const img = principal?.url ?? e.imagenes?.[0]?.url ?? null;
+      const img = urlImagenPrincipal(e.imagenes);
       return {
         id: e.id,
         titulo: e.titulo,
@@ -331,7 +341,6 @@ export class EventosService implements OnModuleInit {
 
   async create(dto: CreateEventoDto) {
     const {
-      imagenUrl,
       direccion,
       localidad,
       provincia,
@@ -363,21 +372,12 @@ export class EventosService implements OnModuleInit {
     const saved = await this.eventoRepo.save(evento);
     await this.asignarSlug(saved, localidad);
 
-    if (imagenUrl) {
-      await this.imagenRepo.save({
-        idEvento: saved.id,
-        url: imagenUrl,
-        esPrincipal: true,
-      });
-    }
-
     return this.findOneById(saved.id);
   }
 
   async update(id: number, dto: UpdateEventoDto) {
     const evento = await this.findOneById(id);
     const {
-      imagenUrl,
       direccion,
       localidad,
       provincia,
@@ -427,20 +427,6 @@ export class EventosService implements OnModuleInit {
       evento.ubicacion?.localidad;
     await this.asignarSlug(actualizado, loc);
 
-    if (imagenUrl) {
-      const principal = evento.imagenes?.find((i) => i.esPrincipal);
-      if (principal) {
-        principal.url = imagenUrl;
-        await this.imagenRepo.save(principal);
-      } else {
-        await this.imagenRepo.save({
-          idEvento: id,
-          url: imagenUrl,
-          esPrincipal: true,
-        });
-      }
-    }
-
     return this.findOneById(id);
   }
 
@@ -452,9 +438,104 @@ export class EventosService implements OnModuleInit {
     return this.findOneById(id);
   }
 
+  async uploadImagen(
+    id: number,
+    tipo: EventImageTipo,
+    file: Express.Multer.File,
+    slot?: number,
+  ) {
+    this.eventImages.assertTipo(tipo);
+    const evento = await this.findOneById(id);
+    const galeria = listGaleria(evento.imagenes);
+    let orden: number | null = null;
+
+    if (tipo === 'galeria') {
+      const slotProvided = slot !== undefined && !Number.isNaN(slot);
+      if (slotProvided) {
+        this.eventImages.assertGaleriaSlot(slot!);
+        orden = slot!;
+      } else {
+        orden = this.nextFreeGaleriaSlot(galeria);
+      }
+      const replacing = galeria.some((i) => i.orden === orden);
+      if (!replacing && galeria.length >= MAX_GALERIA_IMAGES) {
+        throw new BadRequestException(
+          `La galería admite como máximo ${MAX_GALERIA_IMAGES} imágenes`,
+        );
+      }
+    }
+
+    const prev =
+      tipo === 'galeria'
+        ? galeria.find((i) => i.orden === orden)
+        : findImagenPorTipo(evento.imagenes, tipo);
+    if (prev?.url) {
+      this.eventImages.deleteByUrl(prev.url);
+    }
+
+    const url = await this.eventImages.save(id, tipo, file, orden ?? undefined);
+    await this.upsertImagenRegistro(id, tipo, url, orden);
+
+    return { url, tipo, orden };
+  }
+
+  async deleteImagen(idEvento: number, imagenId: number) {
+    const img = await this.imagenRepo.findOne({
+      where: { id: imagenId, idEvento },
+    });
+    if (!img) {
+      throw new NotFoundException('Imagen no encontrada');
+    }
+    this.eventImages.deleteByUrl(img.url);
+    await this.imagenRepo.remove(img);
+    return { message: 'Imagen eliminada' };
+  }
+
   async remove(id: number) {
     const evento = await this.findOneById(id);
+    this.eventImages.deleteEventoFolder(evento.id);
     await this.eventoRepo.remove(evento);
     return { message: 'Evento eliminado' };
+  }
+
+  private nextFreeGaleriaSlot(galeria: Imagen[]): number {
+    const used = new Set(galeria.map((i) => i.orden ?? 0));
+    for (let s = 0; s < MAX_GALERIA_IMAGES; s++) {
+      if (!used.has(s)) return s;
+    }
+    throw new BadRequestException(
+      `La galería admite como máximo ${MAX_GALERIA_IMAGES} imágenes`,
+    );
+  }
+
+  private async upsertImagenRegistro(
+    idEvento: number,
+    tipo: EventImageTipo,
+    url: string,
+    orden: number | null,
+  ) {
+    let existing: Imagen | null;
+    if (tipo === 'galeria') {
+      existing = await this.imagenRepo.findOne({
+        where: { idEvento, tipo: 'galeria', orden: orden ?? 0 },
+      });
+    } else {
+      existing = await this.imagenRepo.findOne({ where: { idEvento, tipo } });
+    }
+
+    if (existing) {
+      existing.url = url;
+      existing.esPrincipal = tipo === 'principal';
+      existing.orden = tipo === 'galeria' ? orden : null;
+      return this.imagenRepo.save(existing);
+    }
+
+    return this.imagenRepo.save({
+      idEvento,
+      url,
+      tipo,
+      orden: tipo === 'galeria' ? orden : null,
+      esPrincipal: tipo === 'principal',
+    });
   }
 }

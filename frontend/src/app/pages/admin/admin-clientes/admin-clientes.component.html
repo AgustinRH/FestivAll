@@ -47,9 +47,10 @@
     <button type="button" class="back-link" (click)="closeForm()">← Volver al listado</button>
     <h2>{{ editingId ? 'Editar organizador' : 'Nuevo organizador' }}</h2>
     <form [formGroup]="form" (ngSubmit)="submit()" class="form">
-      <label>
+      <label [class.has-error]="isInvalid('nombre')">
         <span>Nombre comercial <em>*</em></span>
         <input formControlName="nombre" placeholder="Ej. Sala Moonlight" />
+        <app-form-field-error [control]="form.get('nombre')" label="nombre comercial" />
       </label>
       <label>
         <span>Razón social / nombre fiscal</span>
@@ -59,9 +60,10 @@
         <span>CIF</span>
         <input formControlName="cif" />
       </label>
-      <label>
+      <label [class.has-error]="isInvalid('emailContacto')">
         <span>Email de contacto</span>
         <input type="email" formControlName="emailContacto" />
+        <app-form-field-error [control]="form.get('emailContacto')" label="correo electrónico" />
       </label>
       <label>
         <span>Teléfono</span>

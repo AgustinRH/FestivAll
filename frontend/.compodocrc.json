@@ -1,0 +1,11 @@
+{
+  "tsconfig": "tsconfig.doc.json",
+  "output": "documentation",
+  "name": "FestivAll Frontend",
+  "theme": "laravel",
+  "language": "es-ES",
+  "disableCoverage": true,
+  "hideGenerator": false,
+  "includes": "../docs/compodoc",
+  "includesName": "Guías"
+}

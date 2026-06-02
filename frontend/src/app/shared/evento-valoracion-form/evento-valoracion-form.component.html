@@ -54,13 +54,14 @@
         }
       </div>
 
-      <label class="comentario-label">
+      <label class="comentario-label" [class.has-error]="isInvalid('comentario')">
         <span>Comentario (opcional)</span>
         <textarea
           formControlName="comentario"
           rows="4"
           placeholder="Cuéntanos tu experiencia en el evento…"
         ></textarea>
+        <app-form-field-error [control]="form.get('comentario')" label="comentario" />
       </label>
 
       <div class="form-actions">

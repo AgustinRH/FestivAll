@@ -6,6 +6,7 @@ import { FooterComponent } from '../../../shared/footer/footer.component';
 import { ValoracionesService } from '../../../core/services/valoraciones.service';
 import { SeoService } from '../../../core/services/seo.service';
 import { EventoConValoraciones } from '../../../core/models';
+import { resolveEventoImageUrl } from '../../../core/utils/evento-image.util';
 import { opinionEventoPath } from '../../../core/utils/evento-slug.util';
 
 @Component({
@@ -42,7 +43,7 @@ export class OpinionesListComponent implements OnInit {
   }
 
   imagenUrl(evento: EventoConValoraciones): string {
-    return evento.imagenUrl || 'https://via.placeholder.com/400x250?text=Evento';
+    return resolveEventoImageUrl(evento.imagenUrl);
   }
 
   opinionLink(evento: EventoConValoraciones): string[] {

@@ -23,11 +23,13 @@ import {
 } from 'rxjs';
 import { EventosService } from '../../../core/services/eventos.service';
 import { AddressSuggestion } from '../../../core/models';
+import { isFieldInvalid } from '../../../core/utils/form-validation.util';
+import { FormFieldErrorComponent } from '../../../shared/form-field-error/form-field-error.component';
 
 @Component({
   selector: 'app-admin-ubicacion-picker',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldErrorComponent],
   templateUrl: './admin-ubicacion-picker.component.html',
   styleUrl: './admin-ubicacion-picker.component.scss',
 })
@@ -153,8 +155,7 @@ export class AdminUbicacionPickerComponent implements AfterViewInit, OnDestroy {
   }
 
   isInvalid(name: string): boolean {
-    const c = this.form().get(name);
-    return !!(c && c.invalid && (c.dirty || c.touched));
+    return isFieldInvalid(this.form().get(name));
   }
 
   get hasCoords(): boolean {

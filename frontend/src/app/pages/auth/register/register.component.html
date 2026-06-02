@@ -9,17 +9,32 @@
       <p class="hint">Si no lo ves, mira en spam o correo no deseado.</p>
       <a routerLink="/login" class="btn-link">Ir al login</a>
     } @else {
-      <h1>Register</h1>
+      <h1>Crear cuenta</h1>
       @if (error) { <p class="error">{{ error }}</p> }
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <input formControlName="nombre" placeholder="Nombre" />
-        <input formControlName="apellidos" placeholder="Apellidos" />
-        <input type="email" formControlName="email" placeholder="Email" autocomplete="email" />
-        <input type="password" formControlName="password" placeholder="Contraseña" autocomplete="new-password" />
-        <p class="password-hint">{{ passwordHint }}</p>
-        <input type="password" formControlName="confirmPassword" placeholder="Confirmar contraseña" autocomplete="new-password" />
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field" [class.has-error]="isInvalid('nombre')">
+          <input formControlName="nombre" placeholder="Nombre" autocomplete="given-name" />
+          <app-form-field-error [control]="form.get('nombre')" label="nombre" />
+        </div>
+        <div class="field" [class.has-error]="isInvalid('apellidos')">
+          <input formControlName="apellidos" placeholder="Apellidos" autocomplete="family-name" />
+          <app-form-field-error [control]="form.get('apellidos')" label="apellidos" />
+        </div>
+        <div class="field" [class.has-error]="isInvalid('email')">
+          <input type="email" formControlName="email" placeholder="Email" autocomplete="email" />
+          <app-form-field-error [control]="form.get('email')" label="correo electrónico" />
+        </div>
+        <div class="field" [class.has-error]="isInvalid('password')">
+          <input type="password" formControlName="password" placeholder="Contraseña" autocomplete="new-password" />
+          <p class="password-hint">{{ passwordHint }}</p>
+          <app-form-field-error [control]="form.get('password')" label="contraseña" />
+        </div>
+        <div class="field" [class.has-error]="isInvalid('confirmPassword')">
+          <input type="password" formControlName="confirmPassword" placeholder="Confirmar contraseña" autocomplete="new-password" />
+          <app-form-field-error [control]="form.get('confirmPassword')" label="confirmación" />
+        </div>
         <app-legal-primera-capa contexto="registro" />
-        <button type="submit" [disabled]="form.invalid || loading">
+        <button type="submit" [disabled]="loading">
           {{ loading ? 'Registrando...' : 'Crear cuenta' }}
         </button>
       </form>

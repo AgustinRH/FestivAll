@@ -6,9 +6,13 @@ import { Ubicacion } from '../entities/ubicacion.entity';
 import { Cliente } from '../entities/cliente.entity';
 import { EventosService } from './eventos.service';
 import { EventosController } from './eventos.controller';
+import { UploadsModule } from '../uploads/uploads.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Evento, Imagen, Ubicacion, Cliente])],
+  imports: [
+    TypeOrmModule.forFeature([Evento, Imagen, Ubicacion, Cliente]),
+    UploadsModule,
+  ],
   controllers: [EventosController],
   providers: [EventosService],
   exports: [EventosService],

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
@@ -20,9 +20,16 @@ import {
 import { EntradaPdfService } from '../../core/services/entrada-pdf.service';
 import { getHttpErrorMessage } from '../../core/utils/http-error';
 import {
+  isFieldInvalid,
+  markFormGroupTouched,
+} from '../../core/utils/form-validation.util';
+import {
+  matchOtherFieldValidator,
   PASSWORD_REQUIREMENTS_HINT,
   strongPasswordValidator,
 } from '../../core/validators/password.validators';
+import { FormFieldErrorComponent } from '../../shared/form-field-error/form-field-error.component';
+import { Subscription } from 'rxjs';
 
 type EntradasTab = 'activas' | 'historial';
 
@@ -37,13 +44,14 @@ type EntradasTab = 'activas' | 'historial';
     FooterComponent,
     TicketQrComponent,
     EventoValoracionFormComponent,
+    FormFieldErrorComponent,
     CurrencyPipe,
     DatePipe,
   ],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.scss',
 })
-export class PerfilComponent implements OnInit {
+export class PerfilComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private comprasService = inject(ComprasService);
@@ -91,10 +99,15 @@ export class PerfilComponent implements OnInit {
   passwordForm = this.fb.group({
     currentPassword: ['', Validators.required],
     newPassword: ['', [Validators.required, strongPasswordValidator()]],
-    confirmPassword: ['', Validators.required],
+    confirmPassword: ['', [Validators.required, matchOtherFieldValidator('newPassword')]],
   });
 
+  private passwordSub?: Subscription;
+
   ngOnInit() {
+    this.passwordSub = this.passwordForm.get('newPassword')?.valueChanges.subscribe(() => {
+      this.passwordForm.get('confirmPassword')?.updateValueAndValidity({ emitEvent: false });
+    });
     this.auth.getProfile().subscribe((p) => (this.profile = p));
     this.cargarEntradas();
     this.cargarValoracionesPendientes();
@@ -117,6 +130,14 @@ export class PerfilComponent implements OnInit {
         this.scrollToEntradas();
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.passwordSub?.unsubscribe();
+  }
+
+  isPasswordInvalid(name: string): boolean {
+    return isFieldInvalid(this.passwordForm.get(name));
   }
 
   get sinCompras(): boolean {
@@ -411,12 +432,9 @@ export class PerfilComponent implements OnInit {
   }
 
   changePassword() {
+    markFormGroupTouched(this.passwordForm);
     if (this.passwordForm.invalid) return;
-    const { currentPassword, newPassword, confirmPassword } = this.passwordForm.getRawValue();
-    if (newPassword !== confirmPassword) {
-      this.passwordError = 'Las contraseñas no coinciden';
-      return;
-    }
+    const { currentPassword, newPassword } = this.passwordForm.getRawValue();
     this.auth.changePassword(currentPassword!, newPassword!).subscribe({
       next: (res: { message: string }) => {
         this.passwordMsg = res.message;

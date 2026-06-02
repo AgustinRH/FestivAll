@@ -24,7 +24,7 @@
   } @else if (evento) {
     <main class="page-content detail-page">
       <section class="event-hero">
-        <div class="hero-bg" [style.background-image]="'url(' + imagenUrl + ')'"></div>
+        <div class="hero-bg" [style.background-image]="'url(' + imagenPrincipalUrl + ')'"></div>
         <div class="hero-overlay"></div>
         <div class="bookmark">★</div>
         <div class="hero-text">
@@ -67,38 +67,59 @@
           </div>
         </section>
 
-        <section class="poster-box">
-          <h2>Cartel</h2>
-          <img [src]="imagenUrl" [alt]="evento.titulo" class="poster" />
-        </section>
-
-        <section class="map-box">
-          <h2>📍 Ubicación</h2>
-          @if (evento.ubicacion) {
-            <app-evento-ubicacion-mapa
-              [latitud]="evento.ubicacion.latitud"
-              [longitud]="evento.ubicacion.longitud"
-              [direccion]="evento.ubicacion.direccion"
-              [localidad]="evento.ubicacion.localidad"
-              [provincia]="evento.ubicacion.provincia"
-              [etiqueta]="evento.titulo"
-            />
+        <div
+          class="poster-actions-column"
+          [class.poster-actions-column--solo]="!imagenCarteleraUrl"
+        >
+          @if (imagenCarteleraUrl) {
+            <section class="poster-box">
+              <h2>Cartel</h2>
+              <img [src]="imagenCarteleraUrl" [alt]="'Cartel de ' + evento.titulo" class="poster" />
+            </section>
           }
-          <div class="buy-row">
-            @if (comprasExitosas.length > 0) {
-              <div class="success-inline">
-                <p>¡{{ comprasExitosas.length }} entrada(s) comprada(s)!</p>
-                @for (c of comprasExitosas; track c.id) {
-                  <p class="codigo-line"><strong>{{ c.codigoAcceso }}</strong></p>
-                }
-              </div>
-            } @else if (evento.stock > 0) {
-              <button type="button" class="btn-comprar" (click)="abrirCompra()">COMPRAR</button>
-            } @else {
-              <span class="agotado">AGOTADO</span>
-            }
-          </div>
-        </section>
+
+          <aside class="event-actions-panel">
+            <div class="buy-row">
+              @if (comprasExitosas.length > 0) {
+                <div class="success-inline">
+                  <p>¡{{ comprasExitosas.length }} entrada(s) comprada(s)!</p>
+                  @for (c of comprasExitosas; track c.id) {
+                    <p class="codigo-line"><strong>{{ c.codigoAcceso }}</strong></p>
+                  }
+                </div>
+              } @else if (evento.stock > 0) {
+                <button type="button" class="btn-comprar" (click)="abrirCompra()">COMPRAR</button>
+              } @else {
+                <span class="agotado">AGOTADO</span>
+              }
+            </div>
+
+            <div class="event-actions-panel__ubicacion">
+              <h2>📍 Ubicación</h2>
+              @if (evento.ubicacion) {
+                <app-evento-ubicacion-mapa
+                  [latitud]="evento.ubicacion.latitud"
+                  [longitud]="evento.ubicacion.longitud"
+                  [direccion]="evento.ubicacion.direccion"
+                  [localidad]="evento.ubicacion.localidad"
+                  [provincia]="evento.ubicacion.provincia"
+                  [etiqueta]="evento.titulo"
+                />
+              }
+            </div>
+          </aside>
+        </div>
+
+        @if (galeriaUrls.length) {
+          <section class="galeria-box full-width">
+            <h2>Galería</h2>
+            <app-image-carousel
+              [images]="galeriaUrls"
+              [altPrefix]="evento.titulo"
+              [ariaLabel]="'Galería de ' + evento.titulo"
+            />
+          </section>
+        }
 
         <section class="valoraciones-box full-width">
           <app-evento-valoracion-form [evento]="evento" (enviado)="onValoracionEnviada()" />
@@ -115,27 +136,48 @@
     <div class="modal-compra" (click)="$event.stopPropagation()">
       <h2>Formulario de compra</h2>
 
-      <form [formGroup]="compraForm" (ngSubmit)="confirmarCompra()">
+      <form [formGroup]="compraForm" (ngSubmit)="confirmarCompra()" novalidate>
         <h3>Detalles del cliente</h3>
         <div class="form-row two">
-          <input formControlName="nombre" placeholder="Nombre" />
-          <input formControlName="apellidos" placeholder="Apellidos" />
+          <div class="field" [class.has-error]="isCompraInvalid('nombre')">
+            <input formControlName="nombre" placeholder="Nombre" autocomplete="given-name" />
+            <app-form-field-error [control]="compraForm.get('nombre')" label="nombre" />
+          </div>
+          <div class="field" [class.has-error]="isCompraInvalid('apellidos')">
+            <input formControlName="apellidos" placeholder="Apellidos" autocomplete="family-name" />
+            <app-form-field-error [control]="compraForm.get('apellidos')" label="apellidos" />
+          </div>
         </div>
-        <input formControlName="direccion" placeholder="Dirección" class="full" />
+        <div class="field full-field" [class.has-error]="isCompraInvalid('direccion')">
+          <input formControlName="direccion" placeholder="Dirección *" class="full" autocomplete="street-address" />
+          <app-form-field-error [control]="compraForm.get('direccion')" label="dirección" />
+        </div>
         <div class="form-row three">
-          <input formControlName="codPostal" placeholder="Cod. Postal" />
-          <input formControlName="ciudad" placeholder="Ciudad" />
-          <input formControlName="pais" placeholder="País" />
+          <div class="field" [class.has-error]="isCompraInvalid('codPostal')">
+            <input formControlName="codPostal" placeholder="Cod. Postal *" autocomplete="postal-code" />
+            <app-form-field-error [control]="compraForm.get('codPostal')" label="código postal" />
+          </div>
+          <div class="field" [class.has-error]="isCompraInvalid('ciudad')">
+            <input formControlName="ciudad" placeholder="Ciudad *" autocomplete="address-level2" />
+            <app-form-field-error [control]="compraForm.get('ciudad')" label="ciudad" />
+          </div>
+          <input formControlName="pais" placeholder="País" autocomplete="country-name" />
         </div>
         <div class="form-row two">
-          <input formControlName="telefono" placeholder="Nº Teléfono" />
-          <input formControlName="codigoDescuento" placeholder="Cod. Descuento" />
+          <div class="field" [class.has-error]="isCompraInvalid('telefono')">
+            <input formControlName="telefono" placeholder="Nº Teléfono *" autocomplete="tel" />
+            <app-form-field-error [control]="compraForm.get('telefono')" label="teléfono" />
+          </div>
+          <input formControlName="codigoDescuento" placeholder="Cod. Descuento (opcional)" />
         </div>
 
         <h3>Datos de Compra</h3>
         <div class="form-row ticket-row">
           <label>Entrada Normal</label>
-          <input type="number" formControlName="cantidad" min="1" [max]="evento.stock" class="qty" />
+          <div class="field qty-field" [class.has-error]="isCompraInvalid('cantidad')">
+            <input type="number" formControlName="cantidad" min="1" [max]="evento.stock" class="qty" />
+            <app-form-field-error [control]="compraForm.get('cantidad')" label="cantidad" />
+          </div>
         </div>
         <div class="total-row">
           <span>TOTAL</span>
@@ -166,7 +208,7 @@
 
           <app-legal-primera-capa />
 
-          <label class="legal-check">
+          <label class="legal-check" [class.has-error]="isCompraInvalid('aceptoTerminos')">
             <input type="checkbox" formControlName="aceptoTerminos" />
             <span>
               Acepto la
@@ -176,13 +218,14 @@
               incluyendo la exención de responsabilidad del evento por parte de festivall.club y la política de no devolución.
             </span>
           </label>
+          <app-form-field-error [control]="compraForm.get('aceptoTerminos')" label="aceptación de términos" />
 
           @if (!esGratis) {
             <p class="pago-info">
               Serás redirigido a Stripe para pagar con tarjeta. El IVA se aplicará en el checkout.
             </p>
           }
-          <button type="submit" class="btn-primary full" [disabled]="loading || compraForm.invalid">
+          <button type="submit" class="btn-primary full" [disabled]="loading">
             {{ textoBotonPago }}
           </button>
         }

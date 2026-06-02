@@ -8,6 +8,7 @@ import {
   buildEventJsonLd,
   eventoCanonicalPath,
 } from '../utils/schema-event.util';
+import { buildFestivallOrganizationJsonLd } from '../utils/schema-org.util';
 import { environment } from '../../../environments/environment';
 
 const SITE_NAME = 'FestivAll Almería';
@@ -28,7 +29,7 @@ export class SeoService {
 
   setHome(): void {
     this.apply(DEFAULT_TITLE, DEFAULT_DESCRIPTION, '/');
-    this.clearJsonLd();
+    this.setJsonLd(buildFestivallOrganizationJsonLd(this.siteOrigin()));
   }
 
   setEvento(evento: Evento): void {

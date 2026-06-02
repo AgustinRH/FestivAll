@@ -123,6 +123,27 @@ Abre http://localhost:4200
 | `/festivall-admin` | Login admin (estilo wp-admin) |
 | `/festivall-admin/panel` | CRUD de eventos |
 
+## Documentación técnica
+
+| Recurso | Descripción |
+|---------|-------------|
+| **[docs/DOCUMENTATION.md](docs/DOCUMENTATION.md)** | Guía: Swagger, Compodoc, TSDoc |
+| **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | Módulos y flujos (auth, pagos) |
+| **OpenAPI** | Local: `http://localhost:3000/docs` · Prod: `https://festivall.club/api/docs` (tras `docker compose up --build`) |
+| **Compodoc** | `cd frontend && npm run doc` → `frontend/documentation/` |
+
+## Pruebas unitarias y de carga
+
+| Tipo | Guía |
+|------|------|
+| Unitarias (Jest / Karma) | **[docs/TESTING.md](docs/TESTING.md)** |
+| Estrés / carga (k6) | **[docs/LOAD_TESTING.md](docs/LOAD_TESTING.md)** — scripts en `load-tests/` |
+
+```bash
+cd backend && npm test
+cd frontend && npm test
+```
+
 ## Pagos con Stripe
 
 Los eventos de pago usan **Stripe Checkout**. Guía completa: **[docs/STRIPE.md](docs/STRIPE.md)**.

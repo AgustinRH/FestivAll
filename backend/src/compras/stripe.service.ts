@@ -111,6 +111,9 @@ export class StripeService {
     }
   }
 
+  /**
+   * Resuelve test/live desde `STRIPE_MODE`. Las claves y webhooks deben coincidir con el modo activo.
+   */
   private resolveMode(): StripeMode {
     const raw = (this.config.get<string>('STRIPE_MODE') || 'test').toLowerCase();
     return raw === 'live' ? 'live' : 'test';

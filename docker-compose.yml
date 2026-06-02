@@ -50,6 +50,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:-REDACTED}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      SWAGGER_SERVER_URL: ${SWAGGER_SERVER_URL:-https://festivall.club/api}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
       STRIPE_MODE: ${STRIPE_MODE:-test}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_SECRET_KEY_TEST: ${STRIPE_SECRET_KEY_TEST:-}
@@ -69,6 +71,9 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       MAIL_FROM: ${MAIL_FROM:-}
+      UPLOAD_ROOT: /app/uploads
+    volumes:
+      - festivall_uploads:/app/uploads
     depends_on:
       mariadb:
         condition: service_healthy
@@ -94,6 +99,7 @@ services:
 
 volumes:
   festivall_data:
+  festivall_uploads:
 
 networks:
   festivall-net:

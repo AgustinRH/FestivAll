@@ -25,11 +25,13 @@
     }
   }
 
-  .contacto-email {
+  .contacto-email,
+  .contacto-instagram {
     margin: 1rem 0 !important;
+    color: var(--text-muted);
+    line-height: 1.6;
 
     a {
-      font-size: 1.25rem;
       font-weight: 700;
       color: var(--accent);
       text-decoration: none;
@@ -38,6 +40,14 @@
         text-decoration: underline;
       }
     }
+  }
+
+  .contacto-email a {
+    font-size: 1.25rem;
+  }
+
+  .contacto-instagram a {
+    font-size: 1.1rem;
   }
 
   .contacto-hint {

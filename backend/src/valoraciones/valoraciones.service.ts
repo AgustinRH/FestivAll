@@ -16,6 +16,7 @@ import { Evento } from '../entities/evento.entity';
 import { CreateValoracionDto } from './dto/create-valoracion.dto';
 import { UpdateEstadoValoracionDto } from './dto/update-estado-valoracion.dto';
 import { eventoHaPasado } from '../eventos/evento-pasado.util';
+import { urlImagenPrincipal } from '../eventos/imagen-evento.util';
 
 export type ValoracionPublica = {
   id: number;
@@ -269,8 +270,7 @@ export class ValoracionesService {
   }
 
   private imagenPrincipal(evento: Evento): string | null {
-    const principal = evento.imagenes?.find((i) => i.esPrincipal);
-    return principal?.url ?? evento.imagenes?.[0]?.url ?? null;
+    return urlImagenPrincipal(evento.imagenes);
   }
 
   private resumenFromPuntuaciones(puntuaciones: number[]) {

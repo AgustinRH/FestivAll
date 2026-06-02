@@ -15,16 +15,18 @@
       <div class="alert-error" role="alert">{{ error }}</div>
     }
 
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <label>
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <label [class.has-error]="isInvalid('email')">
         <span>Correo electrónico</span>
         <input type="email" formControlName="email" placeholder="correo@ejemplo.com" autocomplete="username" />
+        <app-form-field-error [control]="form.get('email')" label="correo electrónico" />
       </label>
-      <label>
+      <label [class.has-error]="isInvalid('password')">
         <span>Contraseña</span>
         <input type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password" />
+        <app-form-field-error [control]="form.get('password')" label="contraseña" />
       </label>
-      <button type="submit" class="btn-submit" [disabled]="form.invalid || loading">
+      <button type="submit" class="btn-submit" [disabled]="loading">
         {{ loading ? 'Verificando acceso…' : 'Entrar al panel' }}
       </button>
     </form>
