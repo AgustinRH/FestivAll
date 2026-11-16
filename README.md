@@ -8,6 +8,12 @@ A full-stack ticketing platform for concerts and festivals in the province of Al
 
 **Status:** Final degree project. Event content is fictional, and the live site still shows an in-development notice. Paid checkout uses Stripe (test or live keys, depending on configuration).
 
+## Screenshots
+
+| Home | Events | Brand |
+| --- | --- | --- |
+| ![Home](docs/screenshots/01-home.png) | ![Events](docs/screenshots/02-eventos.png) | ![Brand](docs/screenshots/03-brand.png) |
+
 ## Why
 
 Finding local gigs and buying a ticket usually means jumping between social posts, venue pages and payment tools. FestivAll puts discovery, maps, checkout and ticket delivery in one place, with a separate admin area for the people who run the events.
@@ -163,7 +169,7 @@ Open http://localhost:4200. The dev server proxies `/api` to `localhost:3000` (s
 
 The same `docker compose up -d --build` is what production uses. The frontend image listens on 80 and 443 and can mount Let's Encrypt certificates, as in [frontend/nginx.conf](frontend/nginx.conf).
 
-A step-by-step AWS EC2 guide (Ubuntu, Docker, DNS, TLS) is in [`Pasos para la intacia de EC2.md`](Pasos%20para%20la%20intacia%20de%20EC2.md) (Spanish; the filename has a typo: “intacia”).
+A step-by-step AWS EC2 guide (Ubuntu, Docker, DNS, TLS) is in [`Pasos para la instancia de EC2.md`](Pasos%20para%20la%20instancia%20de%20EC2.md) (Spanish).
 
 Set a strong `JWT_SECRET` and database password, keep Stripe in test mode until you are ready, and do not commit `.env`.
 
