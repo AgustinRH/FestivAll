@@ -34,7 +34,9 @@ async function main() {
     console.log(`Local: ${r.localNombre}`);
     console.log(`Modo Stripe: ${r.stripeMode}`);
     console.log('—'.repeat(40));
-    console.log(`Entradas emitidas: ${r.entradasVendidas} (${r.entradasGratuitas} gratuitas)`);
+    console.log(
+      `Entradas emitidas: ${r.entradasVendidas} (${r.entradasGratuitas} gratuitas)`,
+    );
     console.log(`Transacciones Stripe: ${r.transaccionesPagadas}`);
     console.log(`Total recaudado: ${r.totalRecaudado.toFixed(2)} €`);
     const stripeLabel = r.comisionStripeEsEstimada ? 'est.' : 'real';
@@ -45,7 +47,9 @@ async function main() {
       `Comisión FestivAll (${r.festivallComisionPct}%): -${r.comisionFestivall.toFixed(2)} €`,
     );
     console.log('—'.repeat(40));
-    console.log(`TOTAL A TRANSFERIR AL LOCAL: ${r.totalTransferirLocal.toFixed(2)} €`);
+    console.log(
+      `TOTAL A TRANSFERIR AL LOCAL: ${r.totalTransferirLocal.toFixed(2)} €`,
+    );
     console.log(`\n${r.nota}\n`);
   } catch (err) {
     console.error('Error:', err);
@@ -55,4 +59,4 @@ async function main() {
   }
 }
 
-main();
+void main();

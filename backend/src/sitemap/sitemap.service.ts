@@ -21,10 +21,9 @@ export class SitemapService {
   ) {}
 
   private getSiteOrigin(): string {
-    const url = (this.config.get<string>('FRONTEND_URL') || 'https://festivall.club').replace(
-      /\/$/,
-      '',
-    );
+    const url = (
+      this.config.get<string>('FRONTEND_URL') || 'https://festivall.club'
+    ).replace(/\/$/, '');
     return url;
   }
 
@@ -40,25 +39,28 @@ export class SitemapService {
   private formatUrlEntry(url: SitemapUrl): string {
     const parts = [`    <loc>${this.escapeXml(url.loc)}</loc>`];
     if (url.lastmod) parts.push(`    <lastmod>${url.lastmod}</lastmod>`);
-    if (url.changefreq) parts.push(`    <changefreq>${url.changefreq}</changefreq>`);
+    if (url.changefreq)
+      parts.push(`    <changefreq>${url.changefreq}</changefreq>`);
     if (url.priority) parts.push(`    <priority>${url.priority}</priority>`);
     return `  <url>\n${parts.join('\n')}\n  </url>`;
   }
 
-  private activosCondition(hoy: string): string {
+  private activosCondition(): string {
     return 'evento.fechaFin >= :hoy';
   }
 
   /** ISO date (YYYY-MM-DD); nunca posterior a maxDate (p. ej. hoy). */
-  private toLastmodIso(value: unknown, fallback: string, maxDate?: string): string {
+  private toLastmodIso(
+    value: unknown,
+    fallback: string,
+    maxDate?: string,
+  ): string {
     let iso = fallback;
-    if (value != null) {
-      if (value instanceof Date) {
-        iso = value.toISOString().slice(0, 10);
-      } else {
-        const s = String(value);
-        if (s.length >= 10) iso = s.slice(0, 10);
-      }
+    if (value instanceof Date) {
+      iso = value.toISOString().slice(0, 10);
+    } else if (typeof value === 'string' || typeof value === 'number') {
+      const s = String(value);
+      if (s.length >= 10) iso = s.slice(0, 10);
     }
     if (maxDate && iso > maxDate) return maxDate;
     return iso;
@@ -76,25 +78,55 @@ export class SitemapService {
     };
 
     // —— Páginas estáticas públicas ——
-    push({ loc: `${origin}/`, lastmod: hoy, changefreq: 'daily', priority: '1.0' });
-    push({ loc: `${origin}/eventos`, lastmod: hoy, changefreq: 'daily', priority: '0.9' });
-    push({ loc: `${origin}/sobre-nosotros`, lastmod: hoy, changefreq: 'monthly', priority: '0.6' });
-    push({ loc: `${origin}/contacto`, lastmod: hoy, changefreq: 'monthly', priority: '0.6' });
+    push({
+      loc: `${origin}/`,
+      lastmod: hoy,
+      changefreq: 'daily',
+      priority: '1.0',
+    });
+    push({
+      loc: `${origin}/eventos`,
+      lastmod: hoy,
+      changefreq: 'daily',
+      priority: '0.9',
+    });
+    push({
+      loc: `${origin}/sobre-nosotros`,
+      lastmod: hoy,
+      changefreq: 'monthly',
+      priority: '0.6',
+    });
+    push({
+      loc: `${origin}/contacto`,
+      lastmod: hoy,
+      changefreq: 'monthly',
+      priority: '0.6',
+    });
     push({
       loc: `${origin}/terminos-y-condiciones`,
       lastmod: hoy,
       changefreq: 'yearly',
       priority: '0.4',
     });
-    push({ loc: `${origin}/privacidad`, lastmod: hoy, changefreq: 'yearly', priority: '0.4' });
-    push({ loc: `${origin}/aviso-legal`, lastmod: hoy, changefreq: 'yearly', priority: '0.4' });
+    push({
+      loc: `${origin}/privacidad`,
+      lastmod: hoy,
+      changefreq: 'yearly',
+      priority: '0.4',
+    });
+    push({
+      loc: `${origin}/aviso-legal`,
+      lastmod: hoy,
+      changefreq: 'yearly',
+      priority: '0.4',
+    });
 
     // —— Localidades con al menos un evento activo ——
     const localidades = await this.eventoRepo
       .createQueryBuilder('evento')
       .innerJoin('evento.ubicacion', 'ubicacion')
       .select('ubicacion.localidad', 'localidad')
-      .where(this.activosCondition(hoy), { hoy })
+      .where(this.activosCondition(), { hoy })
       .groupBy('ubicacion.localidad')
       .orderBy('ubicacion.localidad', 'ASC')
       .getRawMany<{ localidad: string }>();
@@ -116,7 +148,7 @@ export class SitemapService {
       .innerJoin('evento.categoria', 'categoria')
       .select('categoria.id', 'id')
       .addSelect('categoria.nombreCategoria', 'nombre')
-      .where(this.activosCondition(hoy), { hoy })
+      .where(this.activosCondition(), { hoy })
       .groupBy('categoria.id')
       .addGroupBy('categoria.nombreCategoria')
       .orderBy('categoria.nombreCategoria', 'ASC')
@@ -137,7 +169,7 @@ export class SitemapService {
     const eventos = await this.eventoRepo
       .createQueryBuilder('evento')
       .leftJoinAndSelect('evento.ubicacion', 'ubicacion')
-      .where(this.activosCondition(hoy), { hoy })
+      .where(this.activosCondition(), { hoy })
       .orderBy('evento.id', 'ASC')
       .getMany();
 

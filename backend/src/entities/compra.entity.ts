@@ -25,7 +25,11 @@ export class Compra {
   @Column({ name: 'total_pago', type: 'decimal', precision: 10, scale: 2 })
   totalPago: number;
 
-  @Column({ name: 'fecha_compra', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'fecha_compra',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   fechaCompra: Date;
 
   @Column({ name: 'codigo_acceso', length: 100, unique: true })

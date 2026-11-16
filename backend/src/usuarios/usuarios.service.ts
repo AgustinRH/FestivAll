@@ -16,19 +16,37 @@ import { UpdateUsuarioAdminDto } from './dto/update-usuario-admin.dto';
 
 @Injectable()
 export class UsuariosService {
-  constructor(@InjectRepository(Usuario) private usuarioRepo: Repository<Usuario>) {}
+  constructor(
+    @InjectRepository(Usuario) private usuarioRepo: Repository<Usuario>,
+  ) {}
 
   findAll() {
     return this.usuarioRepo.find({
       order: { fechaRegistro: 'DESC' },
-      select: ['id', 'nombre', 'apellidos', 'email', 'rol', 'emailVerificado', 'fechaRegistro'],
+      select: [
+        'id',
+        'nombre',
+        'apellidos',
+        'email',
+        'rol',
+        'emailVerificado',
+        'fechaRegistro',
+      ],
     });
   }
 
   async findOne(id: number) {
     const user = await this.usuarioRepo.findOne({
       where: { id },
-      select: ['id', 'nombre', 'apellidos', 'email', 'rol', 'emailVerificado', 'fechaRegistro'],
+      select: [
+        'id',
+        'nombre',
+        'apellidos',
+        'email',
+        'rol',
+        'emailVerificado',
+        'fechaRegistro',
+      ],
     });
     if (!user) throw new NotFoundException('Usuario no encontrado');
     return user;
@@ -37,7 +55,9 @@ export class UsuariosService {
   async create(dto: CreateUsuarioAdminDto) {
     this.assertNoAssignOwner(dto.rol);
 
-    const exists = await this.usuarioRepo.findOne({ where: { email: dto.email } });
+    const exists = await this.usuarioRepo.findOne({
+      where: { email: dto.email },
+    });
     if (exists) throw new ConflictException('El email ya está registrado');
 
     const hash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
@@ -56,7 +76,9 @@ export class UsuariosService {
   }
 
   async update(id: number, dto: UpdateUsuarioAdminDto, currentUserId: number) {
-    const actor = await this.usuarioRepo.findOne({ where: { id: currentUserId } });
+    const actor = await this.usuarioRepo.findOne({
+      where: { id: currentUserId },
+    });
     if (!actor) throw new ForbiddenException('Sesión no válida');
 
     const user = await this.usuarioRepo
@@ -72,7 +94,9 @@ export class UsuariosService {
     this.assertCanModifyProtectedUser(user, actor, dto);
 
     if (dto.email && dto.email !== user.email) {
-      const exists = await this.usuarioRepo.findOne({ where: { email: dto.email } });
+      const exists = await this.usuarioRepo.findOne({
+        where: { email: dto.email },
+      });
       if (exists) throw new ConflictException('El email ya está en uso');
       user.email = dto.email.trim().toLowerCase();
     }
@@ -80,15 +104,22 @@ export class UsuariosService {
     if (dto.nombre !== undefined) user.nombre = dto.nombre.trim();
     if (dto.apellidos !== undefined) user.apellidos = dto.apellidos.trim();
     if (dto.rol !== undefined) {
-      if (user.rol === RolUsuario.ADMIN && dto.rol === RolUsuario.CLIENTE && user.id === currentUserId) {
-        throw new BadRequestException('No puedes quitarte el rol de administrador a ti mismo');
+      if (
+        user.rol === RolUsuario.ADMIN &&
+        dto.rol === RolUsuario.CLIENTE &&
+        user.id === currentUserId
+      ) {
+        throw new BadRequestException(
+          'No puedes quitarte el rol de administrador a ti mismo',
+        );
       }
       if (user.rol === RolUsuario.ADMIN && dto.rol === RolUsuario.CLIENTE) {
         await this.ensureAnotherPrivilegiado(id);
       }
       user.rol = dto.rol;
     }
-    if (dto.emailVerificado !== undefined) user.emailVerificado = dto.emailVerificado;
+    if (dto.emailVerificado !== undefined)
+      user.emailVerificado = dto.emailVerificado;
     if (dto.password) {
       user.password = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
     }
@@ -99,13 +130,17 @@ export class UsuariosService {
 
   async remove(id: number, currentUserId: number) {
     if (id === currentUserId) {
-      throw new BadRequestException('No puedes eliminar tu propia cuenta de administrador');
+      throw new BadRequestException(
+        'No puedes eliminar tu propia cuenta de administrador',
+      );
     }
     const user = await this.usuarioRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
     if (esPropietario(user.rol)) {
-      throw new ForbiddenException('No se puede eliminar al usuario propietario del sistema');
+      throw new ForbiddenException(
+        'No se puede eliminar al usuario propietario del sistema',
+      );
     }
 
     if (user.rol === RolUsuario.ADMIN) {
@@ -117,7 +152,9 @@ export class UsuariosService {
 
   private assertNoAssignOwner(rol?: RolUsuario) {
     if (rol === RolUsuario.OWNER) {
-      throw new ForbiddenException('El rol propietario no se puede asignar desde el panel');
+      throw new ForbiddenException(
+        'El rol propietario no se puede asignar desde el panel',
+      );
     }
   }
 
@@ -135,7 +172,9 @@ export class UsuariosService {
     }
 
     if (target.id !== actor.id) {
-      throw new ForbiddenException('Solo el propietario puede gestionar su propia cuenta');
+      throw new ForbiddenException(
+        'Solo el propietario puede gestionar su propia cuenta',
+      );
     }
 
     if (dto.rol !== undefined && dto.rol !== RolUsuario.OWNER) {
@@ -149,7 +188,9 @@ export class UsuariosService {
     });
     const target = await this.usuarioRepo.findOne({ where: { id: excludeId } });
     if (target?.rol === RolUsuario.ADMIN && count <= 1) {
-      throw new ForbiddenException('Debe quedar al menos un administrador o propietario en el sistema');
+      throw new ForbiddenException(
+        'Debe quedar al menos un administrador o propietario en el sistema',
+      );
     }
   }
 }

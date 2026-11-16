@@ -70,7 +70,8 @@ export type EventoOpinionesDetalle = {
 @Injectable()
 export class ValoracionesService {
   constructor(
-    @InjectRepository(Valoracion) private valoracionRepo: Repository<Valoracion>,
+    @InjectRepository(Valoracion)
+    private valoracionRepo: Repository<Valoracion>,
     @InjectRepository(ValoracionOmitida)
     private omitidaRepo: Repository<ValoracionOmitida>,
     @InjectRepository(Compra) private compraRepo: Repository<Compra>,
@@ -83,7 +84,10 @@ export class ValoracionesService {
     return evento;
   }
 
-  private async assertEntradaAsistida(userId: number, idEvento: number): Promise<void> {
+  private async assertEntradaAsistida(
+    userId: number,
+    idEvento: number,
+  ): Promise<void> {
     const asistio = await this.compraRepo
       .createQueryBuilder('c')
       .where('c.id_usuario = :userId', { userId })
@@ -161,7 +165,9 @@ export class ValoracionesService {
         fechaFin: evento.fechaFin,
         localidad: evento.ubicacion?.localidad ?? null,
       }))
-      .sort((a, b) => String(b.fechaInicio).localeCompare(String(a.fechaInicio)));
+      .sort((a, b) =>
+        String(b.fechaInicio).localeCompare(String(a.fechaInicio)),
+      );
   }
 
   async findMisValoraciones(userId: number) {
@@ -213,7 +219,9 @@ export class ValoracionesService {
       where: { idUsuario: userId, idEvento },
     });
     if (existente) {
-      return { message: 'Ya habías indicado que no quieres valorar este evento.' };
+      return {
+        message: 'Ya habías indicado que no quieres valorar este evento.',
+      };
     }
 
     await this.omitidaRepo.save(
@@ -278,16 +286,20 @@ export class ValoracionesService {
     const media =
       total === 0
         ? 0
-        : Math.round(
-            (puntuaciones.reduce((s, n) => s + n, 0) / total) * 10,
-          ) / 10;
+        : Math.round((puntuaciones.reduce((s, n) => s + n, 0) / total) * 10) /
+          10;
     return { media, total };
   }
 
   async findEventosConValoraciones(): Promise<EventoConValoracionesItem[]> {
     const aprobadas = await this.valoracionRepo.find({
       where: { estadoModeracion: EstadoModeracionValoracion.APROBADO },
-      relations: ['evento', 'evento.ubicacion', 'evento.categoria', 'evento.imagenes'],
+      relations: [
+        'evento',
+        'evento.ubicacion',
+        'evento.categoria',
+        'evento.imagenes',
+      ],
       order: { createdAt: 'DESC' },
     });
 
@@ -332,7 +344,9 @@ export class ValoracionesService {
       .map(({ item }) => item);
   }
 
-  async findOpinionesEventoPublic(idEvento: number): Promise<EventoOpinionesDetalle> {
+  async findOpinionesEventoPublic(
+    idEvento: number,
+  ): Promise<EventoOpinionesDetalle> {
     const evento = await this.eventoRepo.findOne({
       where: { id: idEvento },
       relations: ['ubicacion', 'categoria', 'imagenes'],
@@ -341,7 +355,9 @@ export class ValoracionesService {
 
     const { resumen, valoraciones } = await this.findPublicByEvento(idEvento);
     if (resumen.total === 0) {
-      throw new NotFoundException('Este evento aún no tiene opiniones publicadas.');
+      throw new NotFoundException(
+        'Este evento aún no tiene opiniones publicadas.',
+      );
     }
 
     return {
@@ -365,7 +381,9 @@ export class ValoracionesService {
     };
   }
 
-  async findPublicByEvento(idEvento: number): Promise<ValoracionesEventoResponse> {
+  async findPublicByEvento(
+    idEvento: number,
+  ): Promise<ValoracionesEventoResponse> {
     await this.assertEventoExiste(idEvento);
 
     const aprobadas = await this.valoracionRepo.find({
@@ -436,7 +454,9 @@ export class ValoracionesService {
     if (!valoracion) throw new NotFoundException('Valoración no encontrada');
 
     if (valoracion.estadoModeracion !== EstadoModeracionValoracion.PENDIENTE) {
-      throw new BadRequestException('Solo se puede moderar una valoración pendiente.');
+      throw new BadRequestException(
+        'Solo se puede moderar una valoración pendiente.',
+      );
     }
 
     valoracion.estadoModeracion = dto.estado;

@@ -55,7 +55,10 @@ export class UsuariosController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar usuario' })
-  remove(@Param('id', ParseIntPipe) id: number, @Request() req: { user: { id: number } }) {
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: { id: number } },
+  ) {
     return this.usuariosService.remove(id, req.user.id);
   }
 }

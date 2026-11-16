@@ -37,7 +37,9 @@ export class AuthService {
    * No devuelve JWT hasta que el email esté verificado.
    */
   async register(dto: RegisterDto) {
-    const exists = await this.usuarioRepo.findOne({ where: { email: dto.email } });
+    const exists = await this.usuarioRepo.findOne({
+      where: { email: dto.email },
+    });
     if (exists) throw new ConflictException('El email ya está registrado');
 
     if (!this.mailService.isConfigured()) {
@@ -65,7 +67,8 @@ export class AuthService {
     await this.sendVerificationEmail(user, token);
 
     return {
-      message: 'Cuenta creada. Revisa tu email y haz clic en el enlace de verificación para iniciar sesión.',
+      message:
+        'Cuenta creada. Revisa tu email y haz clic en el enlace de verificación para iniciar sesión.',
       email: this.maskEmail(user.email),
     };
   }
@@ -84,15 +87,24 @@ export class AuthService {
       .getOne();
 
     if (!user) {
-      throw new BadRequestException('Enlace de verificación inválido o ya utilizado');
+      throw new BadRequestException(
+        'Enlace de verificación inválido o ya utilizado',
+      );
     }
 
     if (user.emailVerificado) {
-      return { message: 'Tu cuenta ya estaba verificada. Ya puedes iniciar sesión.' };
+      return {
+        message: 'Tu cuenta ya estaba verificada. Ya puedes iniciar sesión.',
+      };
     }
 
-    if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
-      throw new BadRequestException('El enlace ha caducado. Solicita uno nuevo desde el login.');
+    if (
+      user.emailVerificationExpires &&
+      user.emailVerificationExpires < new Date()
+    ) {
+      throw new BadRequestException(
+        'El enlace ha caducado. Solicita uno nuevo desde el login.',
+      );
     }
 
     user.emailVerificado = true;
@@ -100,7 +112,9 @@ export class AuthService {
     user.emailVerificationExpires = null;
     await this.usuarioRepo.save(user);
 
-    return { message: 'Email verificado correctamente. Ya puedes iniciar sesión.' };
+    return {
+      message: 'Email verificado correctamente. Ya puedes iniciar sesión.',
+    };
   }
 
   async resendVerification(email: string) {
@@ -113,22 +127,28 @@ export class AuthService {
 
     if (!user || user.emailVerificado || tieneAccesoAdmin(user.rol)) {
       return {
-        message: 'Si el email existe y no está verificado, recibirás un nuevo enlace en breve.',
+        message:
+          'Si el email existe y no está verificado, recibirás un nuevo enlace en breve.',
       };
     }
 
     if (!this.mailService.isConfigured()) {
-      throw new ServiceUnavailableException('El servidor de correo no está configurado.');
+      throw new ServiceUnavailableException(
+        'El servidor de correo no está configurado.',
+      );
     }
 
     const token = randomBytes(32).toString('hex');
     user.emailVerificationToken = token;
-    user.emailVerificationExpires = new Date(Date.now() + VERIFICATION_HOURS * 60 * 60 * 1000);
+    user.emailVerificationExpires = new Date(
+      Date.now() + VERIFICATION_HOURS * 60 * 60 * 1000,
+    );
     await this.usuarioRepo.save(user);
     await this.sendVerificationEmail(user, token);
 
     return {
-      message: 'Si el email existe y no está verificado, recibirás un nuevo enlace en breve.',
+      message:
+        'Si el email existe y no está verificado, recibirás un nuevo enlace en breve.',
     };
   }
 
@@ -175,18 +195,24 @@ export class AuthService {
     const genericMessage =
       'Si el email está registrado, recibirás un enlace para restablecer la contraseña en breve.';
 
-    const user = await this.usuarioRepo.findOne({ where: { email: email.trim() } });
+    const user = await this.usuarioRepo.findOne({
+      where: { email: email.trim() },
+    });
     if (!user) {
       return { message: genericMessage };
     }
 
     if (!this.mailService.isConfigured()) {
-      throw new ServiceUnavailableException('El servidor de correo no está configurado.');
+      throw new ServiceUnavailableException(
+        'El servidor de correo no está configurado.',
+      );
     }
 
     const token = randomBytes(32).toString('hex');
     user.passwordResetToken = token;
-    user.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_HOURS * 60 * 60 * 1000);
+    user.passwordResetExpires = new Date(
+      Date.now() + PASSWORD_RESET_HOURS * 60 * 60 * 1000,
+    );
     await this.usuarioRepo.save(user);
     await this.sendPasswordResetEmail(user, token);
 
@@ -198,12 +224,16 @@ export class AuthService {
     if (!user) throw new UnauthorizedException();
 
     if (!this.mailService.isConfigured()) {
-      throw new ServiceUnavailableException('El servidor de correo no está configurado.');
+      throw new ServiceUnavailableException(
+        'El servidor de correo no está configurado.',
+      );
     }
 
     const token = randomBytes(32).toString('hex');
     user.passwordResetToken = token;
-    user.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_HOURS * 60 * 60 * 1000);
+    user.passwordResetExpires = new Date(
+      Date.now() + PASSWORD_RESET_HOURS * 60 * 60 * 1000,
+    );
     await this.usuarioRepo.save(user);
     await this.sendPasswordResetEmail(user, token);
 
@@ -237,7 +267,9 @@ export class AuthService {
 
     const sameAsCurrent = await bcrypt.compare(newPassword, user.password);
     if (sameAsCurrent) {
-      throw new BadRequestException('La nueva contraseña debe ser distinta a la actual');
+      throw new BadRequestException(
+        'La nueva contraseña debe ser distinta a la actual',
+      );
     }
 
     user.password = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
@@ -245,7 +277,10 @@ export class AuthService {
     user.passwordResetExpires = null;
     await this.usuarioRepo.save(user);
 
-    return { message: 'Contraseña actualizada. Ya puedes iniciar sesión con la nueva contraseña.' };
+    return {
+      message:
+        'Contraseña actualizada. Ya puedes iniciar sesión con la nueva contraseña.',
+    };
   }
 
   async changePassword(userId: number, dto: ChangePasswordDto) {
@@ -264,7 +299,9 @@ export class AuthService {
 
     const sameAsCurrent = await bcrypt.compare(dto.newPassword, user.password);
     if (sameAsCurrent) {
-      throw new BadRequestException('La nueva contraseña debe ser distinta a la actual');
+      throw new BadRequestException(
+        'La nueva contraseña debe ser distinta a la actual',
+      );
     }
 
     user.password = await bcrypt.hash(dto.newPassword, BCRYPT_ROUNDS);
@@ -273,15 +310,27 @@ export class AuthService {
   }
 
   private async sendVerificationEmail(user: Usuario, token: string) {
-    const base = (this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200').replace(/\/$/, '');
+    const base = (
+      this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200'
+    ).replace(/\/$/, '');
     const verifyUrl = `${base}/verificar-email?token=${token}`;
-    await this.mailService.sendVerificationEmail(user.email, user.nombre, verifyUrl);
+    await this.mailService.sendVerificationEmail(
+      user.email,
+      user.nombre,
+      verifyUrl,
+    );
   }
 
   private async sendPasswordResetEmail(user: Usuario, token: string) {
-    const base = (this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200').replace(/\/$/, '');
+    const base = (
+      this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200'
+    ).replace(/\/$/, '');
     const resetUrl = `${base}/restablecer-contrasena?token=${token}`;
-    await this.mailService.sendPasswordResetEmail(user.email, user.nombre, resetUrl);
+    await this.mailService.sendPasswordResetEmail(
+      user.email,
+      user.nombre,
+      resetUrl,
+    );
   }
 
   private maskEmail(email: string): string {

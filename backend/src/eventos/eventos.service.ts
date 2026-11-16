@@ -1,7 +1,16 @@
-import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { AddressSuggestion, GeocodingService } from '../common/geocoding.service';
+import {
+  AddressSuggestion,
+  GeocodingService,
+} from '../common/geocoding.service';
 import { buildEventoSlug } from '../common/seo-slug.util';
 import { Evento } from '../entities/evento.entity';
 import { Imagen } from '../entities/imagen.entity';
@@ -90,7 +99,8 @@ export class EventosService implements OnModuleInit {
 
   private async assertCliente(idCliente: number) {
     const c = await this.clienteRepo.findOne({ where: { id: idCliente } });
-    if (!c) throw new BadRequestException('Organizador (cliente) no encontrado');
+    if (!c)
+      throw new BadRequestException('Organizador (cliente) no encontrado');
   }
 
   async onModuleInit() {
@@ -105,7 +115,11 @@ export class EventosService implements OnModuleInit {
     if (!pendientes.length) return;
 
     for (const evento of pendientes) {
-      evento.slug = buildEventoSlug(evento.id, evento.titulo, evento.ubicacion?.localidad);
+      evento.slug = buildEventoSlug(
+        evento.id,
+        evento.titulo,
+        evento.ubicacion?.localidad,
+      );
       await this.eventoRepo.save(evento);
     }
     this.logger.log(`Slugs SEO: ${pendientes.length} evento(s) actualizados`);
@@ -174,7 +188,10 @@ export class EventosService implements OnModuleInit {
     qb.andWhere('evento.fechaFin >= :hoy', { hoy: hoyIso() });
   }
 
-  private applyFilters(qb: ReturnType<typeof this.baseQuery>, filters?: EventoFilters) {
+  private applyFilters(
+    qb: ReturnType<typeof this.baseQuery>,
+    filters?: EventoFilters,
+  ) {
     if (filters?.soloActivos) {
       this.applySoloActivos(qb);
     }
@@ -185,7 +202,9 @@ export class EventosService implements OnModuleInit {
       );
     }
     if (filters?.categoriaId) {
-      qb.andWhere('evento.idCategoria = :categoriaId', { categoriaId: filters.categoriaId });
+      qb.andWhere('evento.idCategoria = :categoriaId', {
+        categoriaId: filters.categoriaId,
+      });
     }
     if (filters?.localidad) {
       qb.andWhere('ubicacion.localidad LIKE :localidad', {
@@ -198,10 +217,14 @@ export class EventosService implements OnModuleInit {
       });
     }
     if (filters?.precioMin != null && !Number.isNaN(filters.precioMin)) {
-      qb.andWhere('evento.precio >= :precioMin', { precioMin: filters.precioMin });
+      qb.andWhere('evento.precio >= :precioMin', {
+        precioMin: filters.precioMin,
+      });
     }
     if (filters?.precioMax != null && !Number.isNaN(filters.precioMax)) {
-      qb.andWhere('evento.precio <= :precioMax', { precioMax: filters.precioMax });
+      qb.andWhere('evento.precio <= :precioMax', {
+        precioMax: filters.precioMax,
+      });
     }
     if (filters?.desde) {
       qb.andWhere('evento.fechaInicio >= :desde', { desde: filters.desde });
@@ -226,7 +249,9 @@ export class EventosService implements OnModuleInit {
     return qb;
   }
 
-  async findAll(filters?: EventoFilters): Promise<Evento[] | EventosPaginatedResult> {
+  async findAll(
+    filters?: EventoFilters,
+  ): Promise<Evento[] | EventosPaginatedResult> {
     const page = filters?.page;
     const limit = filters?.limit ?? 20;
 
@@ -253,8 +278,9 @@ export class EventosService implements OnModuleInit {
   }
 
   async findDestacados(limit?: number) {
-    const qb = this.baseQuery()
-      .where('evento.destacado = :destacado', { destacado: true });
+    const qb = this.baseQuery().where('evento.destacado = :destacado', {
+      destacado: true,
+    });
     this.applySoloActivos(qb);
     qb.orderBy('evento.fechaInicio', 'ASC');
     if (limit != null && limit > 0) {
@@ -266,13 +292,20 @@ export class EventosService implements OnModuleInit {
   async findUltimasEntradas() {
     const qb = this.baseQuery()
       .where('evento.stock > 0')
-      .andWhere('evento.stock <= :maxStock', { maxStock: STOCK_ULTIMAS_ENTRADAS_MAX });
+      .andWhere('evento.stock <= :maxStock', {
+        maxStock: STOCK_ULTIMAS_ENTRADAS_MAX,
+      });
     this.applySoloActivos(qb);
-    return qb.orderBy('evento.stock', 'ASC').addOrderBy('evento.fechaInicio', 'ASC').getMany();
+    return qb
+      .orderBy('evento.stock', 'ASC')
+      .addOrderBy('evento.fechaInicio', 'ASC')
+      .getMany();
   }
 
   async findOneById(id: number) {
-    const evento = await this.baseQuery().where('evento.id = :id', { id }).getOne();
+    const evento = await this.baseQuery()
+      .where('evento.id = :id', { id })
+      .getOne();
     if (!evento) throw new NotFoundException('Evento no encontrado');
     return evento;
   }
@@ -452,7 +485,7 @@ export class EventosService implements OnModuleInit {
     if (tipo === 'galeria') {
       const slotProvided = slot !== undefined && !Number.isNaN(slot);
       if (slotProvided) {
-        this.eventImages.assertGaleriaSlot(slot!);
+        this.eventImages.assertGaleriaSlot(slot);
         orden = slot!;
       } else {
         orden = this.nextFreeGaleriaSlot(galeria);

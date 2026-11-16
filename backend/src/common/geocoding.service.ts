@@ -67,7 +67,8 @@ export class GeocodingService {
     try {
       const res = await fetch(url.toString(), {
         headers: {
-          'User-Agent': 'FestivAll/1.0 (https://festivall.club; eventos geocoding)',
+          'User-Agent':
+            'FestivAll/1.0 (https://festivall.club; eventos geocoding)',
           'Accept-Language': 'es',
         },
       });
@@ -105,7 +106,10 @@ export class GeocodingService {
   }
 
   /** Autocompletado de direcciones (Photon / OpenStreetMap). */
-  async searchAddresses(query: string, limit = 8): Promise<AddressSuggestion[]> {
+  async searchAddresses(
+    query: string,
+    limit = 8,
+  ): Promise<AddressSuggestion[]> {
     const q = query?.trim();
     if (!q || q.length < 3) return [];
 
@@ -119,7 +123,8 @@ export class GeocodingService {
     try {
       const res = await fetch(url.toString(), {
         headers: {
-          'User-Agent': 'FestivAll/1.0 (https://festivall.club; address search)',
+          'User-Agent':
+            'FestivAll/1.0 (https://festivall.club; address search)',
         },
       });
 
@@ -162,7 +167,8 @@ export class GeocodingService {
     try {
       const res = await fetch(url.toString(), {
         headers: {
-          'User-Agent': 'FestivAll/1.0 (https://festivall.club; address search)',
+          'User-Agent':
+            'FestivAll/1.0 (https://festivall.club; address search)',
           'Accept-Language': 'es',
         },
       });
@@ -207,7 +213,8 @@ export class GeocodingService {
           if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
           const provincia = this.normalizeProvincia(a.county, a.state);
-          const label = hit.display_name ?? [direccion, localidad, provincia].join(', ');
+          const label =
+            hit.display_name ?? [direccion, localidad, provincia].join(', ');
 
           const item: AddressSuggestion = {
             id: `n-${hit.place_id}`,
@@ -243,13 +250,18 @@ export class GeocodingService {
       '';
     if (!localidad) return null;
 
-    const streetLine = [p.street, p.housenumber].filter(Boolean).join(' ').trim();
+    const streetLine = [p.street, p.housenumber]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
     const direccion = streetLine || p.name?.trim() || '';
     if (!direccion) return null;
 
     const provincia = this.normalizeProvincia(p.county, p.state);
     const codigoPostal = p.postcode?.trim() || undefined;
-    const labelParts = [direccion, localidad, provincia, codigoPostal].filter(Boolean);
+    const labelParts = [direccion, localidad, provincia, codigoPostal].filter(
+      Boolean,
+    );
 
     const id =
       p.osm_type && p.osm_id != null
@@ -271,7 +283,12 @@ export class GeocodingService {
   /** Prefiere provincia (county) frente a comunidad autónoma (state). */
   private normalizeProvincia(county?: string, state?: string): string {
     const c = county?.trim();
-    if (c && !/andalucía|murcia|valencia|castilla|galicia|cataluña|navarra|país vasco|extremadura|asturias|cantabria|rioja|madrid|aragon|balear|canarias/i.test(c)) {
+    if (
+      c &&
+      !/andalucía|murcia|valencia|castilla|galicia|cataluña|navarra|país vasco|extremadura|asturias|cantabria|rioja|madrid|aragon|balear|canarias/i.test(
+        c,
+      )
+    ) {
       return c;
     }
     const s = state?.trim();

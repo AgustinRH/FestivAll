@@ -17,7 +17,10 @@ import { CreateCompraDto } from './dto/create-compra.dto';
 import { StripeService } from './stripe.service';
 import { MailService } from '../mail/mail.service';
 import { buildEventoSlug } from '../common/seo-slug.util';
-import { getPrecioUnitario, aplicaDescuentoUltimasEntradas } from '../eventos/precio.util';
+import {
+  getPrecioUnitario,
+  aplicaDescuentoUltimasEntradas,
+} from '../eventos/precio.util';
 import { eventoEstaActivo } from '../eventos/evento-activo.util';
 import {
   buildCheckoutMetadata,
@@ -79,13 +82,22 @@ export class ComprasService {
     return user;
   }
 
-  private scheduleNotifyPurchaseConfirmation(userId: number, compras: Compra[]): void {
+  private scheduleNotifyPurchaseConfirmation(
+    userId: number,
+    compras: Compra[],
+  ): void {
     void this.notifyPurchaseConfirmation(userId, compras).catch((err) =>
-      this.logger.error(`Confirmación por email fallida (usuario ${userId})`, err),
+      this.logger.error(
+        `Confirmación por email fallida (usuario ${userId})`,
+        err,
+      ),
     );
   }
 
-  private async notifyPurchaseConfirmation(userId: number, compras: Compra[]): Promise<void> {
+  private async notifyPurchaseConfirmation(
+    userId: number,
+    compras: Compra[],
+  ): Promise<void> {
     if (compras.length === 0) return;
     const user = await this.usuarioRepo.findOne({ where: { id: userId } });
     if (!user) return;
@@ -94,13 +106,17 @@ export class ComprasService {
     const total = compras.reduce((sum, c) => sum + Number(c.totalPago), 0);
     const perfilUrl = `${this.stripeService.getFrontendUrl()}/perfil`;
 
-    await this.mailService.sendPurchaseConfirmationEmail(user.email, user.nombre, {
-      eventoTitulo: evento?.titulo ?? 'Evento',
-      cantidad: compras.length,
-      total,
-      codigos: compras.map((c) => c.codigoAcceso),
-      perfilUrl,
-    });
+    await this.mailService.sendPurchaseConfirmationEmail(
+      user.email,
+      user.nombre,
+      {
+        eventoTitulo: evento?.titulo ?? 'Evento',
+        cantidad: compras.length,
+        total,
+        codigos: compras.map((c) => c.codigoAcceso),
+        perfilUrl,
+      },
+    );
   }
 
   private generarCodigo(): string {
@@ -114,14 +130,20 @@ export class ComprasService {
     sessionPrecargada?: Stripe.Checkout.Session,
   ): Promise<number> {
     if (sessionPrecargada) {
-      return precioUnitarioDesdeSesion(sessionPrecargada, cantidad, precioCatalogo);
+      return precioUnitarioDesdeSesion(
+        sessionPrecargada,
+        cantidad,
+        precioCatalogo,
+      );
     }
     if (!stripeCheckoutSessionId || cantidad < 1) {
       return precioCatalogo;
     }
     try {
       const stripe = this.stripeService.getClient();
-      const session = await stripe.checkout.sessions.retrieve(stripeCheckoutSessionId);
+      const session = await stripe.checkout.sessions.retrieve(
+        stripeCheckoutSessionId,
+      );
       return precioUnitarioDesdeSesion(session, cantidad, precioCatalogo);
     } catch (err) {
       this.logger.warn(
@@ -132,10 +154,17 @@ export class ComprasService {
     }
   }
 
-  private async findComprasBySession(stripeCheckoutSessionId: string): Promise<Compra[]> {
+  private async findComprasBySession(
+    stripeCheckoutSessionId: string,
+  ): Promise<Compra[]> {
     return this.compraRepo.find({
       where: { stripeCheckoutSessionId },
-      relations: ['evento', 'evento.categoria', 'evento.ubicacion', 'evento.imagenes'],
+      relations: [
+        'evento',
+        'evento.categoria',
+        'evento.ubicacion',
+        'evento.imagenes',
+      ],
       order: { id: 'ASC' },
     });
   }
@@ -155,10 +184,15 @@ export class ComprasService {
       where: { stripeCheckoutSessionId },
     });
     if (yaProcesada > 0) {
-      return { status: 'already_processed', compras: await this.findComprasBySession(stripeCheckoutSessionId) };
+      return {
+        status: 'already_processed',
+        compras: await this.findComprasBySession(stripeCheckoutSessionId),
+      };
     }
 
-    const eventoLigero = await this.eventoRepo.findOne({ where: { id: idEvento } });
+    const eventoLigero = await this.eventoRepo.findOne({
+      where: { id: idEvento },
+    });
     if (!eventoLigero) return { status: 'event_not_found' };
     if (!eventoEstaActivo(eventoLigero)) return { status: 'event_ended' };
     if (eventoLigero.stock < cantidad) return { status: 'no_stock' };
@@ -195,7 +229,12 @@ export class ComprasService {
     const guardadas = await this.compraRepo.save(entradas);
     const compras = await this.compraRepo.find({
       where: { id: In(guardadas.map((c) => c.id)) },
-      relations: ['evento', 'evento.categoria', 'evento.ubicacion', 'evento.imagenes'],
+      relations: [
+        'evento',
+        'evento.categoria',
+        'evento.ubicacion',
+        'evento.imagenes',
+      ],
       order: { id: 'ASC' },
     });
 
@@ -257,7 +296,12 @@ export class ComprasService {
 
       const compras = await manager.find(Compra, {
         where: { id: In(guardadas.map((c) => c.id)) },
-        relations: ['evento', 'evento.categoria', 'evento.ubicacion', 'evento.imagenes'],
+        relations: [
+          'evento',
+          'evento.categoria',
+          'evento.ubicacion',
+          'evento.imagenes',
+        ],
         order: { id: 'ASC' },
       });
 
@@ -290,7 +334,9 @@ export class ComprasService {
       case 'event_not_found':
         throw new NotFoundException('Evento no encontrado');
       case 'event_ended':
-        throw new BadRequestException('Este evento ya ha finalizado y no admite más compras');
+        throw new BadRequestException(
+          'Este evento ya ha finalizado y no admite más compras',
+        );
       case 'no_stock':
         throw new BadRequestException('No hay suficiente stock disponible');
     }
@@ -340,7 +386,10 @@ export class ComprasService {
       );
       return true;
     } catch (err) {
-      this.logger.error(`Error al reembolsar sesión ${session.id} (${idPedido})`, err);
+      this.logger.error(
+        `Error al reembolsar sesión ${session.id} (${idPedido})`,
+        err,
+      );
       return false;
     }
   }
@@ -356,10 +405,14 @@ export class ComprasService {
   async create(userId: number, dto: CreateCompraDto) {
     this.assertTerminosAceptados(dto.aceptoTerminos);
     await this.assertEmailVerified(userId);
-    const evento = await this.eventoRepo.findOne({ where: { id: dto.idEvento } });
+    const evento = await this.eventoRepo.findOne({
+      where: { id: dto.idEvento },
+    });
     if (!evento) throw new NotFoundException('Evento no encontrado');
     if (!eventoEstaActivo(evento)) {
-      throw new BadRequestException('Este evento ya ha finalizado y no admite más compras');
+      throw new BadRequestException(
+        'Este evento ya ha finalizado y no admite más compras',
+      );
     }
 
     const precio = Number(evento.precio);
@@ -382,15 +435,19 @@ export class ComprasService {
     });
     if (!evento) throw new NotFoundException('Evento no encontrado');
     if (!eventoEstaActivo(evento)) {
-      throw new BadRequestException('Este evento ya ha finalizado y no admite más compras');
+      throw new BadRequestException(
+        'Este evento ya ha finalizado y no admite más compras',
+      );
     }
 
     const precioUnitario = getPrecioUnitario(evento);
     if (precioUnitario <= 0) {
-      return this.fulfillPurchase(userId, dto.idEvento, dto.cantidad).then((compras) => ({
-        free: true as const,
-        compras,
-      }));
+      return this.fulfillPurchase(userId, dto.idEvento, dto.cantidad).then(
+        (compras) => ({
+          free: true as const,
+          compras,
+        }),
+      );
     }
 
     if (evento.stock < dto.cantidad) {
@@ -439,7 +496,8 @@ export class ComprasService {
       }),
       success_url: `${frontendUrl}/perfil?session_id={CHECKOUT_SESSION_ID}#entradas`,
       cancel_url: `${frontendUrl}/eventos/${
-        evento.slug ?? buildEventoSlug(evento.id, evento.titulo, evento.ubicacion?.localidad)
+        evento.slug ??
+        buildEventoSlug(evento.id, evento.titulo, evento.ubicacion?.localidad)
       }?pago=cancelado`,
     });
 
@@ -462,14 +520,14 @@ export class ComprasService {
   /**
    * Responde 200 OK de inmediato; el procesamiento y los reembolsos van en segundo plano.
    */
-  async handleStripeWebhook(rawBody: Buffer, signature: string) {
+  handleStripeWebhook(rawBody: Buffer, signature: string) {
     const stripe = this.stripeService.getClient();
     const secret = this.stripeService.getWebhookSecret();
 
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(rawBody, signature, secret);
-    } catch (err) {
+    } catch {
       this.logger.warn(
         `Webhook Stripe: firma inválida (modo ${this.stripeService.getMode()}). ¿STRIPE_WEBHOOK_SECRET_${this.stripeService.getMode().toUpperCase()} del endpoint correcto?`,
       );
@@ -477,7 +535,7 @@ export class ComprasService {
     }
 
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session;
+      const session = event.data.object;
       setImmediate(() => {
         void this.processCompletedSessionAsync(session).catch((err) =>
           this.logger.error(`Error procesando webhook ${session.id}`, err),
@@ -498,7 +556,9 @@ export class ComprasService {
     const idPedido = session.metadata?.id_pedido_interno ?? session.id;
 
     if (!userId || !eventoId || !cantidad) {
-      this.logger.error(`Metadata incompleta en sesión ${session.id} (pedido ${idPedido})`);
+      this.logger.error(
+        `Metadata incompleta en sesión ${session.id} (pedido ${idPedido})`,
+      );
       return;
     }
 
@@ -538,7 +598,9 @@ export class ComprasService {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (Number(session.metadata?.userId) !== userId) {
-      throw new ForbiddenException('Esta sesión de pago no pertenece a tu cuenta');
+      throw new ForbiddenException(
+        'Esta sesión de pago no pertenece a tu cuenta',
+      );
     }
 
     if (session.payment_status === 'paid') {
@@ -609,8 +671,10 @@ export class ComprasService {
     const transaccionesPagadas = sesionesPagadas.size;
     const { percent, fixedEur } = this.stripeService.getStripeFeeEstimate();
     const comisionEstimadaFallback =
-      Math.round((totalRecaudado * (percent / 100) + transaccionesPagadas * fixedEur) * 100) /
-      100;
+      Math.round(
+        (totalRecaudado * (percent / 100) + transaccionesPagadas * fixedEur) *
+          100,
+      ) / 100;
 
     let comisionStripe = 0;
     let transaccionesConFeeReal = 0;
@@ -629,7 +693,8 @@ export class ComprasService {
       comisionStripe = Math.round(comisionStripe * 100) / 100;
     }
 
-    const comisionStripeEsEstimada = transaccionesConFeeReal < transaccionesPagadas;
+    const comisionStripeEsEstimada =
+      transaccionesConFeeReal < transaccionesPagadas;
     if (comisionStripeEsEstimada) {
       const sesionesSinFee = transaccionesPagadas - transaccionesConFeeReal;
       const parteEstimada =
@@ -642,11 +707,13 @@ export class ComprasService {
       }
     }
 
-    const festivallComisionPct = this.stripeService.getFestivallCommissionPercent();
+    const festivallComisionPct =
+      this.stripeService.getFestivallCommissionPercent();
     const comisionFestivall =
       Math.round(totalRecaudado * (festivallComisionPct / 100) * 100) / 100;
     const totalTransferirLocal =
-      Math.round((totalRecaudado - comisionStripe - comisionFestivall) * 100) / 100;
+      Math.round((totalRecaudado - comisionStripe - comisionFestivall) * 100) /
+      100;
 
     const localNombre = evento.ubicacion
       ? `${evento.ubicacion.direccion}, ${evento.ubicacion.localidad}`
@@ -680,7 +747,12 @@ export class ComprasService {
   async findByUser(userId: number) {
     return this.compraRepo.find({
       where: { idUsuario: userId },
-      relations: ['evento', 'evento.categoria', 'evento.ubicacion', 'evento.imagenes'],
+      relations: [
+        'evento',
+        'evento.categoria',
+        'evento.ubicacion',
+        'evento.imagenes',
+      ],
       order: { fechaCompra: 'DESC', id: 'DESC' },
     });
   }
@@ -688,7 +760,12 @@ export class ComprasService {
   async findOne(id: number, userId: number) {
     const compra = await this.compraRepo.findOne({
       where: { id, idUsuario: userId },
-      relations: ['evento', 'evento.categoria', 'evento.ubicacion', 'evento.imagenes'],
+      relations: [
+        'evento',
+        'evento.categoria',
+        'evento.ubicacion',
+        'evento.imagenes',
+      ],
     });
     if (!compra) throw new NotFoundException('Compra no encontrada');
     return compra;
@@ -702,7 +779,14 @@ export class ComprasService {
     const compras = await this.compraRepo
       .createQueryBuilder('c')
       .leftJoin('c.usuario', 'u')
-      .addSelect(['u.id', 'u.nombre', 'u.apellidos', 'u.email', 'u.rol', 'u.emailVerificado'])
+      .addSelect([
+        'u.id',
+        'u.nombre',
+        'u.apellidos',
+        'u.email',
+        'u.rol',
+        'u.emailVerificado',
+      ])
       .where('c.idEvento = :idEvento', { idEvento })
       .orderBy('c.fechaCompra', 'DESC')
       .addOrderBy('c.id', 'DESC')
@@ -766,7 +850,8 @@ export class ComprasService {
       .select(['u.id', 'u.nombre', 'u.apellidos', 'u.email'])
       .where('u.id = :id', { id: nuevoIdUsuario })
       .getOne();
-    if (!usuario) throw new BadRequestException('Usuario destino no encontrado');
+    if (!usuario)
+      throw new BadRequestException('Usuario destino no encontrado');
 
     compra.idUsuario = nuevoIdUsuario;
     await this.compraRepo.save(compra);

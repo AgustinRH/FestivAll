@@ -15,13 +15,23 @@ export class Cliente {
   @Column({ type: 'varchar', length: 150 })
   nombre: string;
 
-  @Column({ name: 'nombre_fiscal', type: 'varchar', length: 200, nullable: true })
+  @Column({
+    name: 'nombre_fiscal',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
   nombreFiscal: string | null;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   cif: string | null;
 
-  @Column({ name: 'email_contacto', type: 'varchar', length: 120, nullable: true })
+  @Column({
+    name: 'email_contacto',
+    type: 'varchar',
+    length: 120,
+    nullable: true,
+  })
   emailContacto: string | null;
 
   @Column({ type: 'varchar', length: 40, nullable: true })

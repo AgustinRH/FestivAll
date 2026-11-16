@@ -9,6 +9,8 @@ export class CreateCompraDto {
   cantidad: number;
 
   @IsBoolean()
-  @Equals(true, { message: 'Debes aceptar los términos y condiciones de compra' })
+  @Equals(true, {
+    message: 'Debes aceptar los términos y condiciones de compra',
+  })
   aceptoTerminos: boolean;
 }

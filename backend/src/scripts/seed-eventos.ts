@@ -13,52 +13,129 @@ if (process.env.NODE_ENV !== 'production') {
 
 const TARGET_TOTAL = 100;
 
-const CATEGORIAS: Record<number, { nombre: string; prefijos: string[]; imagen: string }> = {
+const CATEGORIAS: Record<
+  number,
+  { nombre: string; prefijos: string[]; imagen: string }
+> = {
   1: {
     nombre: 'Rock',
-    prefijos: ['Rock Night', 'Guitar Fest', 'Rock en Vivo', 'Alternativa Sessions', 'Wall of Sound'],
-    imagen: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800',
+    prefijos: [
+      'Rock Night',
+      'Guitar Fest',
+      'Rock en Vivo',
+      'Alternativa Sessions',
+      'Wall of Sound',
+    ],
+    imagen:
+      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800',
   },
   2: {
     nombre: 'Festivales',
-    prefijos: ['Festival', 'Weekend Fest', 'Open Air', 'Sunset Fest', 'Costa Fest'],
-    imagen: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800',
+    prefijos: [
+      'Festival',
+      'Weekend Fest',
+      'Open Air',
+      'Sunset Fest',
+      'Costa Fest',
+    ],
+    imagen:
+      'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800',
   },
   3: {
     nombre: 'Reggaeton',
-    prefijos: ['Perreo Night', 'Urban Beach', 'Reggaeton Live', 'Latino Party', 'Dembow Session'],
-    imagen: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800',
+    prefijos: [
+      'Perreo Night',
+      'Urban Beach',
+      'Reggaeton Live',
+      'Latino Party',
+      'Dembow Session',
+    ],
+    imagen:
+      'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800',
   },
   4: {
     nombre: 'Techno',
-    prefijos: ['Techno Warehouse', 'Afterhours', 'Rave Night', 'Electronic Pulse', 'Bass Tunnel'],
-    imagen: 'https://images.unsplash.com/photo-1571266023766-ef4f5f25ed8a?w=800',
+    prefijos: [
+      'Techno Warehouse',
+      'Afterhours',
+      'Rave Night',
+      'Electronic Pulse',
+      'Bass Tunnel',
+    ],
+    imagen:
+      'https://images.unsplash.com/photo-1571266023766-ef4f5f25ed8a?w=800',
   },
   5: {
     nombre: 'Flamenco',
-    prefijos: ['Noche Flamenca', 'Tablao Live', 'Cante y Baile', 'Flamenco Íntimo', 'Jondo Session'],
-    imagen: 'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?w=800',
+    prefijos: [
+      'Noche Flamenca',
+      'Tablao Live',
+      'Cante y Baile',
+      'Flamenco Íntimo',
+      'Jondo Session',
+    ],
+    imagen:
+      'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?w=800',
   },
   6: {
     nombre: 'Indie',
-    prefijos: ['Indie Night', 'Garage Sessions', 'Underground Pop', 'Indie Costa', 'Vinilo Live'],
-    imagen: 'https://images.unsplash.com/photo-1459749411175-04bf0292bbce?w=800',
+    prefijos: [
+      'Indie Night',
+      'Garage Sessions',
+      'Underground Pop',
+      'Indie Costa',
+      'Vinilo Live',
+    ],
+    imagen:
+      'https://images.unsplash.com/photo-1459749411175-04bf0292bbce?w=800',
   },
 };
 
 const LOCALIDADES = [
-  { direccion: 'Paseo Marítimo s/n', localidad: 'Roquetas de Mar', provincia: 'Almería' },
-  { direccion: 'Plaza de la Constitución 1', localidad: 'Almería', provincia: 'Almería' },
-  { direccion: 'Av. del Mediterráneo 200', localidad: 'El Ejido', provincia: 'Almería' },
+  {
+    direccion: 'Paseo Marítimo s/n',
+    localidad: 'Roquetas de Mar',
+    provincia: 'Almería',
+  },
+  {
+    direccion: 'Plaza de la Constitución 1',
+    localidad: 'Almería',
+    provincia: 'Almería',
+  },
+  {
+    direccion: 'Av. del Mediterráneo 200',
+    localidad: 'El Ejido',
+    provincia: 'Almería',
+  },
   { direccion: 'Calle Real 45', localidad: 'Níjar', provincia: 'Almería' },
   { direccion: 'Recinto Ferial', localidad: 'Vera', provincia: 'Almería' },
   { direccion: 'Parque Municipal', localidad: 'Adra', provincia: 'Almería' },
-  { direccion: 'Puerto Deportivo', localidad: 'Garrucha', provincia: 'Almería' },
-  { direccion: 'Auditorio Municipal', localidad: 'Huércal-Overa', provincia: 'Almería' },
-  { direccion: 'Castillo de San José', localidad: 'Carboneras', provincia: 'Almería' },
+  {
+    direccion: 'Puerto Deportivo',
+    localidad: 'Garrucha',
+    provincia: 'Almería',
+  },
+  {
+    direccion: 'Auditorio Municipal',
+    localidad: 'Huércal-Overa',
+    provincia: 'Almería',
+  },
+  {
+    direccion: 'Castillo de San José',
+    localidad: 'Carboneras',
+    provincia: 'Almería',
+  },
   { direccion: 'Centro Cultural', localidad: 'Berja', provincia: 'Almería' },
-  { direccion: 'Polideportivo Municipal', localidad: 'Vícar', provincia: 'Almería' },
-  { direccion: 'Playa de los Muertos', localidad: 'Carboneras', provincia: 'Almería' },
+  {
+    direccion: 'Polideportivo Municipal',
+    localidad: 'Vícar',
+    provincia: 'Almería',
+  },
+  {
+    direccion: 'Playa de los Muertos',
+    localidad: 'Carboneras',
+    provincia: 'Almería',
+  },
 ];
 
 const SUFIJOS = [
@@ -93,12 +170,16 @@ function pick<T>(arr: T[], index: number): T {
 }
 
 function stockForSlot(slot: number): number {
-  const slots = [2, 3, 4, 5, 8, 12, 18, 25, 40, 75, 120, 200, 350, 500, 800, 1200, 2000];
+  const slots = [
+    2, 3, 4, 5, 8, 12, 18, 25, 40, 75, 120, 200, 350, 500, 800, 1200, 2000,
+  ];
   return slots[slot % slots.length];
 }
 
 function precioForSlot(slot: number): number {
-  const precios = [0, 12, 15, 18, 20, 22, 25, 28, 32, 35, 40, 45, 55, 65, 75, 85, 95, 120];
+  const precios = [
+    0, 12, 15, 18, 20, 22, 25, 28, 32, 35, 40, 45, 55, 65, 75, 85, 95, 120,
+  ];
   return precios[slot % precios.length];
 }
 
@@ -138,7 +219,9 @@ async function seed() {
   const toInsert = Math.max(0, TARGET_TOTAL - current);
 
   if (toInsert === 0) {
-    console.log(`Ya hay ${current} eventos (objetivo: ${TARGET_TOTAL}). Nada que insertar.`);
+    console.log(
+      `Ya hay ${current} eventos (objetivo: ${TARGET_TOTAL}). Nada que insertar.`,
+    );
     await conn.end();
     return;
   }
@@ -223,7 +306,7 @@ async function seed() {
   await conn.end();
 }
 
-seed().catch((err) => {
-  console.error(err.message || err);
+seed().catch((err: unknown) => {
+  console.error(err instanceof Error ? err.message : String(err));
   process.exit(1);
 });

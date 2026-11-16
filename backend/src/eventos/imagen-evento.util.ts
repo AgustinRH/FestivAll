@@ -1,5 +1,8 @@
 import { Imagen } from '../entities/imagen.entity';
-import { EventImageTipo, MAX_GALERIA_IMAGES } from '../uploads/event-image.types';
+import {
+  EventImageTipo,
+  MAX_GALERIA_IMAGES,
+} from '../uploads/event-image.types';
 
 export function resolveImagenTipo(img: Imagen): EventImageTipo {
   if (img.tipo) return img.tipo;
@@ -36,7 +39,9 @@ export function urlImagenPorTipo(
   return findImagenPorTipo(imagenes, tipo)?.url ?? null;
 }
 
-export function urlImagenPrincipal(imagenes: Imagen[] | undefined): string | null {
+export function urlImagenPrincipal(
+  imagenes: Imagen[] | undefined,
+): string | null {
   return (
     urlImagenPorTipo(imagenes, 'principal') ??
     findImagenPorTipo(imagenes, 'cartelera')?.url ??

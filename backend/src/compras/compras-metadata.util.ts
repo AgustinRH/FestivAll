@@ -2,7 +2,10 @@ import { randomBytes } from 'crypto';
 import { Ubicacion } from '../entities/ubicacion.entity';
 
 /** Identificador interno único por intento de compra (metadata Stripe). */
-export function generarIdPedidoInterno(eventoId: number, userId: number): string {
+export function generarIdPedidoInterno(
+  eventoId: number,
+  userId: number,
+): string {
   const sufijo = randomBytes(3).toString('hex').toUpperCase();
   return `ENTRADA_${eventoId}_U${userId}_${Date.now()}_${sufijo}`;
 }

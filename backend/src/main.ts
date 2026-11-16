@@ -19,14 +19,20 @@ async function bootstrap() {
     });
   }
   app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }),
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
   );
   setupSwagger(app);
   const port = process.env.PORT ?? 3000;
   await app.listen(port, '0.0.0.0');
   console.log(`API escuchando en http://0.0.0.0:${port}`);
   if (process.env.SWAGGER_ENABLED !== 'false') {
-    console.log(`OpenAPI (Swagger): http://0.0.0.0:${port}/docs (prod: /api/docs tras nginx)`);
+    console.log(
+      `OpenAPI (Swagger): http://0.0.0.0:${port}/docs (prod: /api/docs tras nginx)`,
+    );
   }
 }
-bootstrap();
+void bootstrap();

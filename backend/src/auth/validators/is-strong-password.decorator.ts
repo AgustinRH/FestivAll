@@ -4,7 +4,10 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { isStrongPassword, STRONG_PASSWORD_MESSAGE } from '../password.constants';
+import {
+  isStrongPassword,
+  STRONG_PASSWORD_MESSAGE,
+} from '../password.constants';
 
 @ValidatorConstraint({ name: 'isStrongPassword', async: false })
 export class IsStrongPasswordConstraint implements ValidatorConstraintInterface {

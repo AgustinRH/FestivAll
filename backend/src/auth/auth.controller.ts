@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Put, Query, UseGuards, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -16,7 +25,9 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Registro de usuario (envía email de verificación)' })
+  @ApiOperation({
+    summary: 'Registro de usuario (envía email de verificación)',
+  })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
@@ -35,7 +46,9 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  @ApiOperation({ summary: 'Solicitar restablecimiento de contraseña por email' })
+  @ApiOperation({
+    summary: 'Solicitar restablecimiento de contraseña por email',
+  })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.requestPasswordReset(dto.email);
   }
@@ -49,7 +62,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiJwtAuth()
   @Post('request-password-reset')
-  @ApiOperation({ summary: 'Solicitar reset de contraseña (usuario autenticado)' })
+  @ApiOperation({
+    summary: 'Solicitar reset de contraseña (usuario autenticado)',
+  })
   requestPasswordResetForMe(@Request() req: { user: { id: number } }) {
     return this.authService.requestPasswordResetForUser(req.user.id);
   }

@@ -30,19 +30,45 @@ export class Usuario {
   @Column({ name: 'email_verificado', type: 'boolean', default: false })
   emailVerificado: boolean;
 
-  @Column({ name: 'email_verification_token', type: 'varchar', length: 64, nullable: true, select: false })
+  @Column({
+    name: 'email_verification_token',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+    select: false,
+  })
   emailVerificationToken: string | null;
 
-  @Column({ name: 'email_verification_expires', type: 'datetime', nullable: true, select: false })
+  @Column({
+    name: 'email_verification_expires',
+    type: 'datetime',
+    nullable: true,
+    select: false,
+  })
   emailVerificationExpires: Date | null;
 
-  @Column({ name: 'password_reset_token', type: 'varchar', length: 64, nullable: true, select: false })
+  @Column({
+    name: 'password_reset_token',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+    select: false,
+  })
   passwordResetToken: string | null;
 
-  @Column({ name: 'password_reset_expires', type: 'datetime', nullable: true, select: false })
+  @Column({
+    name: 'password_reset_expires',
+    type: 'datetime',
+    nullable: true,
+    select: false,
+  })
   passwordResetExpires: Date | null;
 
-  @Column({ name: 'fecha_registro', type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'fecha_registro',
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   fechaRegistro: Date;
 
   @OneToMany(() => Compra, (compra) => compra.usuario)

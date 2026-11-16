@@ -8,7 +8,9 @@ import { ValoracionesService } from './valoraciones.service';
 import { ValoracionesController } from './valoraciones.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Valoracion, ValoracionOmitida, Compra, Evento])],
+  imports: [
+    TypeOrmModule.forFeature([Valoracion, ValoracionOmitida, Compra, Evento]),
+  ],
   controllers: [ValoracionesController],
   providers: [ValoracionesService],
   exports: [ValoracionesService],

@@ -13,7 +13,9 @@ export function validarFechasEvento(
   const fin = toIsoDateOnly(fechaFin);
 
   if (!inicio || !fin) {
-    throw new BadRequestException('La fecha de inicio y la fecha de fin son obligatorias.');
+    throw new BadRequestException(
+      'La fecha de inicio y la fecha de fin son obligatorias.',
+    );
   }
   if (fin < inicio) {
     throw new BadRequestException(

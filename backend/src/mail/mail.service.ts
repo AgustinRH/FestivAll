@@ -46,7 +46,10 @@ export class MailService {
     const safeTitulo = this.escapeHtml(data.eventoTitulo);
     const totalFmt = data.total.toFixed(2).replace('.', ',');
     const codigosHtml = data.codigos
-      .map((c) => `<li style="font-family:monospace;font-size:14px">${this.escapeHtml(c)}</li>`)
+      .map(
+        (c) =>
+          `<li style="font-family:monospace;font-size:14px">${this.escapeHtml(c)}</li>`,
+      )
       .join('');
     const html = `<div style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;color:#222">
 <h2 style="color:#e85d3b">FestivAll Almería</h2>
@@ -65,25 +68,34 @@ ${data.codigos.length ? `<p><strong>Códigos de acceso:</strong></p><ul>${codigo
 <p style="font-size:13px;color:#666">Muestra el código QR en la entrada del evento.</p>
 </div>`;
 
-    const codigosText = data.codigos.length ? `\nCódigos:\n${data.codigos.join('\n')}\n` : '';
+    const codigosText = data.codigos.length
+      ? `\nCódigos:\n${data.codigos.join('\n')}\n`
+      : '';
     const text = `Hola ${nombre},\n\nCompra confirmada en FestivAll.\n\nEvento: ${data.eventoTitulo}\nEntradas: ${data.cantidad}\nTotal: ${totalFmt} €${codigosText}\nVer tus entradas: ${data.perfilUrl}\n`;
 
     if (!this.transporter) {
-      this.logger.warn(`SMTP no configurado. Confirmación de compra para ${to}: ${data.perfilUrl}`);
+      this.logger.warn(
+        `SMTP no configurado. Confirmación de compra para ${to}: ${data.perfilUrl}`,
+      );
       return;
     }
 
     await this.transporter.sendMail({ from, to, subject, html, text });
   }
 
-  async sendVerificationEmail(to: string, nombre: string, verifyUrl: string): Promise<void> {
+  async sendVerificationEmail(
+    to: string,
+    nombre: string,
+    verifyUrl: string,
+  ): Promise<void> {
     const from =
       this.config.get<string>('MAIL_FROM') ||
       this.config.get<string>('SMTP_USER') ||
       'noreply@festivall.club';
     const subject = 'Verifica tu cuenta en FestivAll';
     const safeName = this.escapeHtml(nombre);
-    const html = `<motion style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;color:#222">
+    const html =
+      `<motion style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;color:#222">
 <h2 style="color:#e85d3b">FestivAll Almería</h2>
 <p>Hola ${safeName},</p>
 <p>Gracias por registrarte. Pulsa el botón para verificar tu email y poder iniciar sesión:</p>
@@ -94,7 +106,9 @@ ${data.codigos.length ? `<p><strong>Códigos de acceso:</strong></p><ul>${codigo
 </motion>`.replaceAll('motion', 'div');
 
     if (!this.transporter) {
-      this.logger.warn(`SMTP no configurado. Enlace de verificación para ${to}: ${verifyUrl}`);
+      this.logger.warn(
+        `SMTP no configurado. Enlace de verificación para ${to}: ${verifyUrl}`,
+      );
       return;
     }
 
@@ -107,7 +121,11 @@ ${data.codigos.length ? `<p><strong>Códigos de acceso:</strong></p><ul>${codigo
     });
   }
 
-  async sendPasswordResetEmail(to: string, nombre: string, resetUrl: string): Promise<void> {
+  async sendPasswordResetEmail(
+    to: string,
+    nombre: string,
+    resetUrl: string,
+  ): Promise<void> {
     const from =
       this.config.get<string>('MAIL_FROM') ||
       this.config.get<string>('SMTP_USER') ||
@@ -125,7 +143,9 @@ ${data.codigos.length ? `<p><strong>Códigos de acceso:</strong></p><ul>${codigo
 </div>`;
 
     if (!this.transporter) {
-      this.logger.warn(`SMTP no configurado. Enlace de reset para ${to}: ${resetUrl}`);
+      this.logger.warn(
+        `SMTP no configurado. Enlace de reset para ${to}: ${resetUrl}`,
+      );
       return;
     }
 

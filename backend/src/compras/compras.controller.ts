@@ -42,7 +42,9 @@ export class ComprasController {
       throw new BadRequestException('Falta cabecera stripe-signature');
     }
     if (!req.rawBody?.length) {
-      throw new BadRequestException('Cuerpo del webhook vacío (se requiere raw body)');
+      throw new BadRequestException(
+        'Cuerpo del webhook vacío (se requiere raw body)',
+      );
     }
     return this.comprasService.handleStripeWebhook(req.rawBody, signature);
   }
@@ -51,7 +53,10 @@ export class ComprasController {
   @ApiJwtAuth()
   @Post('checkout')
   @ApiOperation({ summary: 'Crear sesión Stripe Checkout (evento de pago)' })
-  createCheckout(@Request() req: { user: { id: number } }, @Body() dto: CreateCompraDto) {
+  createCheckout(
+    @Request() req: { user: { id: number } },
+    @Body() dto: CreateCompraDto,
+  ) {
     return this.comprasService.createCheckoutSession(req.user.id, dto);
   }
 
@@ -74,7 +79,10 @@ export class ComprasController {
   @ApiJwtAuth()
   @Post()
   @ApiOperation({ summary: 'Comprar entradas gratis (precio 0)' })
-  create(@Request() req: { user: { id: number } }, @Body() dto: CreateCompraDto) {
+  create(
+    @Request() req: { user: { id: number } },
+    @Body() dto: CreateCompraDto,
+  ) {
     return this.comprasService.create(req.user.id, dto);
   }
 
@@ -133,7 +141,10 @@ export class ComprasController {
   @ApiJwtAuth()
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de una compra del usuario' })
-  findOne(@Request() req: { user: { id: number } }, @Param('id', ParseIntPipe) id: number) {
+  findOne(
+    @Request() req: { user: { id: number } },
+    @Param('id', ParseIntPipe) id: number,
+  ) {
     return this.comprasService.findOne(id, req.user.id);
   }
 }

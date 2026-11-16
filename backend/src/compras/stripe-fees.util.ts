@@ -32,7 +32,11 @@ export function precioUnitarioDesdeSesion(
   cantidad: number,
   precioCatalogoFallback: number,
 ): number {
-  if (session.amount_total != null && session.amount_total > 0 && cantidad > 0) {
+  if (
+    session.amount_total != null &&
+    session.amount_total > 0 &&
+    cantidad > 0
+  ) {
     return Math.round((session.amount_total / 100 / cantidad) * 100) / 100;
   }
   return precioCatalogoFallback;

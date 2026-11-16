@@ -5,7 +5,10 @@ export function aplicaDescuentoUltimasEntradas(stock: number): boolean {
   return stock > 0 && stock <= STOCK_ULTIMAS_ENTRADAS_MAX;
 }
 
-export function getPrecioUnitario(evento: { precio: number; stock: number }): number {
+export function getPrecioUnitario(evento: {
+  precio: number;
+  stock: number;
+}): number {
   const precio = Number(evento.precio);
   if (precio <= 0) return 0;
   if (aplicaDescuentoUltimasEntradas(evento.stock)) {

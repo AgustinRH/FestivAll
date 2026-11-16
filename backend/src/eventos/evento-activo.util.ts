@@ -23,8 +23,6 @@ export function hoyIso(): string {
   return `${y}-${m}-${day}`;
 }
 
-export function eventoEstaActivo(evento: {
-  fechaFin: string | Date;
-}): boolean {
+export function eventoEstaActivo(evento: { fechaFin: string | Date }): boolean {
   return fechaReferenciaEvento(evento) >= hoyIso();
 }

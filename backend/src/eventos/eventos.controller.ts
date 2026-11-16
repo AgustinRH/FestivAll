@@ -16,7 +16,13 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { parseEventoIdFromSlug } from '../common/seo-slug.util';
 import { EventosService } from './eventos.service';
 import { CreateEventoDto } from './dto/create-evento.dto';
@@ -67,7 +73,9 @@ export class EventosController {
     const parseLimit = (v?: string) => {
       if (v === undefined || v === '') return undefined;
       const n = +v;
-      return Number.isFinite(n) && n >= 1 ? Math.min(Math.floor(n), 100) : undefined;
+      return Number.isFinite(n) && n >= 1
+        ? Math.min(Math.floor(n), 100)
+        : undefined;
     };
     const parsedPage = parsePage(page);
     return this.eventosService.findAll({
@@ -153,7 +161,9 @@ export class EventosController {
   }
 
   @Get(':slugOrId')
-  @ApiOperation({ summary: 'Detalle público por id o slug (ej. 42-festival-rock)' })
+  @ApiOperation({
+    summary: 'Detalle público por id o slug (ej. 42-festival-rock)',
+  })
   findOne(@Param('slugOrId') slugOrId: string) {
     const id = parseEventoIdFromSlug(slugOrId);
     if (id == null) {
@@ -181,7 +191,9 @@ export class EventosController {
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiAdminAuth()
   @Post(':id/imagen/:tipo')
-  @ApiOperation({ summary: 'Subir imagen: principal | cartelera | galeria (admin)' })
+  @ApiOperation({
+    summary: 'Subir imagen: principal | cartelera | galeria (admin)',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -206,7 +218,12 @@ export class EventosController {
   ) {
     const slotNum =
       slot !== undefined && slot !== '' ? parseInt(slot, 10) : undefined;
-    return this.eventosService.uploadImagen(id, tipo as 'principal' | 'cartelera' | 'galeria', file, slotNum);
+    return this.eventosService.uploadImagen(
+      id,
+      tipo as 'principal' | 'cartelera' | 'galeria',
+      file,
+      slotNum,
+    );
   }
 
   @UseGuards(JwtAuthGuard, AdminGuard)

@@ -31,6 +31,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         'Sesión inválida: el usuario ya no existe o la base de datos se reinició. Cierra sesión y vuelve a entrar.',
       );
     }
-    return { id: user.id, email: user.email, rol: user.rol, nombre: user.nombre, apellidos: user.apellidos };
+    return {
+      id: user.id,
+      email: user.email,
+      rol: user.rol,
+      nombre: user.nombre,
+      apellidos: user.apellidos,
+    };
   }
 }
