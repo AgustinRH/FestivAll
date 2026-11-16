@@ -1,12 +1,16 @@
 # Solo MariaDB para desarrollo local (npm run start:dev + npm start)
+# Requires .env with DB_PASSWORD (see .env.example).
 services:
   mariadb:
     image: mariadb:11
     container_name: festivall-db-dev
     restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
     environment:
-      MARIADB_ROOT_PASSWORD: REDACTED
-      MARIADB_DATABASE: FestivAll
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MARIADB_DATABASE: ${DB_DATABASE:-FestivAll}
     ports:
       - '3306:3306'
     volumes:

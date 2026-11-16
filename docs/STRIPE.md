@@ -65,7 +65,7 @@ Reinicia el backend o `docker compose up -d --build` tras cambiar variables.
 Si la base de datos ya existía antes de Stripe:
 
 ```bash
-docker compose exec mariadb mariadb -u root -p"" FestivAll < database/migrations/002_stripe_checkout.sql
+docker compose exec mariadb mariadb -u root -p"$DB_PASSWORD" FestivAll < database/migrations/002_stripe_checkout.sql
 ```
 
 (En local sin Docker, usa tu cliente MariaDB con el mismo SQL.)

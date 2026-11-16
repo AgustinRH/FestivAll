@@ -1,5 +1,5 @@
 -- Organizadores (clientes) y vínculo obligatorio con evento
--- docker compose exec -T mariadb mariadb -u root -p"" FestivAll < database/migrations/007_cliente_evento_entradas_admin.sql
+-- docker compose exec -T mariadb mariadb -u root -p"$DB_PASSWORD" FestivAll < database/migrations/007_cliente_evento_entradas_admin.sql
 
 USE FestivAll;
 

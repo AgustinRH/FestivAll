@@ -72,7 +72,8 @@ Manual equivalente:
 
 ```bash
 docker compose up -d
-docker run --rm --network proyecto-x_festivall-net \
+export DOCKER_NETWORK="${DOCKER_NETWORK:-festivall_festivall-net}"
+docker run --rm --network "$DOCKER_NETWORK" \
   -v "$(pwd)/load-tests:/scripts" \
   -e BASE_URL=http://festivall-web -e API_PREFIX=/api \
   grafana/k6 run /scripts/k6-smoke.js

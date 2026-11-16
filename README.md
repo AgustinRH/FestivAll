@@ -169,7 +169,7 @@ Open http://localhost:4200. The dev server proxies `/api` to `localhost:3000` (s
 
 The same `docker compose up -d --build` is what production uses. The frontend image listens on 80 and 443 and can mount Let's Encrypt certificates, as in [frontend/nginx.conf](frontend/nginx.conf).
 
-A step-by-step AWS EC2 guide (Ubuntu, Docker, DNS, TLS) is in [`Pasos para la instancia de EC2.md`](Pasos%20para%20la%20instancia%20de%20EC2.md) (Spanish).
+A step-by-step AWS EC2 guide (Ubuntu, Docker, DNS, TLS) is in [`docs/EC2-deployment.md`](docs/EC2-deployment.md) (Spanish).
 
 Set a strong `JWT_SECRET` and database password, keep Stripe in test mode until you are ready, and do not commit `.env`.
 
@@ -196,7 +196,7 @@ k6 smoke and load scripts hit public GET endpoints only (events, catalogue). Pre
 BASE_URL=http://127.0.0.1:3000 API_PREFIX="" k6 run load-tests/k6-smoke.js
 ```
 
-The smoke helper still attaches k6 to the Docker network name `proyecto-x_festivall-net` (the old folder name). If the compose project is `FestivAll`, change that network name or the script will not reach the containers.
+The smoke/load helpers use `DOCKER_NETWORK` (default `festivall_festivall-net`). Override if your Compose project name differs: `DOCKER_NETWORK=myproject_festivall-net ./load-tests/run-local-smoke.sh`.
 
 ## Payments (Stripe)
 

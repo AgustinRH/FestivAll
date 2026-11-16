@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+DOCKER_NETWORK="${DOCKER_NETWORK:-festivall_festivall-net}"
+
 if ! docker compose ps --status running 2>/dev/null | grep -q festivall-api; then
   docker compose up -d
   sleep 5
@@ -16,7 +18,8 @@ if [ "$CODE" != "200" ]; then
 fi
 
 echo "==> k6 load (~2m30s, hasta 50 usuarios virtuales, solo GET públicos)..."
-docker run --rm --network proyecto-x_festivall-net \
+echo "    DOCKER_NETWORK=$DOCKER_NETWORK"
+docker run --rm --network "$DOCKER_NETWORK" \
   -v "$ROOT/load-tests:/scripts" \
   -e BASE_URL=http://festivall-web \
   -e API_PREFIX=/api \

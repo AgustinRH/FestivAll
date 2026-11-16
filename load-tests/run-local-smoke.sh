@@ -6,6 +6,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+# Compose project network (override if your folder/project name differs)
+DOCKER_NETWORK="${DOCKER_NETWORK:-festivall_festivall-net}"
+
 echo "==> Comprobando servicios Docker..."
 if ! docker compose ps --status running 2>/dev/null | grep -q festivall-api; then
   echo "Levantando stack local..."
@@ -20,7 +23,8 @@ if [ "$CODE" != "200" ]; then
 fi
 
 echo "==> Ejecutando k6 smoke (5 usuarios, 30s, solo GET públicos)..."
-docker run --rm --network proyecto-x_festivall-net \
+echo "    DOCKER_NETWORK=$DOCKER_NETWORK"
+docker run --rm --network "$DOCKER_NETWORK" \
   -v "$ROOT/load-tests:/scripts" \
   -e BASE_URL=http://festivall-web \
   -e API_PREFIX=/api \

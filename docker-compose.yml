@@ -13,7 +13,7 @@ services:
       - path: ./backend/.env
         required: false
     environment:
-      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       MARIADB_DATABASE: ${DB_DATABASE:-FestivAll}
     volumes:
       - festivall_data:/var/lib/mysql
@@ -45,9 +45,9 @@ services:
       DB_HOST: mariadb
       DB_PORT: 3306
       DB_USERNAME: root
-      DB_PASSWORD: ${DB_PASSWORD:-root}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       DB_DATABASE: ${DB_DATABASE:-FestivAll}
-      JWT_SECRET: ${JWT_SECRET:-REDACTED}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
       SWAGGER_SERVER_URL: ${SWAGGER_SERVER_URL:-https://festivall.club/api}

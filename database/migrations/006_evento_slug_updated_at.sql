@@ -1,5 +1,5 @@
 -- Slug SEO y fecha de última modificación en eventos
--- docker compose exec -T mariadb mariadb -u root -p"" FestivAll < database/migrations/006_evento_slug_updated_at.sql
+-- docker compose exec -T mariadb mariadb -u root -p"$DB_PASSWORD" FestivAll < database/migrations/006_evento_slug_updated_at.sql
 
 USE FestivAll;
 
