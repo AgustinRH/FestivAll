@@ -238,3 +238,8 @@ Short version: a Stripe account (test mode) â†’ keys in `.env` â†’ migration `da
 ## Authors
 
 Final degree project by [AgustÃ­n RubÃ­ HernÃ¡ndez](https://github.com/AgustinRH) and [Rafael Pablo GarcÃ­a SÃ¡nchez](https://github.com/RafaelGarcia-02).
+
+## License
+
+MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Agustín Rubí Hernández and Rafael Pablo García Sánchez.
+
