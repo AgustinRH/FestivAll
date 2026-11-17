@@ -1,5 +1,7 @@
 # FestivAll
 
+![CI](https://github.com/AgustinRH/FestivAll/actions/workflows/ci.yml/badge.svg)
+
 **Discover events in Almería and buy tickets online.**
 
 A full-stack ticketing platform for concerts and festivals in the province of Almería (rock, festivals, reggaeton, techno and more): browse and filter events, pay with Stripe, and manage the catalogue from an admin panel.
